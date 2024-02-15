@@ -1,0 +1,13 @@
+*slec*
+*.log
+*.log-*
+*.log_*
+*ucli.key
+*design_checker*tcl
+*vcs*
+*Catapult*
+*.ccs
+*.pinfo
+*.output.json
+*.csv
+catapult_cache

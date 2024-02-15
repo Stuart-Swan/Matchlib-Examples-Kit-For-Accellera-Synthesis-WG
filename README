@@ -1,0 +1,126 @@
+
+
+Introduction
+
+This kit contains complete source code to enable you to build and run a representative
+set of Matchlib examples without needing any EDA tool installations or any other downloads.
+The examples run on the open source Accellera SystemC simulator, which is included in this kit.
+There is an overview of Matchlib in ./matchlib_examples/doc/matchlib_accellera_presentation.pdf 
+
+Matchlib is starting to be discussed within the Accellera Synthesis Working Group for possible
+standardization. If you are interested in participating in the discussion, see the information here:
+
+https://www.accellera.org/activities/working-groups
+
+
+Contents of Kit
+
+matchlib_examples          - Matchlib examples directory - the primary content of this kit.
+matchlib_examples/doc      - Matchlib examples documentation.
+matchlib_examples/examples - Matchlib examples. Each example includes a README file.
+
+ac_simutils-master         - AC Simulation utilities downloaded from github
+ac_types-master	           - AC Types downloaded from github
+ac_math-master	           - AC Math downloaded from github
+rapidjson-master	   - RapidJson downloaded from github
+matchlib_connections-master -Matchlib connections downloaded from github
+matchlib-main              - Matchlib library downloaded from github
+systemc-2.3.3	           - Open source SystemC source code downloaded from Accellera.org
+
+README	                   - This file
+LICENSE		           - Open Source LICENSE file
+setenvs.csh	           - Setup script for csh
+setenvs.sh	           - Setup script for sh and bash
+
+The most recent updates to this kit may be found at:
+https://forums.accellera.org/files/category/2-systemc/
+
+A youtube video from NVidia on Matchlib is available here:
+https://www.youtube.com/watch?v=n8_G-CaSSPU
+
+The github location for the matchlib_examples is here:
+github.com/hlslibs/matchlib_toolkit
+this github location may contain the most recent updates to the examples.
+
+Additional HLS libraries such as AC DSP
+as well as future updates to this kit may also be found at: 
+hlslibs.org
+
+If you are interested in NVidia's Interconnect Prototype Assistant,
+which runs with Matchlib, see the following links:
+https://research.nvidia.com/publication/2021-11_IPA%3A-Floorplan-Aware-SystemC
+https://github.com/NVlabs/IPA
+
+If you are interested in advanced bus fabric models built using Matchlib 
+(for example AXI4 ACE support), you may also wish to refer to:
+https://github.com/ic-lab-duth/NoCpad
+
+Additional larger open souce Matchlib examples can be found at:
+https://hlslibs.org/UniversityPartners.html
+
+Online discussion related to this kit can be viewed and created here:
+https://forums.accellera.org/forum/10-systemc-language/
+
+
+
+Setup
+
+This kit should work on most linux compatible systems.
+
+If you are using csh, type:
+  source setenvs.csh
+to setup necessary shell environment variables.
+
+If you are using sh or bash, type:
+  source setenvs.sh
+to setup necessary shell environment variables.
+
+All subsequent build steps must be done in a shell that has these environment variables set.
+
+
+
+Building the SystemC Library
+
+Before running any examples, you need to build the SystemC simulator.
+This only needs to be done once.
+Type:
+  sh build_systemc.sh
+
+This may take several minutes to complete, and must complete without errors in order
+to run the examples.
+
+(To run AddressSanitizer, you must use a build of the SystemC simulator that uses pthreads.
+If you want to do this, use
+  sh pthreads_build_systemc.sh
+instead of the build_systemc.sh command above.)
+
+
+Running a Test Example
+ 
+To run a test, 
+  cd matchlib_examples/examples/05_push_pop
+  make build
+  ./sim_sc
+
+Read the README files in the examples directories for further steps.
+
+
+Documentation
+
+It is recommended that you browse all of the documents in matchlib_examples/doc 
+
+
+Waveform Viewing
+
+You can use Questa (vsim), VCS, or similar simulators to view the trace.vcd files
+produced from the SystemC simulations in the examples. Alternatively you can download
+the open source gtkwave waveform viewer (google gtkwave).
+
+
+Cleanup
+
+To clean up all generated files in the examples and in the SystemC built library,
+type:
+  sh clean_all.sh
+
+

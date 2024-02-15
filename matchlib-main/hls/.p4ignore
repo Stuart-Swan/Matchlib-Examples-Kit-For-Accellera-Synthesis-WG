@@ -1,0 +1,11 @@
+*slec*
+*.log
+*.log-*
+*.log_*
+*ucli.key
+*design_checker*
+*vcs*
+*/Catapult*
+*.output.json
+*.csv
+catapult_cache
