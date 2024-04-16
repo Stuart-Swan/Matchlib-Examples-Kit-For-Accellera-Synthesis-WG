@@ -1,6 +1,8 @@
 
 This simple example demonstrates a "throughput accurate" scatter-gather DMA model using NVidia Matchlib and Catapult HLS.
 
+See the presentation ./scatter_gather_dma.pdf for detailed information about this example.
+
 
 Steps:
 
