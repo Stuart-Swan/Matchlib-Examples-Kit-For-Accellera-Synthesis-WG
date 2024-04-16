@@ -149,6 +149,10 @@ direct_port_sc: $(wildcard $(SOURCE_DIR)*.h) $(wildcard $(SOURCE_DIR)*.cpp)
 	$(CXX) -DFORCE_AUTO_PORT=Connections::DIRECT_PORT $(CXXFLAGS) \
 		$(CPPFLAGS) $(LIBDIRS) $(wildcard $(SOURCE_DIR)*.cpp) -o $@ $(LIBS)
 
+clang_sc: $(wildcard $(SOURCE_DIR)*.h) $(wildcard $(SOURCE_DIR)*.cpp)
+	clang++ -DFORCE_AUTO_PORT=Connections::DIRECT_PORT $(CXXFLAGS) \
+		$(CPPFLAGS) $(LIBDIRS) $(wildcard $(SOURCE_DIR)*.cpp) -o $@ $(LIBS)
+
 # These two targets assume that the QuestaSim utilities 'vcd2wlf' and 'vsim'
 # are found in your PATH
 %.wlf: %.vcd
@@ -183,7 +187,7 @@ help: checkvars
 	-@echo ""
 
 clean: sim_clean
-	@rm -rf *.vcd *.wlf *atapu* chan_log*txt direct_port_sc *wrap*
+	@rm -rf *.vcd *.wlf *atapu* chan_log*txt direct_port_sc *wrap* clang_sc
 
 
 

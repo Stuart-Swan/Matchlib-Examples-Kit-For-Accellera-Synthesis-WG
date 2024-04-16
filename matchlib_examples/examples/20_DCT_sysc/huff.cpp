@@ -8,7 +8,7 @@ unsigned char SSSS(int diff)
 {
   unsigned char r = 0;
   diff = (diff>=0)?diff:-diff;
-#pragma unroll yes
+#pragma hls_unroll yes
   for (int i=11; i>=0; i--) {
     if ((diff>>i)==0) {
       r=i;

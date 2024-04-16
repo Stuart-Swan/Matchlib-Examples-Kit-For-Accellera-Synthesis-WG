@@ -4,6 +4,7 @@
 
 #include <mc_connections.h>
 #include "auto_gen_fields.h"
+#include <ac_array_1D.h>
 
 typedef ac_int<32, false> rd_req;
 typedef ac_int<32, false> rd_rsp;
@@ -64,7 +65,7 @@ public:
     wr_rsp1.Reset();
     wr_rsp2.Reset();
 
-    ac_int<32, false> mem[mem_rows];
+    ac_array_1D<ac_int<32,false>, mem_rows> mem;
 
     wait(); 
 

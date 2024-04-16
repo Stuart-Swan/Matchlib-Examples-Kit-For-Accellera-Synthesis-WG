@@ -7,7 +7,7 @@ options defaults
 
 options set /Input/CppStandard c++11
 if {$enable_preserve_fields} {
-  options set /Input/CompilerFlags { "-DFORCE_AUTO_PORT=Connections::DIRECT_PORT" -DSEGMENT_BURST_SIZE=16}
+  options set /Input/CompilerFlags { "-DFORCE_AUTO_PORT=Connections::DIRECT_PORT" }
 } else {
   options set /Input/CompilerFlags { }
 }

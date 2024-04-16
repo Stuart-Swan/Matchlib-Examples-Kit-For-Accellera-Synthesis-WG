@@ -3,10 +3,10 @@
 
 #include <iostream>
 #include <iomanip>
-#include <array>
+#include <ac_array_1D.h>
 
 template <typename T, unsigned N>
-class extended_array : public std::array<T,N> {
+class extended_array : public ac_array_1D<T,N> {
 public:
 
   extended_array(std::string _nm = "", bool _add_time_stamp=0) 
@@ -26,7 +26,7 @@ public:
   void Reset() {
     for (unsigned i=0; i < N; i++) {
       write_cnt[i] = 0;
-      std::array<T,N>& tmp = *this; 
+      ac_array_1D<T,N>& tmp = *this; 
       tmp[i] = 0;
     }
   }
@@ -45,7 +45,7 @@ public:
 
 
   struct elem_proxy {
-    std::array<T,N>& array;
+    ac_array_1D<T,N>& array;
     extended_array& ext_array;
     unsigned idx;
 

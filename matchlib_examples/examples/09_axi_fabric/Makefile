@@ -199,7 +199,7 @@ help: checkvars
 	-@echo ""
 
 clean: sim_clean
-	@rm -rf *.vcd *.wlf *atapu* wrapDir direct_port_sc asan_sim_sc fast_sim_sc marshall_port_sc *split_wrap*
+	@rm -rf *.vcd *.wlf *atapu* wrapDir direct_port_sc asan_sim_sc fast_sim_sc marshall_port_sc *split_wrap* clang_sc
 
 
 

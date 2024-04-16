@@ -11,6 +11,8 @@ typedef axi::axi4_segment<axi::cfg::standard> local_axi;
 #include <extended_array.h>
 #endif
 
+#include <ac_array_1D.h>
+
 /**
  *  \brief A simple RAM module with 1 axi4 read slave and 1 axi4 write slave
 */
@@ -37,7 +39,7 @@ public:
 #ifdef USE_EXTENDED_ARRAY
   extended_array<arr_t, sz>* array{0};
 #else
-  std::array<arr_t, sz>* array{0};
+  ac_array_1D<arr_t, sz>* array{0};
 #endif
 
   SC_HAS_PROCESS(ram);
@@ -48,7 +50,7 @@ public:
     
     array = new extended_array<arr_t, sz>(log_nm, use_time_stamp);
 #else
-    array = new std::array<arr_t, sz>();
+    array = new ac_array_1D<arr_t, sz>();
 #endif
 
     SC_THREAD(slave_r_process);

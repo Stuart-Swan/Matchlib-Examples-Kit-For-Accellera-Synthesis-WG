@@ -48,7 +48,7 @@ public:
   Connections::Out<uint32_t>              CCS_INIT_S1(dma_dbg);
 
   apb_master_ports<>                      CCS_INIT_S1(master0_ports);
-// #define MASTER_XACTOR 1
+#define MASTER_XACTOR 1
 #ifdef MASTER_XACTOR
   apb_master_xactor<>                     CCS_INIT_S1(master0_xactor);
   Connections::Combinational<apb_req>     CCS_INIT_S1(master0_req_chan);

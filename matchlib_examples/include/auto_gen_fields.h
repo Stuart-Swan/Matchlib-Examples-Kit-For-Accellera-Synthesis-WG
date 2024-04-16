@@ -392,5 +392,11 @@ public:
   GEN_EQUAL(FIELD_LIST(X))
   //
 
+#define AUTO_GEN_FIELD_METHODS_V2(THIS_TYPE, X) \
+  typedef THIS_TYPE auto_gen_type; \
+  GEN_TRACE_METHOD(FIELD_LIST(X)) \
+  GEN_STREAM_METHOD(FIELD_LIST(X)) \
+  GEN_EQUAL(FIELD_LIST(X))
+  //
 
 

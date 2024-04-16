@@ -180,7 +180,7 @@ no_stall_wave:
 	vsim  no_stall_log/out.wlf -nolog -do "add wave -r out:/SystemC/*" -do "wave zoom full"
 
 diff:
-	@/bin/bash $(SOURCE_DIR)../bin/earliest_diff.sh no_stall_log stall_log
+	/bin/bash $(SOURCE_DIR)../bin/earliest_diff.sh no_stall_log stall_log
 	@echo Finished difference summary
 
 help: checkvars

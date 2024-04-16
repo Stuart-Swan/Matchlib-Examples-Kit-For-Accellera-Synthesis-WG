@@ -65,7 +65,7 @@ public:
     wait();
     while (true) {
       T t{0};
-      #pragma unroll yes
+      #pragma hls_unroll yes
       for (int k=0; k<(len/2); k++) {
         t = t + sig_array[k].read(); 
       }

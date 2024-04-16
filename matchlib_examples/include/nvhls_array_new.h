@@ -19,13 +19,13 @@
 
 #ifndef NVHLS_ARRAY_BOOST
 
-#include "ac_bank_array.h"
+#include "ac_bank_array_no_assert.h"
 #include "systemc.h"
 
 namespace nvhls {
 
 template <typename Type, unsigned int VectorLength>
-class nv_array : public ac_bank_array_base<Type, VectorLength>
+class nv_array : public ac_bank_array_no_assert_base<Type, VectorLength>
 {
 public:
   nv_array() {}
