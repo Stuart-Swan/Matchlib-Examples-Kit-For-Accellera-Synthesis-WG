@@ -475,15 +475,7 @@ namespace Connections
 // rand_stall_enable() or by CONN_RAND_STALL
 #define __CONN_RAND_STALL_FEATURE
 
-  template <class Dummy>
-  struct clk_statics {
-    static const sc_time epsilon;
-  };
-
-  template <class Dummy>
-  const sc_time clk_statics<Dummy>::epsilon = sc_time(0.01, SC_NS);
-
-  class SimConnectionsClk : public clk_statics<void>
+  class SimConnectionsClk 
   {
   public:
     SimConnectionsClk() {
@@ -563,6 +555,8 @@ namespace Connections
     }
 
     void start_of_simulation() {
+      // Set epsilon to default value at start of simulation, after time resolution has been set
+      epsilon = sc_time(0.01, SC_NS);
       const std::vector<sc_object *> tops = sc_get_top_level_objects();
       for (unsigned i=0; i < tops.size(); i++) {
         if (tops[i]) { find_clocks(tops[i]); }
@@ -589,6 +583,7 @@ namespace Connections
 
   private:
 
+    sc_core::sc_time epsilon;
     inline sc_time get_period_delay(int c) const {
       return clk_info_vector.at(c).clk_ptr->period();
     }
