@@ -59,6 +59,5 @@
 #include <connections/connections.h>
 #include <connections/connections_sync.h>
 #include <connections/connections_fifo.h>
-#include <connections/port_scanner.h>
 
 #endif

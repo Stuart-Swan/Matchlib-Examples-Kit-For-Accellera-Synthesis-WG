@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Simulation Utilities                               *
  *                                                                        *
- *  Software Version: 1.4                                                 *
+ *  Software Version: 1.5                                                 *
  *                                                                        *
- *  Release Date    : Mon Jul 17 20:14:44 PDT 2023                        *
+ *  Release Date    : Sun Feb  4 15:24:00 PST 2024                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 1.4.0                                               *
+ *  Release Build   : 1.5.0                                               *
  *                                                                        *
  *  Copyright 2020 Siemens                                                *
  *                                                                        *
@@ -241,24 +241,30 @@ public:
 
   void mc_testbench_process_array_bounds(const char *var, int &first, int &last, unsigned int hi, unsigned int lo) {
     if ( (first != -1) && ( ((unsigned int)first > hi) || ((unsigned int)first < 0) ) ) {
+#if !defined(__SYNTHESIS__) && defined(MC_NO_SYSC)
       std::ostringstream msg;
       msg.str("");
       msg << "Testbench control testbench::" << var << "_array_comp_first=" << first << " exceeds array range of [" << lo << "..." << hi << "]";
       SC_REPORT_WARNING("User testbench", msg.str().c_str());
+#endif
       first = -1;
     }
     if ( (last != -1) && ( ((unsigned int)last > hi) || ((unsigned int)last < 0) ) ) {
+#if !defined(__SYNTHESIS__) && defined(MC_NO_SYSC)
       std::ostringstream msg;
       msg.str("");
       msg << "Testbench control testbench::" << var << "_array_comp_last=" << last << " exceeds array range of [" << lo << "..." << hi << "]";
       SC_REPORT_WARNING("User testbench", msg.str().c_str());
+#endif
       last = -1;
     }
     if ( (first != -1) && (last != -1) && (first > last) ) {
+#if !defined(__SYNTHESIS__) && defined(MC_NO_SYSC)
       std::ostringstream msg;
       msg.str("");
       msg << "Testbench controls testbench::" << var << "_array_comp_first," << var << "_array_comp_last specify invalid range [" << first << "..." << last << "]";
       SC_REPORT_WARNING("User testbench", msg.str().c_str());
+#endif
       first = -1;
       last = -1;
     }

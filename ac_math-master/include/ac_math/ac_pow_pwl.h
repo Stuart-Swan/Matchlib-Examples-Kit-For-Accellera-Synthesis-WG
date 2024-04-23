@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Math Library                                       *
  *                                                                        *
- *  Software Version: 3.4                                                 *
+ *  Software Version: 3.5                                                 *
  *                                                                        *
- *  Release Date    : Wed May  4 10:47:29 PDT 2022                        *
+ *  Release Date    : Thu Feb  8 17:36:42 PST 2024                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 3.4.3                                               *
+ *  Release Build   : 3.5.0                                               *
  *                                                                        *
  *  Copyright 2018 Siemens                                                *
  *                                                                        *
@@ -183,6 +183,7 @@ namespace ac_math
     ac_fixed<sc_input_frac_bits + int_bits, int_bits, false> x_in_sc = (input_frac_part - x_min_lut)*sc_constant_lut;
     ac_fixed<sc_input_frac_bits, 0, false> x_in_sc_frac;
     // Slice out the fractional part from the scaled input, store it in another variable.
+		#pragma hls_waive UMR
     x_in_sc_frac.set_slc(0, x_in_sc.template slc<sc_input_frac_bits>(0));
     // The integer part of the scaled input is the index of the LUT table
     ac_int<int_bits, false> index = x_in_sc.to_int();
@@ -293,7 +294,7 @@ namespace ac_math
     // Find type of intermediate variable used to store output of x*log2(e)
     typedef class comp_pii_exp<W, I, S, n_f_b>::pit_t input_inter_type;
     #else
-    const bool is_n_seg_po2 = !bool(n_segments_lut & n_segments_lut - 1);
+    const bool is_n_seg_po2 = !bool(n_segments_lut & (n_segments_lut - 1));
     const int extra_f_bits = is_n_seg_po2 ? ac::nbits<n_segments_lut - 1>::val : 0;
     // Find type of intermediate variable used to store output of x*log2(e)
     typedef class comp_pii_exp<W, I, S, n_frac_bits + extra_f_bits>::pit_t input_inter_type;
@@ -362,7 +363,7 @@ namespace ac_math
       const unsigned n_segments_lut = 4;
       const int n_frac_bits = 10;
       
-      const bool is_n_seg_po2 = !bool(n_segments_lut & n_segments_lut - 1);
+      const bool is_n_seg_po2 = !bool(n_segments_lut & (n_segments_lut - 1));
       const int extra_f_bits = is_n_seg_po2 ? ac::nbits<n_segments_lut - 1>::val : 0;
       const int W_fxpt = I_fxpt + n_frac_bits + extra_f_bits;
 

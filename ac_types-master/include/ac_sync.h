@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Datatypes                                          *
  *                                                                        *
- *  Software Version: 4.4                                                 *
+ *  Software Version: 4.8                                                 *
  *                                                                        *
- *  Release Date    : Mon Jan 31 10:49:34 PST 2022                        *
+ *  Release Date    : Sun Jan 28 19:38:23 PST 2024                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 4.4.2                                               *
+ *  Release Build   : 4.8.0                                               *
  *                                                                        *
  *  Copyright 2004-2020, Mentor Graphics Corporation,                     *
  *                                                                        *
@@ -58,13 +58,15 @@ public:
   // constructor
   ac_sync(): Base() { }
 
-  inline void sync_in() {
+template <typename ...T> 
+void sync_in(T &...t) {
     Base::read();
-  }
+}
 
-  inline void sync_out() {
+template <typename ...T> 
+void sync_out(T &...t) {
     Base::write(true);
-  }
+}
 
   inline bool nb_sync_in() {
     bool rval = true;

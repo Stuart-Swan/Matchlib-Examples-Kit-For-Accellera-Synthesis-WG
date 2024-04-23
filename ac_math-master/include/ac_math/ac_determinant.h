@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Math Library                                       *
  *                                                                        *
- *  Software Version: 3.4                                                 *
+ *  Software Version: 3.5                                                 *
  *                                                                        *
- *  Release Date    : Wed May  4 10:47:29 PDT 2022                        *
+ *  Release Date    : Thu Feb  8 17:36:42 PST 2024                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 3.4.3                                               *
+ *  Release Build   : 3.5.0                                               *
  *                                                                        *
  *  Copyright 2018 Siemens                                                *
  *                                                                        *
@@ -214,14 +214,14 @@ namespace ac_math
 
       temp_type temp;
       // PIVOT loop to keep track of pivot (element about which minor is to be computed)
-#pragma unroll yes
+#pragma hls_unroll yes
       PIVOT:
       for (unsigned j=0; j<M; j++) {
         // ROW and COLUMN loop to create matrices
-#pragma unroll yes
+#pragma hls_unroll yes
         ROW:
         for (unsigned p=1; p<M; p++) {
-#pragma unroll yes
+#pragma hls_unroll yes
           COLUMN:
           for (unsigned q=1; q<M; q++) {
             b(p-1, q-1) = A(p, q-(q<=j));
@@ -234,7 +234,7 @@ namespace ac_math
         c[j] = pr * temp;
       }
       // Accumulate loop for accumulation after multiplication with pivot
-#pragma unroll yes
+#pragma hls_unroll yes
       ACCUMULATE:
       for (unsigned j=0; j<M; j++) {
         d = d + A(0,j) * c[j];
@@ -407,15 +407,19 @@ namespace ac_math
   }
 
   // Define c-array function versions for determinant
+  #ifdef _WIN32
+  template <unsigned M, bool override = false, int internal_width = 16, int internal_int = 8, bool internal_sign = true, ac_q_mode internal_rnd = AC_RND, ac_o_mode internal_sat = AC_SAT, int W1, int I1,bool S1, ac_q_mode q1, ac_o_mode o1, int W2, int I2, ac_q_mode q2, ac_o_mode o2>
+  #else
   template <bool override = false, int internal_width = 16, int internal_int = 8, bool internal_sign = true, ac_q_mode internal_rnd = AC_RND, ac_o_mode internal_sat = AC_SAT, unsigned M, int W1, int I1,bool S1, ac_q_mode q1, ac_o_mode o1, int W2, int I2, ac_q_mode q2, ac_o_mode o2>
+  #endif
   void ac_determinant (const ac_fixed <W1, I1, S1, q1, o1> a[M][M], ac_fixed <W2, I2, true, q2, o2> &result)
   {
     ac_matrix < ac_fixed <W1, I1, S1, q1, o1>, M, M > a_temp;
 
-#pragma unroll yes
+#pragma hls_unroll yes
     ROW_CPY:
     for (unsigned i = 0; i < M; i++) {
-#pragma unroll yes
+#pragma hls_unroll yes
       COLUMN_CPY:
       for (unsigned j = 0; j < M; j++) {
         a_temp (i,j) = a[i][j];
@@ -423,15 +427,18 @@ namespace ac_math
     }
     ac_determinant <override, internal_width, internal_int, internal_sign, internal_rnd, internal_sat> (a_temp, result);
   }
-
-  template <bool override = false, int internal_width = 16, int internal_int = 8, bool internal_sign = true, ac_q_mode internal_rnd = AC_RND, ac_o_mode internal_sat = AC_SAT, unsigned M, int W1, int I1,bool S1, ac_q_mode q1, ac_o_mode o1, int W2, int I2, ac_q_mode q2, ac_o_mode o2>
+  #ifdef _WIN32
+  template <unsigned M, bool override = false, int internal_width = 16, int internal_int = 8, bool internal_sign = true, ac_q_mode internal_rnd = AC_RND, ac_o_mode internal_sat = AC_SAT, int W1, int I1,bool S1, ac_q_mode q1, ac_o_mode o1, int W2, int I2, ac_q_mode q2, ac_o_mode o2>
+  #else
+  template <bool override = false, int internal_width = 16, int internal_int = 8, bool internal_sign = true, ac_q_mode internal_rnd = AC_RND, ac_o_mode internal_sat = AC_SAT, unsigned M, int W1, int I1,bool S1, ac_q_mode q1, ac_o_mode o1, int W2, int I2, ac_q_mode q2, ac_o_mode o2>  
+  #endif
   void ac_determinant (const ac_complex <ac_fixed <W1, I1, S1, q1, o1> > a[M][M], ac_complex <ac_fixed <W2, I2, true, q2, o2> > &result)
   {
     ac_matrix < ac_complex <ac_fixed <W1, I1, S1, q1, o1> >, M, M > a_temp;
-#pragma unroll yes
+#pragma hls_unroll yes
     ROW_CPY:
     for (unsigned i = 0; i < M; i++) {
-#pragma unroll yes
+#pragma hls_unroll yes
       COLUMN_CPY:
       for (unsigned j = 0; j < M; j++) {
         a_temp (i,j) = a[i][j];
@@ -450,11 +457,19 @@ namespace ac_math
   }
 
   // Version that allows returning of values for c style array inputs.
+  #ifdef _WIN32
+  template<unsigned M, class T_out, bool override = false, int internal_width = 16, int internal_int = 8, bool internal_sign = true, ac_q_mode internal_rnd = AC_RND, ac_o_mode internal_sat = AC_SAT, class T_in>
+  #else
   template<class T_out, bool override = false, int internal_width = 16, int internal_int = 8, bool internal_sign = true, ac_q_mode internal_rnd = AC_RND, ac_o_mode internal_sat = AC_SAT, unsigned M, class T_in>
+  #endif  
   T_out ac_determinant(const T_in input[M][M])
   {
     T_out output;
-    ac_determinant<override, internal_width, internal_int, internal_sign, internal_rnd, internal_sat>(input, output);
+    #ifdef _WIN32
+      ac_determinant<M, override, internal_width, internal_int, internal_sign, internal_rnd, internal_sat>(input, output);
+    #else
+      ac_determinant<override, internal_width, internal_int, internal_sign, internal_rnd, internal_sat>(input, output);
+    #endif    
     return output;
   }
 }

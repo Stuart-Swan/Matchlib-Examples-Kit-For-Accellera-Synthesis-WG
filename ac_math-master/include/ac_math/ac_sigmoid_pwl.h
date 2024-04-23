@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Math Library                                       *
  *                                                                        *
- *  Software Version: 3.4                                                 *
+ *  Software Version: 3.5                                                 *
  *                                                                        *
- *  Release Date    : Wed May  4 10:47:29 PDT 2022                        *
+ *  Release Date    : Thu Feb  8 17:36:42 PST 2024                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 3.4.3                                               *
+ *  Release Build   : 3.5.0                                               *
  *                                                                        *
  *  Copyright 2018 Siemens                                                *
  *                                                                        *
@@ -90,6 +90,8 @@
 #include <ac_int.h>
 // Include headers for data types supported by these implementations
 #include <ac_fixed.h>
+#include <ac_float.h>
+#include <ac_std_float.h>
 
 #if !defined(__SYNTHESIS__) && defined(AC_SIGMOID_PWL_H_DEBUG)
 #include <iostream>
@@ -232,6 +234,17 @@ namespace ac_math
     output = output_temp;
   }
 
+  template <ac_q_mode pwl_Q = AC_TRN, int W, int E, int outW, int outE>
+  void ac_sigmoid_pwl(
+    const ac_std_float<W, E> &input,
+    ac_std_float<outW, outE> &output
+  )
+  {
+    ac_float<outW - outE + 1, 2, outE> output_ac_fl; // Equivalent ac_float representation for output.
+    ac_sigmoid_pwl<pwl_Q>(input.to_ac_float(), output_ac_fl); // Call ac_float version.
+    ac_std_float<outW, outE> output_temp(output_ac_fl); // Convert output ac_float to ac_std_float.
+    output = output_temp;
+  }
 
 // For this section of the code to work, the user must include ac_std_float.h in their testbench before including the sigmoid header,
 // so as to have the code import the ac_ieee_float datatype and define the __AC_STD_FLOAT_H macro.

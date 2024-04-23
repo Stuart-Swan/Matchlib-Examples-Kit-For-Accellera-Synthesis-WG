@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Math Library                                       *
  *                                                                        *
- *  Software Version: 3.4                                                 *
+ *  Software Version: 3.5                                                 *
  *                                                                        *
- *  Release Date    : Wed May  4 10:47:29 PDT 2022                        *
+ *  Release Date    : Thu Feb  8 17:36:42 PST 2024                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 3.4.3                                               *
+ *  Release Build   : 3.5.0                                               *
  *                                                                        *
  *  Copyright 2018 Siemens                                                *
  *                                                                        *
@@ -71,7 +71,7 @@ namespace ac_math
   ac_int<ac::nbits<W-1>::val,false> trailing1(ac_int<W,false> din, bool &flag)
   {
     ac_int<W,false> rev;
-#pragma unroll yes
+#pragma hls_unroll yes
     for (int i=0; i<W; i++)
     { rev[i] = din[W-1-i]; }
     return rev.leading_sign(flag);
@@ -90,7 +90,7 @@ namespace ac_math
   ac_int<ac::nbits<W-1>::val,false> trailing0(ac_int<W,false> din, bool &flag)
   {
     ac_int<W,false> rev;
-#pragma unroll yes
+#pragma hls_unroll yes
     for (int i=0; i<W; i++)
     { rev[i] = !din[W-1-i]; }
     return rev.leading_sign(flag);
@@ -116,7 +116,7 @@ namespace ac_math
   ac_int<ac::nbits<W-1>::val,false> trailing1(ac_int<W,true> din, bool &flag)
   {
     ac_int<W-1,false> trail_reg;
-#pragma unroll yes
+#pragma hls_unroll yes
     for (int i=0; i<W-1; i++)
     { trail_reg[i] = din[W-1-1-i]; }
     return trail_reg.leading_sign(flag);
@@ -136,7 +136,7 @@ namespace ac_math
   ac_int<ac::nbits<W-1>::val,false> trailing0(ac_int<W,true> din, bool &flag)
   {
     ac_int<W-1,false> trail_reg;
-#pragma unroll yes
+#pragma hls_unroll yes
     for (int i=0; i<W-1; i++)
     { trail_reg[i] = !(din[W-2-i]); }
     return trail_reg.leading_sign(flag);
@@ -160,7 +160,7 @@ namespace ac_math
   ac_int<ac::nbits<W-1>::val,false> trailing1(ac_fixed<W, I, false> din, bool &flag)
   {
     ac_fixed<W, I, false> rev;
-#pragma unroll yes
+#pragma hls_unroll yes
     for (int i=0; i<W; i++)
     { rev[i] = din[W-1-i]; }
     return rev.leading_sign(flag);
@@ -179,7 +179,7 @@ namespace ac_math
   ac_int<ac::nbits<W-1>::val,false> trailing0(ac_fixed<W, I, false> din, bool &flag)
   {
     ac_fixed<W, I, false> rev;
-#pragma unroll yes
+#pragma hls_unroll yes
     for (int i=0; i<W; i++)
     { rev[i] = !din[W-1-i]; }
     return rev.leading_sign(flag);
@@ -204,7 +204,7 @@ namespace ac_math
   ac_int<ac::nbits<W-1>::val,false> trailing1(ac_fixed<W, I, true> din, bool &flag)
   {
     ac_fixed<W-1, I, false> trail_reg;
-#pragma unroll yes
+#pragma hls_unroll yes
     for (int i=0; i<=W-2; i++)
     { trail_reg[i] = din[W-2-i]; }
     return trail_reg.leading_sign(flag);
@@ -224,7 +224,7 @@ namespace ac_math
   ac_int<ac::nbits<W-1>::val,false> trailing0(ac_fixed<W, I, true> din, bool &flag)
   {
     ac_fixed<W-1, I, false> trail_reg;
-#pragma unroll yes
+#pragma hls_unroll yes
     for (int i=0; i<=W-2; i++)
     { trail_reg[i] = !(din[W-2-i]); }
     return trail_reg.leading_sign(flag);

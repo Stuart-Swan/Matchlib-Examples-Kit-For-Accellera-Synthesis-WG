@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Math Library                                       *
  *                                                                        *
- *  Software Version: 3.4                                                 *
+ *  Software Version: 3.5                                                 *
  *                                                                        *
- *  Release Date    : Wed May  4 10:47:29 PDT 2022                        *
+ *  Release Date    : Thu Feb  8 17:36:42 PST 2024                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 3.4.3                                               *
+ *  Release Build   : 3.5.0                                               *
  *                                                                        *
  *  Copyright 2018 Siemens                                                *
  *                                                                        *
@@ -304,7 +304,7 @@ int test_driver(
   copy_to_A_ac_matrix<M, N>(cmplx_A_c_array, cmplx_A_ac_matrix);
   copy_to_B_ac_matrix<N, P>(cmplx_B_c_array, cmplx_B_ac_matrix);
 
-  test_ac_matrixmul(A_c_array, B_c_array, C_c_array, cmplx_A_c_array, cmplx_B_c_array, cmplx_C_c_array, A_ac_matrix, B_ac_matrix, C_ac_matrix, cmplx_A_ac_matrix, cmplx_B_ac_matrix, cmplx_C_ac_matrix);
+  test_ac_matrixmul<M,N,P>(A_c_array, B_c_array, C_c_array, cmplx_A_c_array, cmplx_B_c_array, cmplx_C_c_array, A_ac_matrix, B_ac_matrix, C_ac_matrix, cmplx_A_ac_matrix, cmplx_B_ac_matrix, cmplx_C_ac_matrix);
 
   ac_fixed<outWfi, outIfi, outSfi, AC_TRN, AC_WRAP> C_ac_matrix_converted[M][P];
   ac_complex<ac_fixed<outWfi, outIfi, outSfi, AC_TRN, AC_WRAP> > C_cmplx_ac_matrix_converted[M][P];

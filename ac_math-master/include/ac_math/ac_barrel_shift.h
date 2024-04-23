@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Math Library                                       *
  *                                                                        *
- *  Software Version: 3.4                                                 *
+ *  Software Version: 3.5                                                 *
  *                                                                        *
- *  Release Date    : Wed May  4 10:47:29 PDT 2022                        *
+ *  Release Date    : Thu Feb  8 17:36:42 PST 2024                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 3.4.3                                               *
+ *  Release Build   : 3.5.0                                               *
  *                                                                        *
  *  Copyright 2018 Siemens                                                *
  *                                                                        *
@@ -93,7 +93,7 @@ namespace ac_math
     ac_int< ac::nbits< NUM_BITS -1 >::val,false> s = s_in;
     ac_int<NUM_BITS,false> din_tmp = 0;
     din_tmp = din;
-#pragma unroll yes
+#pragma hls_unroll yes
     for (int i=0; i< ac::nbits< NUM_BITS -1 >::val; i++) {
       shift_layer(din_tmp,din_tmp,s, i);
     }

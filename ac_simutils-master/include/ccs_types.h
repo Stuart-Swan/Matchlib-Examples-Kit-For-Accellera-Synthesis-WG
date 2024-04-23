@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Simulation Utilities                               *
  *                                                                        *
- *  Software Version: 1.4                                                 *
+ *  Software Version: 1.5                                                 *
  *                                                                        *
- *  Release Date    : Mon Jul 17 20:14:44 PDT 2023                        *
+ *  Release Date    : Sun Feb  4 15:24:00 PST 2024                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 1.4.0                                               *
+ *  Release Build   : 1.5.0                                               *
  *                                                                        *
  *  Copyright 2020 Siemens                                                *
  *                                                                        *
@@ -34,6 +34,7 @@
 // Description: Provides helper functions to convert between datatypes.
 //
 // Revision History:
+//    1.5.0 - Add mc_typedef_T_traits<sc_logic>
 //    1.2.1 - Initial version on github
 //*****************************************************************************************
 
@@ -56,9 +57,7 @@
 
 #include <systemc.h>
 
-#ifndef CALYPTO_SYSC
 #include <tlm.h>
-#endif
 
 #undef for
 #include <sstream>
@@ -233,6 +232,14 @@ struct mc_typedef_T_traits< sc_bv<Twidth> > {
 // SC_BIT <-> SC_LV
 template<>
 struct mc_typedef_T_traits< sc_bit > {
+  enum { bitwidth = 1,
+         issigned = 0
+       };
+};
+
+// SC_LOGIC <-> SC_LV
+template<>
+struct mc_typedef_T_traits< sc_logic > {
   enum { bitwidth = 1,
          issigned = 0
        };

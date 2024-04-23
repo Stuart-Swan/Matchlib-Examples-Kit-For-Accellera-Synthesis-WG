@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Math Library                                       *
  *                                                                        *
- *  Software Version: 3.4                                                 *
+ *  Software Version: 3.5                                                 *
  *                                                                        *
- *  Release Date    : Wed May  4 10:47:29 PDT 2022                        *
+ *  Release Date    : Thu Feb  8 17:36:42 PST 2024                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 3.4.3                                               *
+ *  Release Build   : 3.5.0                                               *
  *                                                                        *
  *  Copyright 2018 Siemens                                                *
  *                                                                        *
@@ -395,7 +395,11 @@ namespace ac_math
     qr_separate<real_diag>(A1, Q, R, exp_arg_br_conj);
   }
 
+  #ifdef _WIN32
+  template <unsigned M, bool ispwl = true, int W1, int I1, ac_q_mode q1, ac_o_mode o1, int W2, int I2, ac_q_mode q2, ac_o_mode o2>
+  #else
   template <bool ispwl = true, unsigned M, int W1, int I1, ac_q_mode q1, ac_o_mode o1, int W2, int I2, ac_q_mode q2, ac_o_mode o2>
+  #endif 
   void ac_qrd (ac_fixed <W1, I1, true, q1, o1> A[M][M], ac_fixed <W2, I2, true, q2, o2> Q[M][M], ac_fixed <W2, I2, true, q2, o2> R[M][M])
   {
     ac_matrix <ac_fixed <W1, I1, true, q1, o1>, M, M> input_mat;
@@ -424,7 +428,11 @@ namespace ac_math
   }
 
   // real_diag: Make sure that all diagonal matrix elements are real, including bottom right element.
+  #ifdef _WIN32
+  template <unsigned M, bool real_diag = false, bool ispwl = true, int W1, int I1, ac_q_mode q1, ac_o_mode o1, int W2, int I2, ac_q_mode q2, ac_o_mode o2>
+  #else
   template <bool real_diag = false, bool ispwl = true, unsigned M, int W1, int I1, ac_q_mode q1, ac_o_mode o1, int W2, int I2, ac_q_mode q2, ac_o_mode o2>
+  #endif
   void ac_qrd (ac_complex <ac_fixed <W1, I1, true, q1, o1> > A[M][M], ac_complex <ac_fixed <W2, I2, true, q2, o2> > Q[M][M], ac_complex <ac_fixed <W2, I2, true, q2, o2> > R[M][M])
   {
     ac_matrix <ac_complex <ac_fixed <W1, I1, true, q1, o1> >, M, M> input_mat;
