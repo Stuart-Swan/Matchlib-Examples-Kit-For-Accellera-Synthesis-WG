@@ -4,7 +4,7 @@ This simple example demonstrates a "throughput accurate" DMA model using NVidia 
 This particular example uses a 64 bit AXI4 slave interface on the DMA and a 16 bit AXI4 master interface
 on the DMA. The intent is to show how to cleanly model different AXI4 configurations.
 
-See ../../docs/matchlib_intro_dac2019.pdf for a description of this example.
+See ../../docs/matchlib_training.pdf for a description of this example.
 
 Steps:
 

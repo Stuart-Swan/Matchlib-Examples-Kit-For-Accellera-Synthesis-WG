@@ -16,7 +16,7 @@ is simpler and easier and is the recommended approach.
 This example is presented to show that splitting out signals for each field in transaction objects
 in the pre-HLS model is possible, if desired.
 
-See ../../docs/matchlib_intro_dac2019.pdf for a description of this example.
+See ../../doc/matchlib_training.pdf for a description of this example.
 
 Steps:
 

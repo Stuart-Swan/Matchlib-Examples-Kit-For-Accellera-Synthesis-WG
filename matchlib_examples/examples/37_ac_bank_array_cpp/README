@@ -1,7 +1,7 @@
 
 
 This simple C++ flow example shows how to use the ac_bank_array<> class to model banked memories.
-See ../../doc/ac_bank_array.pdf for additional information.
+See ../../doc/matchlib_memory_modeling_methodology.pdf for additional information.
 
 Steps:
 

@@ -2,7 +2,7 @@
 This simple example demonstrates a "throughput accurate" AXI4 bus fabric model
 using NVidia Matchlib and Catapult HLS.
 
-See ../../docs/matchlib_intro_dac2019.pdf for a description of this example.
+See ../../doc/matchlib_training.pdf for a description of this example.
 
 This example also demonstrates usage of the CONNECTIONS_FAST_SIM option for the pre-HLS SystemC
 simulation. To use this option, instead of "make build", use "make fast_sim_sc" below. The resulting

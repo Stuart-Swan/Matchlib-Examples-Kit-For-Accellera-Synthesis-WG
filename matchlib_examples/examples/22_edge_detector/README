@@ -1,3 +1,6 @@
+
+Edge detector example modeled in SystemC with Matchlib and synthesized to RTL using Catapult HLS.
+
 To see the input and output image results, compile with -DHAVE_DISPLAY
 
 1. Build SC sim:

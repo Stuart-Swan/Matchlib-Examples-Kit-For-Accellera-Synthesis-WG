@@ -1,6 +1,7 @@
 
 
-DCT block implemented with SystemC and Matchlib and synthesized thru Catapult HLS
+DCT (discrete cosine transform) block implemented with 
+SystemC and Matchlib and synthesized thru Catapult HLS
 
 This example also demonstrates usage of the CONNECTIONS_FAST_SIM option for the pre-HLS SystemC
 simulation. To use this option, instead of "make build", use "make fast_sim_sc" below. The resulting

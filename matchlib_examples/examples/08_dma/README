@@ -1,7 +1,7 @@
 
 This simple example demonstrates a "throughput accurate" DMA model using NVidia Matchlib and Catapult HLS.
 
-See ../../docs/matchlib_intro_dac2019.pdf for a description of this example.
+See ../../doc/matchlib_training.pdf for a description of this example.
 
 This example also generates how to automatically generate a Verilog wrapper so that the SystemC
 DUT can be instantiated in a Verilog/SystemVerilog TB. Note the use of the auto_gen_wrapper

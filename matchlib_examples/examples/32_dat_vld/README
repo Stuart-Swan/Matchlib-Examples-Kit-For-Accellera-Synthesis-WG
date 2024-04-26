@@ -2,9 +2,9 @@
 
 Very simple Matchlib model showing Pre-HLS and Post-HLS simulations that demonstrates Matchlib Pop/Push operations.
 
-This particular example shows how to have a "data/valid" input/output interface of the DUT
+This particular example shows how to have a "dat/vld" input/output interface of the DUT
 which works properly even though the DUT is pipelined with an II=2 during HLS.
-With the data/valid interface, the "ready" signal is not present but is implicitly
+With the dat/vld interface, the "rdy" signal is not present but is implicitly
 always true, so that message passing semantics are maintained. The conversion
 block in this example simply wires the "rdy" signal to true for the main dut, which uses
 normal Matchlib Push/Pop message passing interfaces.

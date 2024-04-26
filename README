@@ -16,8 +16,9 @@ https://www.accellera.org/activities/working-groups
 Contents of Kit
 
 matchlib_examples          - Matchlib examples directory - the primary content of this kit.
-matchlib_examples/doc      - Matchlib examples documentation.
 matchlib_examples/examples - Matchlib examples. Each example includes a README file.
+matchlib_examples/doc      - Matchlib examples documentation.
+matchlib_examples/doc/matchlib_training.pdf   - Detailed Matchlib training slides.
 
 ac_simutils-master         - AC Simulation utilities downloaded from github
 ac_types-master	           - AC Types downloaded from github
@@ -32,18 +33,16 @@ LICENSE		           - Open Source LICENSE file
 setenvs.csh	           - Setup script for csh
 setenvs.sh	           - Setup script for sh and bash
 
+
+Web Links
+
 The most recent updates to this kit may be found at:
-https://forums.accellera.org/files/category/2-systemc/
+https://github.com/Stuart-Swan/Matchlib-Examples-Kit-For-Accellera-Synthesis-WG/tree/master
 
 A youtube video from NVidia on Matchlib is available here:
 https://www.youtube.com/watch?v=n8_G-CaSSPU
 
-The github location for the matchlib_examples is here:
-github.com/hlslibs/matchlib_toolkit
-this github location may contain the most recent updates to the examples.
-
-Additional HLS libraries such as AC DSP
-as well as future updates to this kit may also be found at: 
+Additional HLS libraries such as AC DSP can be found here:
 hlslibs.org
 
 If you are interested in NVidia's Interconnect Prototype Assistant,
