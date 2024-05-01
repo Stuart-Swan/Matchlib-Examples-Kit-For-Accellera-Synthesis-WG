@@ -36,30 +36,7 @@ setenvs.sh	           - Setup script for sh and bash
 
 Web Links
 
-The most recent updates to this kit may be found at:
-https://github.com/Stuart-Swan/Matchlib-Examples-Kit-For-Accellera-Synthesis-WG/tree/master
-
-A youtube video from NVidia on Matchlib is available here:
-https://www.youtube.com/watch?v=n8_G-CaSSPU
-
-Additional HLS libraries such as AC DSP can be found here:
-hlslibs.org
-
-If you are interested in NVidia's Interconnect Prototype Assistant,
-which runs with Matchlib, see the following links:
-https://research.nvidia.com/publication/2021-11_IPA%3A-Floorplan-Aware-SystemC
-https://github.com/NVlabs/IPA
-
-If you are interested in advanced bus fabric models built using Matchlib 
-(for example AXI4 ACE support), you may also wish to refer to:
-https://github.com/ic-lab-duth/NoCpad
-
-Additional larger open souce Matchlib examples can be found at:
-https://hlslibs.org/UniversityPartners.html
-
-Online discussion related to this kit can be viewed and created here:
-https://forums.accellera.org/forum/10-systemc-language/
-
+See the web links section at bottom of this file for useful web links.
 
 
 Setup
@@ -107,6 +84,7 @@ Read the README files in the examples directories for further steps.
 Documentation
 
 It is recommended that you browse all of the documents in matchlib_examples/doc 
+Training material is available in matchlib_examples/doc/matchlib_training.pdf
 
 
 Waveform Viewing
@@ -123,3 +101,42 @@ type:
   sh clean_all.sh
 
 
+
+Web Links
+
+The most recent updates to this kit may be found at:
+https://github.com/Stuart-Swan/Matchlib-Examples-Kit-For-Accellera-Synthesis-WG/tree/master
+
+A youtube video from NVidia on Matchlib is available here:
+https://www.youtube.com/watch?v=n8_G-CaSSPU
+
+Free IEEE SystemC LRM download:
+https://ieeexplore.ieee.org/document/10246125
+
+Free Accellera SystemC synthesizeable subset draft standard:
+https://accellera.org/images/downloads/drafts-review/SystemC_Synthesis_Subset_Draft_1_4.pdf
+
+Free SystemC training resources:
+https://www.doulos.com/knowhow/systemc/
+
+Additional HLS libraries such as AC DSP can be found here:
+hlslibs.org
+
+If you are interested in NVidia's Interconnect Prototype Assistant,
+which runs with Matchlib, see the following links:
+https://research.nvidia.com/publication/2021-11_IPA%3A-Floorplan-Aware-SystemC
+https://github.com/NVlabs/IPA
+
+If you are interested in advanced bus fabric models built using Matchlib 
+(for example AXI4 ACE support), you may also wish to refer to:
+https://github.com/ic-lab-duth/NoCpad
+
+Additional larger open souce Matchlib examples can be found at:
+https://hlslibs.org/UniversityPartners.html
+
+Online discussion related to this kit can be viewed and created here:
+https://forums.accellera.org/forum/10-systemc-language/
+
+Matchlib is starting to be discussed within the Accellera Synthesis Working Group for possible
+standardization. If you are interested in participating in the discussion, see the information here:
+https://www.accellera.org/activities/working-groups
