@@ -19,6 +19,7 @@
 // connections.h
 //
 // Revision History:
+//   2.2.0   - CAT-34924 - use DIRECT_PORT by default for pre-HLS simulation
 //   2.1.1   - CAT-31705 - free dynamically allocated memory
 //             CAT-35251 - applied missing '#pragma builtin modulario' to DIRECT_PORT methods
 //             CAT-34936 - support for trace/log for DIRECT_PORT
@@ -183,7 +184,7 @@ namespace Connections
    *
    * Default port types if no AUTO_PORT define is given are dependent on context. During HLS, SYN_PORT is always used (except
    * when overriden by FORCE_AUTO_PORT define). During SystemC simulation, TLM_PORT is used if CONNECTIONS_FAST_SIM is set, otherwise
-   * MARSHALL_PORT is used.
+   * DIRECT_PORT is used.
    *
    * \code
    *      #define AUTO_PORT MARSHALL_PORT
@@ -475,7 +476,7 @@ namespace Connections
 // rand_stall_enable() or by CONN_RAND_STALL
 #define __CONN_RAND_STALL_FEATURE
 
-  class SimConnectionsClk 
+  class SimConnectionsClk
   {
   public:
     SimConnectionsClk() {
@@ -584,6 +585,7 @@ namespace Connections
   private:
 
     sc_core::sc_time epsilon;
+
     inline sc_time get_period_delay(int c) const {
       return clk_info_vector.at(c).clk_ptr->period();
     }
@@ -611,17 +613,7 @@ namespace Connections
        sibling_port=0; non_leaf_port=false; clock_number=0; 
        DBG_CONNECT("Blocking_abs CTOR: " << std::hex << (void*)this );
     };
-    virtual ~Blocking_abs() {
-      for (std::vector<sc_module*>::iterator it=sc_mod_alloc.begin(); it!=sc_mod_alloc.end(); ++it) {
-        delete *it;
-      }
-      sc_mod_alloc.clear();
-      for (std::vector<Blocking_abs*>::iterator it=con_obj_alloc.begin(); it!=con_obj_alloc.end(); ++it) {
-        delete *it;
-      }
-      con_obj_alloc.clear();
-    }
-
+    virtual ~Blocking_abs() {}
     virtual bool Post() {return false;};
     virtual bool Pre()  {return false;};
     virtual bool PrePostReset()  {return false;};
@@ -633,8 +625,6 @@ namespace Connections
     virtual void do_reset_check() {}
     virtual std::string report_name() {return std::string("unnamed"); }
     Blocking_abs *sibling_port;
-    std::vector<sc_module*> sc_mod_alloc;
-    std::vector<Blocking_abs*> con_obj_alloc;
   };
 
 
@@ -1431,6 +1421,8 @@ namespace Connections
       Init_SIM(name, fifo);
     }
 
+    virtual ~TLMToDirectOutPort() {}
+
   protected:
     // Protected member variables
     tlm::tlm_fifo<Message> *fifo;
@@ -1496,6 +1488,8 @@ namespace Connections
         _DATNAME_(CONNECTIONS_CONCAT(name, _DATNAMESTR_)) {
       Init_SIM(name, fifo);
     }
+    
+    virtual ~DirectToTLMInPort() {}
 
   protected:
     // Protected member variables
@@ -1614,14 +1608,40 @@ namespace Connections
 
 #endif // __SYNTHESIS__
 
+  // Collect dynamically allocated objects
+  class CollectAllocs
+  {
+  public:
+    CollectAllocs() {}
+    virtual ~CollectAllocs() {
+#ifndef __SYNTHESIS__
+      for (std::vector<sc_module*>::iterator it=sc_mod_alloc.begin(); it!=sc_mod_alloc.end(); ++it) {
+        delete *it;
+      }
+      sc_mod_alloc.clear();
+#ifdef CONNECTIONS_SIM_ONLY
+      for (std::vector<Blocking_abs*>::iterator it=con_obj_alloc.begin(); it!=con_obj_alloc.end(); ++it) {
+        delete *it;
+      }
+      con_obj_alloc.clear();
+#endif
+#endif
+    }
+#ifndef __SYNTHESIS__
+    std::vector<sc_module*> sc_mod_alloc;
+#ifdef CONNECTIONS_SIM_ONLY
+    std::vector<Blocking_abs*> con_obj_alloc;
+#endif
+#endif
+  };
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
   template <typename Message>
 #ifdef CONNECTIONS_SIM_ONLY
-  class InBlocking_abs : public Blocking_abs
+  class InBlocking_abs : public Blocking_abs, public CollectAllocs
 #else
-  class InBlocking_abs
+  class InBlocking_abs : public CollectAllocs
 #endif
   {
   public:
@@ -1648,6 +1668,8 @@ namespace Connections
       read_reset_check(name) {}
 
   public:
+    virtual ~InBlocking_abs() {}
+
     // Reset read
     virtual void Reset() {
       CONNECTIONS_ASSERT_MSG(0, "Unreachable virtual function in abstract class!");
@@ -1709,6 +1731,8 @@ namespace Connections
     }
 
   public:
+    virtual ~InBlocking_Ports_abs() {}
+
     // Reset read
     virtual void Reset() {
 #ifdef CONNECTIONS_SIM_ONLY
@@ -2319,6 +2343,8 @@ namespace Connections
     explicit InBlocking(const char *name) : InBlocking_Ports_abs<Message>(name),
       _DATNAME_(CONNECTIONS_CONCAT(name, _DATNAMESTR_)) {}
 
+    virtual ~InBlocking() {}
+
 // Pop
 #pragma builtin_modulario
 #pragma design modulario < in >
@@ -2503,6 +2529,8 @@ namespace Connections
 #endif
     {}
 
+    virtual ~InBlocking() {}
+
     // Reset read
     void Reset() {
       InBlocking_SimPorts_abs<Message>::Reset();
@@ -2677,6 +2705,8 @@ namespace Connections
 
     explicit InBlocking(const char *name) : InBlocking_SimPorts_abs<Message>(name),
       _DATNAME_(CONNECTIONS_CONCAT(name, _DATNAMESTR_)) {}
+
+    virtual ~InBlocking() {}
 
     // Reset read
     void Reset() {
@@ -2910,6 +2940,8 @@ namespace Connections
 
     explicit In(const char *name) : InBlocking<Message, SYN_PORT>(name) {}
 
+    virtual ~In() {}
+
     // Empty
     bool Empty() {
       QUERY_CALL();
@@ -2924,6 +2956,8 @@ namespace Connections
     In() {}
 
     explicit In(const char *name) : InBlocking<Message, MARSHALL_PORT>(name) {}
+
+    virtual ~In() {}
 
     // Empty
     bool Empty() {
@@ -2943,6 +2977,8 @@ namespace Connections
     In() {}
 
     explicit In(const char *name) : InBlocking<Message, DIRECT_PORT>(name) {}
+
+    virtual ~In() {}
 
     // Empty
     bool Empty() {
@@ -2964,6 +3000,8 @@ namespace Connections
 
     explicit In(const char *name) : InBlocking<Message, TLM_PORT>(name) {}
 
+    virtual ~In() {}
+
     // Empty
     bool Empty() {
       return ! this->i_fifo->nb_can_get();
@@ -2973,14 +3011,14 @@ namespace Connections
 
 
 //------------------------------------------------------------------------
-// OutBlocking_abs MARSHALL_PORT
+// OutBlocking_abs
 //------------------------------------------------------------------------
 
   template <typename Message>
 #ifdef CONNECTIONS_SIM_ONLY
-  class OutBlocking_abs : public Blocking_abs
+  class OutBlocking_abs : public Blocking_abs, public CollectAllocs
 #else
-  class OutBlocking_abs
+  class OutBlocking_abs : public CollectAllocs
 #endif
   {
   public:
@@ -3007,6 +3045,7 @@ namespace Connections
       write_reset_check(name) {}
 
   public:
+    virtual ~OutBlocking_abs() {}
 
     // Reset write
     void Reset() {
@@ -3060,6 +3099,7 @@ namespace Connections
     }
 
   public:
+    virtual ~OutBlocking_Ports_abs() {} 
 
     // Reset write
     void Reset() {
@@ -3154,6 +3194,7 @@ namespace Connections
     }
 
   public:
+    virtual ~OutBlocking_SimPorts_abs() {}
 
     // Reset write
     void Reset() {
@@ -3327,6 +3368,8 @@ namespace Connections
     explicit OutBlocking(const char *name) :
       OutBlocking_Ports_abs<Message>(name)
       , _DATNAME_(CONNECTIONS_CONCAT(name, _DATNAMESTR_)) {}
+
+    virtual ~OutBlocking() {}
 
     // Reset write
     virtual void Reset() {
@@ -3536,6 +3579,8 @@ namespace Connections
 #endif
     {}
 
+    virtual ~OutBlocking() {} 
+
     // Reset write
     void Reset() {
       OutBlocking_SimPorts_abs<Message>::Reset();
@@ -3736,6 +3781,8 @@ namespace Connections
     explicit OutBlocking(const char *name) : OutBlocking_SimPorts_abs<Message>(name),
       _DATNAME_(CONNECTIONS_CONCAT(name, _DATNAMESTR_)) {}
 
+    virtual ~OutBlocking() {}
+
     // Reset write
     void Reset() {
       OutBlocking_SimPorts_abs<Message>::Reset();
@@ -3908,6 +3955,8 @@ namespace Connections
     explicit OutBlocking(const char *name) : OutBlocking_abs<Message>(name),
       o_fifo(CONNECTIONS_CONCAT(name,"o_fifo")) {}
 
+    virtual ~OutBlocking() {}
+
     // Reset write
     void Reset() {
       this->write_reset_check.reset(this->non_leaf_port);
@@ -3986,6 +4035,8 @@ namespace Connections
 
     explicit Out(const char *name) : OutBlocking<Message, SYN_PORT>(name) {}
 
+    virtual ~Out() {}
+
     // Full
     bool Full() {
       QUERY_CALL();
@@ -4001,6 +4052,8 @@ namespace Connections
     Out() {}
 
     explicit Out(const char *name) : OutBlocking<Message, MARSHALL_PORT>(name) {}
+
+    virtual ~Out() {}
 
     // Full
     bool Full() {
@@ -4022,6 +4075,8 @@ namespace Connections
 
     explicit Out(const char *name) : OutBlocking<Message, DIRECT_PORT>(name) {}
 
+    virtual ~Out() {}
+
     // Full
     bool Full() {
 #ifdef CONNECTIONS_SIM_ONLY
@@ -4042,6 +4097,8 @@ namespace Connections
     Out() {}
 
     explicit Out(const char *name) : OutBlocking<Message, TLM_PORT>(name) {}
+
+    virtual ~Out() {}
 
     // Full
     bool Full() {
@@ -4071,6 +4128,8 @@ namespace Connections
     Connections_BA_abs() : sc_module(sc_module_name(sc_gen_unique_name("chan_ba"))) {}
 
     explicit Connections_BA_abs(const char *name) : sc_module(sc_module_name(name)) {}
+
+    virtual ~Connections_BA_abs() {}
 
     virtual void annotate(unsigned long latency, unsigned int capacity) {
       CONNECTIONS_ASSERT_MSG(0, "Unreachable virtual function in abstract class!");
@@ -4110,6 +4169,8 @@ namespace Connections
         write_reset_check(name) {}
 
   public:
+    virtual ~Combinational_abs() {}
+
     // Reset
     void ResetRead() {
       CONNECTIONS_ASSERT_MSG(0, "Unreachable virtual function in abstract class!");
@@ -4197,6 +4258,8 @@ namespace Connections
     }
 
   public:
+    virtual ~Combinational_Ports_abs() {}
+
     // Reset
     void ResetRead() {
       this->read_reset_check.reset(false);
@@ -4400,6 +4463,7 @@ namespace Connections
     std::string full_name() { return "Combinational_SimPorts_abs"; }
 
   public:
+    virtual ~Combinational_SimPorts_abs() {}
 
 #ifdef CONNECTIONS_SIM_ONLY
     //sc_signal<MsgBits> in_msg;
@@ -4853,6 +4917,7 @@ namespace Connections
     explicit Combinational(const char *name) : Combinational_Ports_abs<Message>(name),
       _DATNAME_(CONNECTIONS_CONCAT(name, _COMBDATNAMESTR_)) {}
 
+    virtual ~Combinational() {}
 
     // Reset
     void ResetRead() {
@@ -4973,6 +5038,7 @@ namespace Connections
         opt.dont_initialize();
         sc_spawn(sc_bind(&Combinational<Message, MARSHALL_PORT>::do_bypass, this), 0, &opt);
       }
+
 #endif
     }
 
@@ -5000,8 +5066,11 @@ namespace Connections
         opt.dont_initialize();
         sc_spawn(sc_bind(&Combinational<Message, MARSHALL_PORT>::do_bypass, this), 0, &opt);
       }
+
 #endif
     }
+    
+    virtual ~Combinational() {}
 
     //void do_bypass() { Combinational_SimPorts_abs<Message,MARSHALL_PORT>::do_bypass(); }
 
@@ -5224,6 +5293,8 @@ namespace Connections
 #endif
     }
 
+    virtual ~Combinational() {}
+
 #ifdef CONNECTIONS_SIM_ONLY
     void do_bypass() {
       if (! this->is_bypass()) { return; }
@@ -5390,6 +5461,8 @@ namespace Connections
 
     explicit Combinational(const char *name) : Combinational_Ports_abs<Message>(name)
       ,fifo(CONNECTIONS_CONCAT(name, "fifo"), 1) {}
+
+    virtual ~Combinational() {}
 
     // Reset
     void ResetRead() {
