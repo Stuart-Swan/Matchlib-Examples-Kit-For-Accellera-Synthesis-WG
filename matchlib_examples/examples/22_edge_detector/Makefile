@@ -131,7 +131,7 @@ INCDIRS += -I$(AC_SIMUTILS)/include
 INCDIRS += -I./bmpUtil
 
 CPPFLAGS += $(INCDIRS)
-CPPFLAGS += -DCONNECTIONS_ACCURATE_SIM -DSC_INCLUDE_DYNAMIC_PROCESSES 
+CPPFLAGS += -DSC_INCLUDE_DYNAMIC_PROCESSES 
 
 # Uncomment this flag if you want to see the input and output images displayed
 #CPPFLAGS += -DHAVE_DISPLAY

@@ -192,7 +192,7 @@ help: checkvars
 	-@echo ""
 
 clean: sim_clean
-	@rm -rf *.vcd *.wlf *atapu* wrapDir direct_port_sc *_wrap.* marshall_port_sc clang_sc
+	@rm -rf *.vcd *.wlf *atapu* wrapDir direct_port_sc *_wrap.* *wrap_rtl.* marshall_port_sc clang_sc
 
 
 

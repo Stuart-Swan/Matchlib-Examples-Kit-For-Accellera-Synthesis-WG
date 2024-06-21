@@ -1,5 +1,8 @@
-// Auto generated on: Tue Oct 10 15:48:02 2023
+// Auto generated on: Thu Jun 20 07:42:01 2024
 
+
+// This file shows the Verilog input/output declarations for the exported wrapped SC model.
+// This file is only for documentation purposes.
 
 module dma(
   clk

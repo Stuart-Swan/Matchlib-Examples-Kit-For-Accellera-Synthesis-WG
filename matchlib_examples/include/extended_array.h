@@ -2,13 +2,17 @@
 
 
 // Author: Stuart Swan, Platform Architect, Siemens EDA
-// Date: 19 April 2024
+// Date: 2 May 2024
 
 #pragma once
 
 #include <iostream>
 #include <iomanip>
 #include <ac_array_1D.h>
+
+#ifndef __SYNTHESIS__
+#include <systemc.h>
+#endif
 
 template <typename T, unsigned N>
 class extended_array : public ac_array_1D<T,N> {

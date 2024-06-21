@@ -212,15 +212,19 @@ namespace Connections
 
 #if defined(__SYNTHESIS__)
 #define AUTO_PORT Connections::SYN_PORT
+#define AUTO_PORT_VAL 0
 #elif !defined(CONNECTIONS_SIM_ONLY)
 #define AUTO_PORT Connections::DIRECT_PORT
+#define AUTO_PORT_VAL 2
 #else
 
 // Switch if we are in CONNECTIONS_SIM_ONLY
 #if defined(CONNECTIONS_FAST_SIM)
 #define AUTO_PORT Connections::TLM_PORT
+#define AUTO_PORT_VAL 3
 #else
 #define AUTO_PORT Connections::DIRECT_PORT
+#define AUTO_PORT_VAL 2
 #endif
 
 #endif // defined(__SYNTHESIS__)
@@ -233,6 +237,7 @@ namespace Connections
 #if defined(__SYNTHESIS__)
 #undef AUTO_PORT
 #define AUTO_PORT Connections::SYN_PORT
+#define AUTO_PORT_VAL 0
 #endif // defined(__SYNTHESIS__)
 
   /**
@@ -248,10 +253,19 @@ namespace Connections
 #if defined(FORCE_AUTO_PORT)
 #undef AUTO_PORT
 #define AUTO_PORT FORCE_AUTO_PORT
+#define AUTO_PORT_VAL 2	  // Not always accurate, but OK..
 #endif // defined(FORCE_AUTO_PORT)
 
 #if defined(CONNECTIONS_SYN_SIM)
   static_assert(AUTO_PORT != TLM_PORT, "Connections::TLM_PORT not supported in Synthesis simulation mode");
+#endif
+
+#if AUTO_PORT_VAL == 1
+#warning "Warning: Use of MARSHALL_PORT is deprecated. Use DIRECT_PORT instead."
+#endif
+
+#if AUTO_PORT_VAL == 0
+#warning "Warning: Use of SYN_PORT is deprecated. Use DIRECT_PORT instead."
 #endif
 
 // Forward declarations

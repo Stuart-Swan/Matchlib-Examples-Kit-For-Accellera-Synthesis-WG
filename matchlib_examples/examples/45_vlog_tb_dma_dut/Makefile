@@ -135,7 +135,7 @@ INCDIRS += -I$(AC_TYPES)/include
 INCDIRS += -I$(AC_SIMUTILS)/include
 
 CPPFLAGS += $(INCDIRS)
-CPPFLAGS += -DSC_INCLUDE_DYNAMIC_PROCESSES -DFORCE_AUTO_PORT=Connections::MARSHALL_PORT
+CPPFLAGS += -DSC_INCLUDE_DYNAMIC_PROCESSES -DFORCE_AUTO_PORT=Connections::DIRECT_PORT
 CPPFLAGS += -DSEGMENT_BURST_SIZE=16 -DSC_INCLUDE_MTI_AC
 
 LIBS += -lsystemc -lpthread
@@ -191,13 +191,13 @@ view_wave: out.wlf
 .PHONY: vsim vsim_gui
 vsim: sim_sc
 	$(MODEL_TECH)/vlib work
-	$(MODEL_TECH)/vlog $(wildcard $(SOURCE_DIR)*.v)
+	$(MODEL_TECH)/vlog testbench.v
 	$(MODEL_TECH)/sccom -link
 	$(MODEL_TECH)/vsim -c -do "do $(SOURCE_DIR)run.do"
 
 vsim_gui: sim_sc
 	$(MODEL_TECH)/vlib work
-	$(MODEL_TECH)/vlog $(wildcard $(SOURCE_DIR)*.v)
+	$(MODEL_TECH)/vlog testbench.v
 	$(MODEL_TECH)/sccom -link
 	$(MODEL_TECH)/vsim -gui -do "do $(SOURCE_DIR)run.do"
 
@@ -209,7 +209,7 @@ endif
 	@echo "Note: VCS-MX compilation will use the host g++ compiler"
 	$(VCS_HOME)/bin/syscan -cpp /usr/bin/g++ -cflags "$(CXXFLAGS) $(CPPFLAGS)"  $(SOURCE_DIR)dma_wrap.cpp:dma_wrap -debug_access+r
 	$(VCS_HOME)/bin/syscan -cpp /usr/bin/g++ -cflags "$(CXXFLAGS) $(CPPFLAGS)"  $(SOURCE_DIR)ram_wrap.cpp:ram_wrap -debug_access+r
-	$(VCS_HOME)/bin/vcs -cpp /usr/bin/g++ -sysc $(SOURCE_DIR)testbench.v -debug_access+r -debug_all
+	$(VCS_HOME)/bin/vcs -cpp /usr/bin/g++ -sysc -sverilog $(SOURCE_DIR)testbench.sv -debug_access+r -debug_all
 
 .PHONY: vcs_sim
 vcs_sim: simv

@@ -10,13 +10,14 @@ set -v
 
 make build
 ./sim_sc
+make clean
 
 make marshall_port_sc
 ./marshall_port_sc
+make clean
 
 make direct_port_sc
 ./direct_port_sc
-
 make clean
 
 if command -v clang++ > /dev/null 2>&1; then

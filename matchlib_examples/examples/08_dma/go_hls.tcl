@@ -24,7 +24,7 @@ flow package require /SCVerify
 # Turn on to enable systematic STALL_FLAG toggling (requires STALL_FLAG directive to be set)
 #flow package option set /SCVerify/ENABLE_STALL_TOGGLE true
 
-flow package require /VSCode
+# flow package require /VSCode
 flow package require /QuestaSIM
 flow package option set /QuestaSIM/ENABLE_CODE_COVERAGE true
 

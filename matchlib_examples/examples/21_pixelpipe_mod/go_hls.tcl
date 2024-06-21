@@ -3,7 +3,7 @@ set sfd [file normalize [file join [file dir [info script]] ../20_DCT_sysc]]
 options defaults
 
 options set /Input/CppStandard c++11
-options set /Input/CompilerFlags {-DCONNECTIONS_ACCURATE_SIM -DTOP_PIXELPIPE_MOD}
+options set /Input/CompilerFlags {-DTOP_PIXELPIPE_MOD}
 options set /Input/SearchPath {../../include} -append
 options set /Input/SearchPath {$MGC_HOME/shared/pkgs/matchlib/cmod/include} -append
 options set /Input/SearchPath "$sfd/RAM_lib" -append

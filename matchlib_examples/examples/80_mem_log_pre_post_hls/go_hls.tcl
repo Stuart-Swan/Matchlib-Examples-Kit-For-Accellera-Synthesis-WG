@@ -1,7 +1,7 @@
 solution new -state initial
 solution options defaults
 solution options set /Input/CppStandard c++11
-solution options set /Input/CompilerFlags {-DCONNECTIONS_ACCURATE_SIM -DSC_INCLUDE_DYNAMIC_PROCESSES}
+solution options set /Input/CompilerFlags {-DSC_INCLUDE_DYNAMIC_PROCESSES}
 options set /Input/SearchPath {../../include} -append
 
 flow package require /SCVerify

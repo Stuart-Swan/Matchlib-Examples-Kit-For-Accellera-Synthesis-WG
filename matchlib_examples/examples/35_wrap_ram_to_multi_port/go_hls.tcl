@@ -3,7 +3,7 @@ set sfd [file dir [info script]]
 solution new -state initial
 solution options defaults
 solution options set /Input/CppStandard c++11
-solution options set /Input/CompilerFlags {-DCONNECTIONS_ACCURATE_SIM -DSC_INCLUDE_DYNAMIC_PROCESSES}
+solution options set /Input/CompilerFlags {-DSC_INCLUDE_DYNAMIC_PROCESSES}
 options set /Input/SearchPath $sfd -append
 options set /Input/SearchPath $sfd/../../include -append
 options set /Input/SearchPath {$MGC_HOME/shared/pkgs/matchlib/cmod/include} -append

@@ -32,6 +32,7 @@ public:
     auto_gen_wrapper dma_wrap("dma");
     dma1.gen_port_info_vec(dma_wrap.port_info_vec);
     dma_wrap.gen_wrappers(10, true);
+    dma_wrap.gen_wrap_rtl();
 
     auto_gen_wrapper ram_wrap("ram");
     ram1.gen_port_info_vec(ram_wrap.port_info_vec);

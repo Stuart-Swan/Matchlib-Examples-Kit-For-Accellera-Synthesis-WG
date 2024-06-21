@@ -48,6 +48,7 @@ module testbench ();
   assign dma_dbg_rdy = 1'b1;
   assign dma_done_rdy = 1'b1;
   assign w_slave0_b_rdy = 1'b1;
+  assign r_slave0_ar_dat = 73'h0000000000000000000;
 
 
     parameter clock_period = 10;
