@@ -6,7 +6,9 @@
 #undef CONNECTIONS_ASSERT_MSG
 #undef CONNECTIONS_SIM_ONLY_ASSERT_MSG
 
+#include <ac_assert.h>
 #include "mc_toolkit_utils.h"
+
 
 template <class T>
 class OutToDatVld : public sc_module
@@ -71,6 +73,9 @@ public:
       CCS_LOG("InFromDatVld rdy is: " << out1.rdy);
       SC_REPORT_ERROR("InFromDatVld-01", "rdy signal is false");
     }
+#endif
+#ifdef __SYNTHESIS__
+    assert(out1.rdy.read() == true);
 #endif
   }
 

@@ -53,6 +53,8 @@ public:
       in_vld = 0;
       in_dat = 0;
       wait();
+      if (rand() & 1)
+        wait();
     }
 
     wait(50);

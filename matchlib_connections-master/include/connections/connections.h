@@ -96,7 +96,7 @@
 #include <vector>
 #include <map>
 #include <tlm.h>
-#if !defined(NC_SYSTEMC) && !defined(XM_SYSTEMC)
+#if !defined(NC_SYSTEMC) && !defined(XM_SYSTEMC) && !defined(NO_SC_RESET_INCLUDE)
 #include <sysc/kernel/sc_reset.h>
 #define HAS_SC_RESET_API
 #endif

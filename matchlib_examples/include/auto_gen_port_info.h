@@ -690,6 +690,7 @@ public:
       sc_h << "    trace_hierarchy(this, trace_file_ptr);\n\n";
     }
 
+
     for (unsigned i=0; i<port_name_vec.size(); ++i) {
      port_name& n = port_name_vec[i];
      if (!n.is_sc_in_bool && !n.is_sc_out_bool) {
@@ -1064,10 +1065,9 @@ public:
     sc_h << "// This file wraps the post-HLS RTL model to enable instantiation in an SC testbench\n";
     sc_h << "//  with the same SC interface as the original SC DUT\n\n";
 
-    sc_h << "//#define MTI_SYSTEMC\n";
-    sc_h << "//#include <mc_simulator_extensions.h>\n\n";
+    sc_h << "#include <TypeToBits.h>\n";
     sc_h << "#include \"" << module_name + ".h" << "\"" << "\n\n" ;
-    sc_h << "class " << rtl_proxy << " /*: public mc_foreign_module */ {\n";
+    sc_h << "class " << rtl_proxy << " : public sc_foreign_module {\n";
     sc_h << "public:\n";
 
     for (unsigned i=0; i<port_name_vec.size(); ++i) {
@@ -1088,15 +1088,15 @@ public:
      }
     }
 
-    sc_h << "\n  " << rtl_proxy << "(sc_module_name nm /*, const char* hdl_name */) \n";
-    sc_h << "    /*: mc_foreign_module(nm, hdl_name) */ {\n";
-    sc_h << "    /*elaborate_foreign_module(hdl_name); */\n";
+    sc_h << "\n  " << rtl_proxy 
+                   << "(sc_module_name nm , const char* hdl_name=\"" << module_name << "_wrap_rtl\") \n";
+    sc_h << "    : sc_foreign_module(nm) {\n";
+    sc_h << "     elaborate_foreign_module(hdl_name, 0, (const char**)0); \n";
     sc_h << "  }\n";
 
     sc_h << "};\n\n\n";
 
     sc_h << "class " << module_name + "_wrap_rtl" << " : public sc_module {\n";
-    sc_h << "  #include \"" << "mc_toolkit_utils.h" << "\"" << "\n" ;
     sc_h << "public:\n";
     sc_h << "  " << module_name << "& " << inst << ";\n\n";
 
@@ -1141,6 +1141,21 @@ public:
 
     sc_h << "  SC_HAS_PROCESS(" << module_name << "_wrap_rtl);\n\n";
     sc_h << "  " << module_name << "_wrap_rtl(sc_module_name nm) : " << inst << "(*(" << module_name << "*)0){\n\n";
+
+    for (unsigned i=0; i<port_info_vec.size(); ++i) {
+     if (port_info_vec[i].type != std::string("{}")) {
+      if ((port_info_vec[i].type == "In") || (port_info_vec[i].type == "Out"))
+        sc_h << "    " << port_info_vec[i].name << ".disable_spawn();\n";
+     } else {
+      for (unsigned c=0; c < port_info_vec[i].child_vec.size(); ++c) {
+      if ((port_info_vec[i].child_vec[c].type == "In") || (port_info_vec[i].child_vec[c].type == "Out"))
+        sc_h << "    " << port_info_vec[i].name << "." 
+             << port_info_vec[i].child_vec[c].name << ".disable_spawn();\n";
+      }
+     }
+    }
+
+    sc_h << "\n";
 
     for (unsigned i=0; i<port_name_vec.size(); ++i) {
      port_name& n = port_name_vec[i];
@@ -1189,6 +1204,56 @@ public:
     sc_h << "\n";
     sc_h << "};\n";
     sc_h.close();
+
+    ofstream sv_v;
+    sv_v.open(module_name + "_wrap_rtl.sv");
+    std::cout << "Generating " << module_name << "_wrap_rtl.sv" << "\n";
+    sv_v << "// Auto generated on: " << dt << "\n";
+    sv_v << "// This file wraps the post-HLS RTL model to enable instantiation in an SC testbench\n";
+    sv_v << "// This sv wrapper transforms any packed structs into plain bit vectors\n";
+    sv_v << "// for interfacing with the SC TB\n";
+    sv_v << "\n";
+    sv_v << "module " << module_name << "_wrap_rtl (\n";
+
+    std::string comma(" ");
+    for (unsigned i=0; i<port_name_vec.size(); ++i) {
+     port_name& n = port_name_vec[i];
+     sv_v << "  " << comma << " " << n.flat_name << "\n";
+     comma = ",";
+    }
+
+    sv_v << ");\n\n";
+
+    for (unsigned i=0; i<port_name_vec.size(); ++i) {
+     port_name& n = port_name_vec[i];
+     if (!n.is_sc_in_bool && !n.is_sc_out_bool) {
+      if (n.io == "sc_out") {
+        sv_v << "  output [" << n.width - 1 << ":0] " << n.flat_name << ";\n";
+      } else {
+        sv_v << "  input  [" << n.width - 1 << ":0] " << n.flat_name << ";\n";
+      }
+     }
+     else {
+      if (n.io == "sc_out") {
+        sv_v << "  output " << n.flat_name << ";\n";
+      } else {
+        sv_v << "  input  " << n.flat_name << ";\n";
+      }
+     }
+    }
+
+    sv_v << "\n";
+    comma = " ";
+    sv_v << "  " << module_name << " " << module_name << "_inst (\n";
+    for (unsigned i=0; i<port_name_vec.size(); ++i) {
+     port_name& n = port_name_vec[i];
+     sv_v << "  " << comma << " ." << n.flat_name << "(" << n.flat_name << ")\n";
+     comma = ",";
+    }
+    sv_v << "  " << ");\n";
+
+    sv_v << "\nendmodule\n";
+    sv_v.close();
 
   }
 
