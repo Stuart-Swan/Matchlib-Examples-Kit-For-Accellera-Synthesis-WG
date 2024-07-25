@@ -835,7 +835,7 @@ namespace Connections
               ss << "Two processes using same clock have different reset specs: \n"
                  << v[0].to_string() << "\n"
                  << v[u].to_string() << "\n";
-              SC_REPORT_ERROR("CONNECTIONS-212", ss.str().c_str());
+              SC_REPORT_WARNING("CONNECTIONS-212", ss.str().c_str());
             }
       }
     }

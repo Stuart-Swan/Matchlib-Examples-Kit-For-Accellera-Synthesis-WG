@@ -789,21 +789,21 @@ public:
     CONNECTIONS_SIM_ONLY_ASSERT_MSG(tag == 0, "Tag doesn't match request! Use GetB() instead.");
     Marshaller<width> m(payload);
     Wrapped<A> result;
-    result.Marshall<width>(m);
+    result.template Marshall<width>(m);
     return result.val;
   }
   B GetB() const {
     CONNECTIONS_SIM_ONLY_ASSERT_MSG(tag == 1, "Tag doesn't match request! Use GetA() instead.");
     Marshaller<width> m(payload);
     Wrapped<B> result;
-    result.Marshall<width>(m);
+    result.template Marshall<width>(m);
     return result.val;
   }
 
   void Set(const A &data) {
     Wrapped<A> wdata(data);
     Marshaller<Wrapped<A>::width> m;
-    wdata.Marshall<Wrapped<A>::width>(m);
+    wdata.template Marshall<Wrapped<A>::width>(m);
     payload = 0; //note, we could directly assign m.GetResult here. Assuming payload is wider, systemC would pad with zeros.
     //but if payload is narrower, systemc would silently truncate. We'd want to avoid that. Range below would
     //fail if payload is narrower
@@ -813,7 +813,7 @@ public:
   void Set(const B &data) {
     Wrapped<B> wdata(data);
     Marshaller<Wrapped<B>::width> m;
-    wdata.Marshall<Wrapped<B>::width>(m);
+    wdata.template Marshall<Wrapped<B>::width>(m);
     payload = 0; //same as in Set(A) above
     payload.range(Wrapped<B>::width - 1, 0) = m.GetResult();
     tag = 1;

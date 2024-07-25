@@ -324,6 +324,72 @@ namespace Connections
     #endif //__SYNTHESIS__
   };
 
+  // specialization for depth=1 to enable II=1 after HLS
+  // NOTE: for best area QOR, the enq port should be set to use coupled_io, e.g. :
+  // directive set /dut/Connections::Fifo<dut::T,1U,Connections::DIRECT_PORT>/enq.Pop():mio 
+  //       -MAP_TO_MODULE ccs_connections.ccs_conn_in_wait_coupled
+  // Once there is a pragma to do the above, it should be added to source code here.
+  template <typename Message>
+  class Fifo<Message, 1> : public sc_module
+  {
+    SC_HAS_PROCESS(Fifo);
+
+  public:
+    sc_in_clk CCS_INIT_S1(clk);
+    sc_in<bool> CCS_INIT_S1(rst);
+    In<Message> CCS_INIT_S1(enq);
+    Out<Message> CCS_INIT_S1(deq);
+
+    Fifo(sc_module_name name) {
+      SC_THREAD(main);
+      sensitive << clk.pos();
+      CONNECTIONS_RESET_SIGNAL_IS(rst);
+    }
+
+    void main() {
+      enq.Reset();
+      deq.Reset();
+      wait();
+
+#pragma hls_pipeline_init_interval 1
+#pragma pipeline_stall_mode flush
+      while (1) {
+        deq.Push(enq.Pop());
+      }
+    }
+
+    public:
+    #ifndef __SYNTHESIS__
+    void line_trace() {
+      #ifdef CONNECTIONS_POS_RESET
+        bool rst_active = true;
+      #else
+        bool rst_active = false;
+      #endif
+      if (rst.read() != rst_active) {
+        unsigned int width = (Message().length() / 4);
+        // Enqueue port
+        if (enq._VLDNAME_.read() && enq._RDYNAME_.read()) {
+          std::cout << std::hex << std::setw(width) << enq._DATNAME_.read();
+        } else {
+          std::cout << std::setw(width + 1) << " ";
+        }
+
+        // std::cout << " ( " << full.read() << " ) ";
+
+        // Dequeue port
+        if (deq._VLDNAME_.read() && deq._RDYNAME_.read()) {
+          std::cout << std::hex << std::setw(width) << deq._DATNAME_.read();
+        } else {
+          std::cout << std::setw(width + 1) << " ";
+        }
+        std::cout << " | ";
+      }
+    }
+    #endif //__SYNTHESIS_  
+  };
+
+
 #ifdef CONNECTIONS_SIM_ONLY
   //------------------------------------------------------------------------
   // Fifo - TLM_PORT specialization uses sized tlm::tlm_fifo
