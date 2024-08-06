@@ -6,6 +6,7 @@
 #define USE_GATED_CLOCK 1
 #define SAMPLE_COUNT  300
 #define USE_RANDOM 1
+#define AUTOMATIC_IDLE 1
 
 
 class Top : public sc_module

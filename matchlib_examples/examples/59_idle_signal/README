@@ -1,9 +1,10 @@
 
 This example shows how to generate an "idle" signal for a model in HLS that uses SystemC and Matchlib.
 
-Note that this example shows how a small amount of code added to the model can generate
-an idle signal. Catapult HLS may also be enhanced in the future to enable the generation
-of an idle signal without any need for such code to be added by the user.
+The example shows two ways to generate the idle signal:
+1) When AUTOMATIC_IDLE is set, Catapult automatically generates the logic for the idle signal.
+2) When AUTOMATIC_IDLE is not set, explicit logic is included in the model to generate the idle signal.
+
 
 The main purpose of generating an "idle" signal for a process that will be synthesized thru HLS
 is to know if the process can be manually clock gated in the RTL while it is idle.
@@ -36,7 +37,7 @@ to a process even if it has "work to be done", but perhaps not enough work justi
 the clock on. For example, for a block with a long pipeline (e.g. 20 stages), it may make
 sense to gate the clock to the block if there are less than 3 transactions "in flight" thru
 the pipeline and any of the block's inputs are stalled waiting for inputs.
-The modeling approach shown in the example allows for this level of flexibility.
+The manual modeling approach shown in the example allows for this level of flexibility.
 
 This example shows how to generate an idle signal for a process that is pipelined during HLS.
 (The process in the DUT is pipelined with an II=1, and it has about 4 pipeline stages in the RTL due to the ac_sqrt operation).

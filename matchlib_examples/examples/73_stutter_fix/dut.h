@@ -37,8 +37,8 @@ public:
 
 private:
 
-  AXI4_W_SEGMENT(w_segment0)
-  AXI4_R_SEGMENT(r_segment0)
+  AXI4_W_SEGMENT_CFG(local_axi, w_segment0)
+  AXI4_R_SEGMENT_CFG(local_axi, r_segment0)
 
   void main() {
     in1.Reset();

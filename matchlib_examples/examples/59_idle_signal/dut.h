@@ -18,19 +18,26 @@ public:
   Connections::Out<uint32> CCS_INIT_S1(out1);
   Connections::In <uint32> CCS_INIT_S1(in1);
   Connections::In <uint32> CCS_INIT_S1(in2);
+#ifdef AUTOMATIC_IDLE
+#pragma hls_idle
+#endif
   sc_out<bool>  CCS_INIT_S1(idle);
 
+#ifndef AUTOMATIC_IDLE
   static const int MAX_PIPE_STAGES = 15;
   typedef ac_int<ac::nbits<MAX_PIPE_STAGES>::val, false> CNT_T;
+
   SC_SIG(CNT_T, in1_cnt);
   SC_SIG(CNT_T, in2_cnt);
   SC_SIG(CNT_T, out1_cnt);
+#endif
 
   SC_CTOR(dut) {
     SC_THREAD(main);
     sensitive << clk.pos();
     async_reset_signal_is(rst_bar, false);
 
+#ifndef AUTOMATIC_IDLE
     SC_THREAD(out1_thread);
     sensitive << clk.pos();
     async_reset_signal_is(rst_bar, false);
@@ -45,10 +52,12 @@ public:
 
     SC_METHOD(idle_thread);
     sensitive << in1_cnt << in2_cnt << out1_cnt << in1.rdy << in1.vld << in2.rdy << in2.vld;
+#endif
   }
 
 private:
 
+#ifndef AUTOMATIC_IDLE
   void idle_thread() {
     idle = EQUAL_COUNTS(in1, out1) &&
            EQUAL_COUNTS(in2, out1) &&
@@ -58,6 +67,7 @@ private:
   COUNTER_THREAD(out1);
   COUNTER_THREAD(in1);
   COUNTER_THREAD(in2);
+#endif
 
   void main() {
     out1.Reset();

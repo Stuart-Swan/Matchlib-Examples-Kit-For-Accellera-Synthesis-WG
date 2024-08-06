@@ -8,22 +8,6 @@
 #include "axi4_segment.h"
 
 
-// These two defines should be moved into axi4_segment.h eventually
-#ifndef AXI4_W_SEGMENT_T
-#define AXI4_W_SEGMENT_T(n, cfg_t) \
-  typename cfg_t::w_segment CCS_INIT_S1(n); \
-  Connections::Combinational<typename cfg_t::ex_aw_payload> CCS_INIT_S1(n ## _ex_aw_chan); \
-  Connections::Combinational<typename cfg_t::w_payload>     CCS_INIT_S1(n ## _w_chan); \
-  Connections::Combinational<typename cfg_t::b_payload> CCS_INIT_S1(n ## _b_chan);
-#endif
-
-#ifndef AXI4_R_SEGMENT_T
-#define AXI4_R_SEGMENT_T(n, cfg_t) \
-  typename cfg_t::r_segment CCS_INIT_S1(n); \
-  Connections::Combinational<typename cfg_t::ex_ar_payload> CCS_INIT_S1(n ## _ex_ar_chan);
-#endif
-
-
 #include "tlm.h"
 #include "tlm_utils/simple_initiator_socket.h"
 #include "tlm_utils/simple_target_socket.h"
@@ -195,8 +179,8 @@ public:
     AXI4_R_SEGMENT_BIND(r_segment0, clk, rst_bar, r_master0);
   }
 
-  AXI4_W_SEGMENT_T(w_segment0, axi_cfg)
-  AXI4_R_SEGMENT_T(r_segment0, axi_cfg)
+  AXI4_W_SEGMENT_CFG(typename axi_cfg, w_segment0)
+  AXI4_R_SEGMENT_CFG(typename axi_cfg, r_segment0)
 
   virtual void b_transport(int tag, tlm_generic_payload& trans, sc_time& tm) {
     sc_assert(tag == 0);

@@ -82,8 +82,8 @@ private:
   Connections::Combinational<dma_cmd> CCS_INIT_S1(dma_cmd_chan);
 
   // write and read segmenters segment long bursts to conform to AXI4 protocol (which allows 256 beats maximum).
-  AXI4_W_SEGMENT(w_segment0)
-  AXI4_R_SEGMENT(r_segment0)
+  AXI4_W_SEGMENT_CFG(local_axi, w_segment0)
+  AXI4_R_SEGMENT_CFG(local_axi, r_segment0)
 
   // master_process recieves dma_cmd transactions from the slave_process.
   // the master_process performs the dma operations via the master0 axi port,
