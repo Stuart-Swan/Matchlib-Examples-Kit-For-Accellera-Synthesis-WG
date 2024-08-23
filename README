@@ -19,6 +19,7 @@ matchlib_examples          - Matchlib examples directory - the primary content o
 matchlib_examples/examples - Matchlib examples. Each example includes a README file.
 matchlib_examples/doc      - Matchlib examples documentation.
 matchlib_examples/doc/matchlib_training.pdf   - Detailed Matchlib training slides.
+matchlib_examples/doc/matchlib_reference_manual.pdf   - Matchlib reference manual.
 
 ac_simutils-master         - AC Simulation utilities downloaded from github
 ac_types-master	           - AC Types downloaded from github
