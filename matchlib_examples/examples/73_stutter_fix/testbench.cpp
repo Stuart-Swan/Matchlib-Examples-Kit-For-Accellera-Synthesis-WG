@@ -65,6 +65,11 @@ public:
 
     // First write to the first N locations of the memory in DUT
     for (int i=0; i < 10; i++) {
+#ifdef SKIP_INITIALIZATION
+      if (i == 5)
+        continue;
+#endif
+
       in1_chan.Push(0);
       in2_chan.Push(i);
       in3_chan.Push(i * 8);

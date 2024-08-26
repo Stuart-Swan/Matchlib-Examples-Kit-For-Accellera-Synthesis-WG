@@ -4,6 +4,7 @@
 
 #include <ac_math.h>
 #include <mc_connections.h>
+#include <ac_assert_no_x_local.h>
 #include "axi4_segment.h"
 
 
@@ -85,6 +86,7 @@ private:
         r_payload r = r_master0.r.Pop();
         rdata = r.data;
 #endif
+        assert_no_x(rdata);
         uint32 result = sqrt + rdata;
         out1.Push(result);
       }

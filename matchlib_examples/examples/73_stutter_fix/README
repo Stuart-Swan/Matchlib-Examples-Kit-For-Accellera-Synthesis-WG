@@ -5,6 +5,16 @@ between different message passing interfaces, and shows how to resolve it.
 See the "fixing_stuttering_problems.pdf" document in this directory for more information
 about this example.
 
+This example also demonstrates the use of the assert_no_x() function to generate assertions
+into the RTL to automatically detect any 'X' values. In the DUT, the assert_no_x()
+is used to check every value read from the memory. In the testbench, if the 
+SKIP_INITIALIZATION flag is set, we intentionally do not initialize memory location 5.
+This results in the read of that location returning 'X's in the RTL simulation,
+which fires the assertion and also causes 'X's to stream to the DUT output.
+
+Note that the 'X' values do not appear in this case in the pre-HLS sim, since the
+memory is modeled with normal C data types rather than sc_lv<> (which can model Xs).
+
 
 Steps:
 

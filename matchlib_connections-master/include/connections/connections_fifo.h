@@ -453,5 +453,39 @@ namespace Connections
   };
 #endif // CONNECTIONS_SIM_ONLY
 
+template <typename Message, unsigned int NumEntries, Connections::connections_port_t port_marshall_type = AUTO_PORT>
+struct Fifo_with_idle : public Connections::Fifo<Message,  NumEntries, port_marshall_type> {
+  SC_HAS_PROCESS(Fifo_with_idle);
+  using Base = Connections::Fifo<Message,  NumEntries, port_marshall_type>;
+  using Base::enq;
+  using Base::deq;
+  using Base::sensitive;
+ 
+  sc_out<bool> is_idle;
+
+  Fifo_with_idle() :
+      Base("Fifo_with_idle"),
+      is_idle("is_idle")
+  {
+    SC_METHOD(gen_idle);
+    sensitive << enq.rdy << enq.vld << deq.vld << deq.rdy;
+  }
+
+  Fifo_with_idle(const sc_module_name &name) :
+      Base(name),
+      is_idle(CONNECTIONS_CONCAT(name,"is_idle"))
+  {
+    SC_METHOD(gen_idle);
+    sensitive << enq.rdy << enq.vld << deq.vld << deq.rdy;
+  }
+
+  void gen_idle() {
+    is_idle = !((enq.rdy && enq.vld) || (deq.vld && deq.rdy));
+  }
+
+};
+
+
+
 }  // namespace Connections
 #endif  // CONNECTIONS_FIFO_H
