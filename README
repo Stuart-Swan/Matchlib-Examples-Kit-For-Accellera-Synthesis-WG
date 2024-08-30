@@ -40,9 +40,11 @@ Web Links
 See the web links section at bottom of this file for useful web links.
 
 
-Setup
+Download and Setup
 
 This kit should work on most linux compatible systems.
+It is strongly recommended that you download the zip file for the entire kit from github.
+If you instead use the git clone command to clone the repository, the SystemC simulator build may fail.
 
 If you are using csh, type:
   source setenvs.csh
