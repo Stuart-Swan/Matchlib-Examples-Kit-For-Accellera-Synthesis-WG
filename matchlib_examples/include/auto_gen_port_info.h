@@ -174,6 +174,7 @@ public:
    call_gen_field_info<M>::gen_field_info(vec.back().field_vec);
   }
 };
+
  
 template <class M, int N>
 class port_traits<Connections::In<M>[N]>
@@ -219,6 +220,28 @@ public:
   }
 };
 
+
+template <>
+class port_traits<Connections::SyncIn>
+{
+public:
+  static constexpr int width = 0;
+  static constexpr const char* type = "In";
+  static void gen_info(std::vector<port_info>& vec, std::string nm, Connections::SyncIn& obj) {
+   vec.push_back(port_info(type, width, nm)); 
+  }
+};
+
+template <>
+class port_traits<Connections::SyncOut>
+{
+public:
+  static constexpr int width = 0;
+  static constexpr const char* type = "Out";
+  static void gen_info(std::vector<port_info>& vec, std::string nm, Connections::SyncOut& obj) {
+   vec.push_back(port_info(type, width, nm)); 
+  }
+};
 
 
 #define GEN_PORT_INFO(R, _, F) \
@@ -757,10 +780,10 @@ public:
     vlog << "module " << module_name << "(\n";
     for (unsigned i=0; i<port_info_vec.size(); ++i) {
      if (port_info_vec[i].type != std::string("{}")) {
-      emit_vlog_name(vlog, prefix, port_info_vec[i].name, port_info_vec[i].type);
+      emit_vlog_name(vlog, prefix, port_info_vec[i].name, port_info_vec[i]);
      } else {
       for (unsigned c=0; c < port_info_vec[i].child_vec.size(); ++c) {
-           emit_vlog_name(vlog, prefix, child_name(i,c), port_info_vec[i].child_vec[c].type);
+           emit_vlog_name(vlog, prefix, child_name(i,c), port_info_vec[i].child_vec[c]);
       }
      }
     }
@@ -801,10 +824,10 @@ public:
     vlog << "module " << module_name << "(\n";
     for (unsigned i=0; i<port_info_vec.size(); ++i) {
      if (port_info_vec[i].type != std::string("{}")) {
-      emit_vlog_name(vlog, prefix, port_info_vec[i].name, port_info_vec[i].type);
+      emit_vlog_name(vlog, prefix, port_info_vec[i].name, port_info_vec[i]);
      } else {
       for (unsigned c=0; c < port_info_vec[i].child_vec.size(); ++c) {
-           emit_vlog_name(vlog, prefix, child_name(i,c), port_info_vec[i].child_vec[c].type);
+           emit_vlog_name(vlog, prefix, child_name(i,c), port_info_vec[i].child_vec[c]);
       }
      }
     }
@@ -824,16 +847,19 @@ public:
   }
 
 
-  void emit_vlog_name(ofstream& vlog, std::string& prefix, std::string name, std::string& io_type) {
+  void emit_vlog_name(ofstream& vlog, std::string& prefix, std::string name, port_info& pi) {
+    std::string io_type = pi.type;
     if (io_type == "In") {
       vlog << prefix << name << "_" << _RDYNAMESTR_ << "\n";
       prefix = ", ";
       vlog << prefix << name << "_" << _VLDNAMESTR_ << "\n";
+      if (pi.width)
       vlog << prefix << name << "_" << _DATNAMESTR_ << "\n";
     } else if (io_type == "Out") {
       vlog << prefix << name << "_" << _RDYNAMESTR_ << "\n";
       prefix = ", ";
       vlog << prefix << name << "_" << _VLDNAMESTR_ << "\n";
+      if (pi.width)
       vlog << prefix << name << "_" << _DATNAMESTR_ << "\n";
     } else {
       vlog << prefix << name << "\n";
@@ -846,10 +872,12 @@ public:
     if (pi.type == "In") {
       vlog << "  output " << name << "_" << _RDYNAMESTR_ << ";\n";
       vlog << "  input  " << name << "_" << _VLDNAMESTR_ << ";\n";
+      if (pi.width)
       vlog << "  input [" << w << ":0] " << name << "_" << _DATNAMESTR_ << ";\n";
     } else if (pi.type == "Out") {
       vlog << "  input  " << name << "_" << _RDYNAMESTR_ << ";\n";
       vlog << "  output " << name << "_" << _VLDNAMESTR_ << ";\n";
+      if (pi.width)
       vlog << "  output [" << w << ":0] " << name << "_" << _DATNAMESTR_ << ";\n";
     } else if (pi.type == "sc_in") {
       vlog << "  input [" << w << ":0] " << name << ";\n";
@@ -872,10 +900,12 @@ public:
     if (pi.type == "In") {
       vlog << "  output " << name << "_" << _RDYNAMESTR_ << ";\n";
       vlog << "  input  " << name << "_" << _VLDNAMESTR_ << ";\n";
+      if (pi.width)
       vlog << "  input  " << type_str << name << "_" << _DATNAMESTR_ << ";\n";
     } else if (pi.type == "Out") {
       vlog << "  input  " << name << "_" << _RDYNAMESTR_ << ";\n";
       vlog << "  output " << name << "_" << _VLDNAMESTR_ << ";\n";
+      if (pi.width)
       vlog << "  output " << type_str << name << "_" << _DATNAMESTR_ << ";\n";
     } else if (pi.type == "sc_in") {
       vlog << "  input " << type_str << name << ";\n";
@@ -967,7 +997,8 @@ public:
       n.flat_name = name + "_" + _DATNAMESTR_;
       n.io = "sc_in";
       n.width = width;
-      vec.push_back(n);
+      if (width)
+        vec.push_back(n);
     } else if (io_type == "Out") {
       port_name n; 
       n.dotted_name = type + "." + _RDYNAMESTR_;
@@ -992,7 +1023,8 @@ public:
       n.flat_name = name + "_" + _DATNAMESTR_;
       n.width = width;
       n.io = "sc_out";
-      vec.push_back(n);
+      if (width)
+        vec.push_back(n);
     } else {
       port_name n; 
       n.dotted_name = type;
@@ -1145,10 +1177,12 @@ public:
     for (unsigned i=0; i<port_info_vec.size(); ++i) {
      if (port_info_vec[i].type != std::string("{}")) {
       if ((port_info_vec[i].type == "In") || (port_info_vec[i].type == "Out"))
+       if (port_info_vec[i].width)
         sc_h << "    " << port_info_vec[i].name << ".disable_spawn();\n";
      } else {
       for (unsigned c=0; c < port_info_vec[i].child_vec.size(); ++c) {
       if ((port_info_vec[i].child_vec[c].type == "In") || (port_info_vec[i].child_vec[c].type == "Out"))
+       if (port_info_vec[i].width)
         sc_h << "    " << port_info_vec[i].name << "." 
              << port_info_vec[i].child_vec[c].name << ".disable_spawn();\n";
       }
