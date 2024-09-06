@@ -597,7 +597,7 @@ public:
    }
   }
 
-  void gen_wrappers(int clkper=10, bool enable_trace=true) {
+  void gen_wrappers(int clkper=10, bool enable_trace=true, int clk_offset=0) {
     time_t now = time(0);
     char* dt = ctime(&now);
     remove_base();
@@ -702,7 +702,7 @@ public:
     sc_h << "      connections_clk.posedge_event(), clk.posedge_event());\n";
     sc_h << "  }\n\n";
     sc_h << "  SC_CTOR(" << module_name << "_wrap) \n";
-    sc_h << "  : connections_clk(\"connections_clk\", " << clkper << ", SC_NS, 0.5,0,SC_NS,true)\n";
+    sc_h << "  : connections_clk(\"connections_clk\", " << clkper << ", SC_NS, 0.5, " << clk_offset << ",SC_NS,true)\n";
     sc_h << "  {\n";
     sc_h << "    SC_METHOD(check_clock);\n";
     sc_h << "    sensitive << connections_clk << clk;\n\n";
