@@ -623,8 +623,6 @@ namespace Connections
   {
   public:
     Blocking_abs() {
-       clock_registered=false;
-       sibling_port=0; non_leaf_port=false; clock_number=0; 
        DBG_CONNECT("Blocking_abs CTOR: " << std::hex << (void*)this );
     };
     virtual ~Blocking_abs() {}
@@ -632,13 +630,13 @@ namespace Connections
     virtual bool Pre()  {return false;};
     virtual bool PrePostReset()  {return false;};
     virtual std::string full_name() { return "unnamed"; }
-    bool clock_registered;
-    bool non_leaf_port;
-    bool disable_spawn_true;
-    int  clock_number;
+    bool clock_registered{0};
+    bool non_leaf_port{0};
+    bool disable_spawn_true{0};
+    int  clock_number{0};
     virtual void do_reset_check() {}
     virtual std::string report_name() {return std::string("unnamed"); }
-    Blocking_abs *sibling_port;
+    Blocking_abs *sibling_port{0};
   };
 
 
