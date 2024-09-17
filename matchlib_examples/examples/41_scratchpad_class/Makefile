@@ -49,6 +49,7 @@ LD_LIBRARY_PATH := $(if $(LD_LIBRARY_PATH),$(LD_LIBRARY_PATH):$(CATAPULT_HOME)/l
 export LD_LIBRARY_PATH
 LIBDIRS += -L$(CATAPULT_HOME)/lib -L$(CATAPULT_HOME)/shared/lib
 
+
 else
 
 # CATAPULT_HOME appears to not be set. Make sure required variables are defined
@@ -80,6 +81,8 @@ CXX ?= g++
 LD_LIBRARY_PATH := $(if $(LD_LIBRARY_PATH),$(LD_LIBRARY_PATH):$(SYSTEMC_HOME)/lib:$(SYSTEMC_HOME)/lib-linux64,$(SYSTEMC_HOME)/lib:$(SYSTEMC_HOME)/lib-linux64)
 export LD_LIBRARY_PATH
 LIBDIRS += -L$(SYSTEMC_HOME)/lib -L$(SYSTEMC_HOME)/lib-linux64
+
+CXXFLAGS += -Wl,-rpath,$(SYSTEMC_HOME)/lib-linux64
 
 endif
 

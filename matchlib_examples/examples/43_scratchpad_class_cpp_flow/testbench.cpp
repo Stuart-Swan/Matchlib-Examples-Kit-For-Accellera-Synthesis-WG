@@ -7,17 +7,15 @@ CCS_MAIN(int argc, char **argv)
 {
   dut dut1;
 
-  local_mem::word_type*  ref_mem;
-  bool* ref_mem_valid;
+  std::shared_ptr<local_mem::word_type []> ref_mem
+      { new local_mem::word_type[local_mem::capacity_in_words] };
+  std::shared_ptr<bool []> ref_mem_valid { new bool[local_mem::capacity_in_words] };
   unsigned match_count{0};
   unsigned mismatch_count{0};
 
   ac_channel<local_mem::word_type> out1;
   ac_channel<dut_in_t> in1;
   ac_channel<uint64> read_fifo1;
-
-  ref_mem = new local_mem::word_type[local_mem::capacity_in_words];
-  ref_mem_valid = new bool[local_mem::capacity_in_words];
 
   for (unsigned i=0; i < local_mem::capacity_in_words; i++)
       ref_mem_valid[i] = 0;
@@ -33,9 +31,9 @@ CCS_MAIN(int argc, char **argv)
       dut_in1.addr = addr;
       for (unsigned i=0; i < local_mem::num_inputs; i++) {
         dut_in1.data[i] = rand();
-        ++addr;
         ref_mem_valid[addr] = 1;
         ref_mem[addr] = dut_in1.data[i];
+        ++addr;
       }
       in1.write(dut_in1);
       dut1.run(in1, out1);

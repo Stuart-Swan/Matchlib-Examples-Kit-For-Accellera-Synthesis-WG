@@ -1868,7 +1868,7 @@ bool bmp_read ( char *file_in_name, unsigned long int *width, long int *height,
 //
   if ( bitsperpixel == 8 ) {
 
-    *rarray = new unsigned char[numbytes];
+    *rarray = new unsigned char[numbytes + 64];
 
     error = bmp_08_data_read ( file_in, *width, *height, *rarray );
 
@@ -1882,9 +1882,9 @@ bool bmp_read ( char *file_in_name, unsigned long int *width, long int *height,
     *garray = *rarray;
     *barray = *rarray;
   } else if ( bitsperpixel == 24 ) {
-    *rarray = new unsigned char[numbytes];
-    *garray = new unsigned char[numbytes];
-    *barray = new unsigned char[numbytes];
+    *rarray = new unsigned char[numbytes + 64];
+    *garray = new unsigned char[numbytes + 64];
+    *barray = new unsigned char[numbytes + 64];
 
     error = bmp_24_data_read ( file_in, *width, *height, *rarray, *garray,
                                *barray );

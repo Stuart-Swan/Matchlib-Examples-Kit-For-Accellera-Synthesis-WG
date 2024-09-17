@@ -16,6 +16,7 @@
 
 using namespace tlm;
 
+
 template <class axi_cfg>
 class axi4_slave_to_tlm2_initiator 
   : public sc_module
@@ -35,8 +36,8 @@ public:
   // not handling any endianness conversion or write byte enables currently (easy to add)
   // not handling any axi4 narrow transfers currently (fairly easy to add)
 
-  ac_int<axi_cfg::bytesPerBeat*8, false> read_buf[256];
-  ac_int<axi_cfg::bytesPerBeat*8, false> write_buf[256];
+  unsigned char read_buf[axi_cfg::bytesPerBeat * 256];
+  unsigned char write_buf[axi_cfg::bytesPerBeat * 256];
 
   SC_HAS_PROCESS(axi4_slave_to_tlm2_initiator);
 
@@ -55,13 +56,13 @@ public:
   void slave_r_process() {
     r_slave0.reset();
     wait();
+    typedef ac_int<axi_cfg::bytesPerBeat*8, false> beat_t;
 
     while (1) {
       typename axi_cfg::ar_payload ar;
       r_slave0.start_multi_read(ar);
       uint64_t start_addr = ar.addr;
       uint64_t data_len = (int)(ar.len + 1) * (int)axi_cfg::bytesPerBeat;
-      int read_beat{0};
 
       //CCS_LOG("axi4_slave_to_tlm2 read  addr: " << std::hex << ar.addr << " len: " << ar.len);
 
@@ -72,7 +73,8 @@ public:
 
       trans.set_read();
       trans.set_address(start_addr);
-      trans.set_data_ptr((unsigned char*)&read_buf);
+      trans.set_data_ptr(read_buf);
+      unsigned char* data_ptr = read_buf;
       trans.set_data_length(data_len);
       trans.set_byte_enable_ptr(0);
       trans.set_byte_enable_length(0);
@@ -80,10 +82,18 @@ public:
 
       tlm2_initiator->b_transport(trans, zero_time);
 
+
       while (1) {
         typename axi_cfg::r_payload r;
 
-        r.data = read_buf[read_beat++];
+        beat_t beat = 0;
+
+        for (int i=0; i < axi_cfg::bytesPerBeat; ++i) {
+          beat = (beat << 8) | *data_ptr++;
+        }
+
+        r.data = beat;
+
         r.resp = (trans.get_response_status() == TLM_OK_RESPONSE) ?  
          axi_cfg::Enc::XRESP::OKAY : axi_cfg::Enc::XRESP::SLVERR;
 
@@ -94,6 +104,7 @@ public:
 
   void slave_w_process() {
     w_slave0.reset();
+    typedef ac_int<axi_cfg::bytesPerBeat*8, false> beat_t;
 
     while (1) {
       typename axi_cfg::aw_payload aw;
@@ -103,17 +114,23 @@ public:
 
       uint64_t start_addr = aw.addr;
       uint64_t data_len = (int)(aw.len + 1) * (int)axi_cfg::bytesPerBeat;
-      int write_beat{0};
 
       sc_assert((start_addr % axi_cfg::bytesPerBeat) == 0);
 
       //CCS_LOG("axi4_slave_to_tlm2 write addr: " << std::hex << aw.addr << " len: " << aw.len);
 
+      unsigned char* data_ptr = write_buf;
+
       while (1) {
         typename axi_cfg::w_payload w = w_slave0.w.Pop();
         decltype(w.wstrb) all_on{~0};
         sc_assert(w.wstrb == all_on);
-        write_buf[write_beat++] = w.data;
+
+        beat_t beat = w.data;
+        for (int i=0; i < axi_cfg::bytesPerBeat; ++i) {
+          *data_ptr++ = beat;
+          beat = beat >> 8;
+        }
 
         if (!w_slave0.next_multi_write(aw)) { break; }
       }
@@ -123,7 +140,7 @@ public:
 
       trans.set_write();
       trans.set_address(start_addr);
-      trans.set_data_ptr((unsigned char*)&write_buf);
+      trans.set_data_ptr(write_buf);
       trans.set_data_length(data_len);
       trans.set_byte_enable_ptr(0);
       trans.set_byte_enable_length(0);
@@ -205,7 +222,6 @@ public:
     uint64_t len    = current_trans->get_data_length();
     unsigned char* data_ptr = current_trans->get_data_ptr();
     typedef ac_int<axi_cfg::bytesPerBeat*8, false> beat_t;
-    beat_t* beat_ptr = (beat_t*)data_ptr;
 
     current_trans->set_response_status(TLM_OK_RESPONSE);
 
@@ -224,7 +240,12 @@ public:
 
       do {
         typename axi_cfg::w_payload w;
-        w.data = *beat_ptr++;
+        beat_t beat = 0;
+        for (int i=axi_cfg::bytesPerBeat-1; i >= 0; --i) {
+          beat = (beat << 8) | *(data_ptr + i);
+        }
+        data_ptr += axi_cfg::bytesPerBeat;
+        w.data = beat;
         w_segment0_w_chan.Push(w);
       } while (aw.ex_len--);
 
@@ -246,7 +267,11 @@ public:
       do {
         typename axi_cfg::r_payload r;
         r = r_master0.r.Pop();
-        *beat_ptr++ = r.data;
+        beat_t beat = r.data;
+        for (int i=0; i < axi_cfg::bytesPerBeat; ++i) {
+          *data_ptr++ = beat >> ((axi_cfg::bytesPerBeat - 1) * 8);
+          beat = beat << 8;
+        }
         if (r.resp != axi_cfg::Enc::XRESP::OKAY)
           current_trans->set_response_status(TLM_GENERIC_ERROR_RESPONSE);
       } while (ar.ex_len--);

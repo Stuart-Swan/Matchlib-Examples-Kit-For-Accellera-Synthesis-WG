@@ -39,10 +39,10 @@ SC_MODULE(testbench)
     sensitive << clk.pos();
     SC_THREAD(response);
     sensitive << clk.pos();
-    dat_in_orig = new unsigned char[864*1296];
-    rarray = new unsigned char[864*1296];
-    garray = new unsigned char[864*1296];
-    barray = new unsigned char[864*1296];
+    dat_in_orig = new unsigned char[864*1296 + 64];
+    // rarray = new unsigned char[864*1296 + 64];
+    // garray = new unsigned char[864*1296 + 64];
+    // barray = new unsigned char[864*1296 + 64];
     magn_orig = new double[864*1296];
     angle_orig = new double[864*1296];
   }
@@ -119,12 +119,12 @@ SC_MODULE(testbench)
     bmp_24_write ("./Gradient_Magnitude.bmp", 1296,  864, rarray, rarray, rarray);
     display_bmp_image("./Gradient_Magnitude.bmp");
 
-    delete (dat_in_orig);
-    delete (magn_orig);
-    delete (angle_orig);
-    delete (rarray);
-    delete (garray);
-    delete (barray);
+    delete [] dat_in_orig;
+    delete [] magn_orig;
+    delete [] angle_orig;
+    delete [] rarray;
+    delete [] garray;
+    delete [] barray;
     cout << "Finished" << endl;
     sc_stop();
   }

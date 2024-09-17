@@ -8,17 +8,15 @@ CCS_MAIN(int argc, char **argv)
 {
   dut dut1;
 
-  local_mem::word_type*  ref_mem;
-  bool* ref_mem_valid;
+  std::shared_ptr<local_mem::word_type []> ref_mem
+      { new local_mem::word_type[local_mem::capacity_in_words] };
+  std::shared_ptr<bool []> ref_mem_valid { new bool[local_mem::capacity_in_words] };
   unsigned match_count{0};
   unsigned mismatch_count{0};
 
   ac_channel<local_mem::rsp_t> out1;
   ac_channel<local_mem::req_t> in1;
   ac_channel<uint64> read_fifos[local_mem::num_inputs];
-
-  ref_mem = new local_mem::word_type[local_mem::capacity_in_words];
-  ref_mem_valid = new bool[local_mem::capacity_in_words];
 
   for (unsigned i=0; i < local_mem::capacity_in_words; i++)
       ref_mem_valid[i] = 0;

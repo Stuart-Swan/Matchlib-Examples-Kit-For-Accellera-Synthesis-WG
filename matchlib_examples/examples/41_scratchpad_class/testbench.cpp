@@ -10,8 +10,9 @@ public:
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
-  local_mem::word_type*  ref_mem;
-  bool* ref_mem_valid;
+  std::shared_ptr<local_mem::word_type []> ref_mem
+      { new local_mem::word_type[local_mem::capacity_in_words] };
+  std::shared_ptr<bool []> ref_mem_valid { new bool[local_mem::capacity_in_words] };
   unsigned match_count{0};
   unsigned mismatch_count{0};
 
@@ -21,9 +22,6 @@ public:
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
     sc_object_tracer<sc_clock> trace_clk(clk);
-
-    ref_mem = new local_mem::word_type[local_mem::capacity_in_words];
-    ref_mem_valid = new bool[local_mem::capacity_in_words];
 
     for (unsigned i=0; i < local_mem::capacity_in_words; i++)
       ref_mem_valid[i] = 0;
@@ -68,9 +66,9 @@ public:
       dut_in1.addr = addr;
       for (unsigned i=0; i < local_mem::num_inputs; i++) {
         dut_in1.data[i] = rand();
-        ++addr;
         ref_mem_valid[addr] = 1;
         ref_mem[addr] = dut_in1.data[i];
+        ++addr;
       }
       in1.Push(dut_in1);
     }
