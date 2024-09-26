@@ -262,7 +262,7 @@ public:
   Connections::Out<T, AUTO_PORT> CCS_INIT_S1(out1);
   Connections::In <T, AUTO_PORT> CCS_INIT_S1(in1);
 
-  Connections::BufferStatus<T, N, STATUS_TYPE> fifo1;
+  Connections::BufferStatus<T, N, STATUS_TYPE> CCS_INIT_S1(fifo1);
 
   SC_CTOR(FifoChannelStatus) {
     fifo1.clk(clk);
