@@ -2,6 +2,7 @@
 
 #include "dut.h"
 #include <mc_scverify.h>
+#include <stable_random.h>
 
 #define USE_GATED_CLOCK 1
 #define SAMPLE_COUNT  300
@@ -67,13 +68,15 @@ public:
     in2.ResetWrite();
     wait();
 
+    stable_random gen;
+
     for (int i = 0; i < SAMPLE_COUNT; i++) {
       in1.Push(i);
       in2.Push(i);
       if ((i % 10) == 0)
       {
 #ifdef USE_RANDOM
-        uint32 t = rand() & 0xf;
+        uint32 t = gen.get() & 0xf;
         for (int i=0; i < t; i++)
           wait();
 #else
@@ -90,10 +93,12 @@ public:
     out1.ResetRead();
     wait();
 
+    stable_random gen;
+
     while (1) {
       CCS_LOG("TB resp sees: " << std::hex << out1.Pop());
 #ifdef USE_RANDOM
-      if ((rand() & 0xf) == 0)
+      if ((gen.get() & 0xf) == 0)
         wait();
 #endif
     }

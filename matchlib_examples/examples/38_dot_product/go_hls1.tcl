@@ -10,6 +10,7 @@ project new
 # Set simulation options
 options set /Input/CppStandard c++11
 options set /Input/CompilerFlags {-DSINGLE_PROCESS -DSC_INCLUDE_DYNAMIC_PROCESSES}
+options set /Input/SearchPath {../../include} -append
 flow package require /SCVerify
 
 # Read Design and Libraries

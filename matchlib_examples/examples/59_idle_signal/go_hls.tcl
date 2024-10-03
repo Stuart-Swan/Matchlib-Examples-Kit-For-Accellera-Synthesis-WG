@@ -4,6 +4,7 @@ options defaults
 
 options set /Input/CppStandard c++11
 options set /Input/CompilerFlags " "
+options set /Input/SearchPath $sfd/../../include -append
 
 project new
 

@@ -2,6 +2,7 @@
 
 #include "dut.h"
 #include <mc_scverify.h>
+#include <stable_random.h>
 
 class Top : public sc_module
 {
@@ -58,12 +59,13 @@ public:
     local_mem::req_t req;
 
     static const int test_count = 1000;
+    stable_random gen;
 
     // Write random values to random memory locations:
     for (unsigned r = 0; r < test_count; r++) {
       for (unsigned i=0; i < local_mem::num_inputs; i++) {
         req.type.val = CLITYPE_T::STORE;
-        req.valids[i] = rand() & 1;
+        req.valids[i] = gen.get() & 1;
         if (req.valids[i] == 0)
           continue;
 
@@ -71,10 +73,10 @@ public:
         bool success=0;
         unsigned addr;
         do {
-          addr = rand() &  (( 1 << local_mem::addr_width ) - 1);
+          addr = gen.get() &  (( 1 << local_mem::addr_width ) - 1);
           if (!ref_mem_valid[addr]) {
             ref_mem_valid[addr] = 1;
-            ref_mem[addr] = rand();
+            ref_mem[addr] = gen.get();
             success = 1;
           }
         } while (!success);
@@ -99,7 +101,7 @@ public:
     for (unsigned r = 0; r < test_count; r++) {
       for (unsigned i=0; i < local_mem::num_inputs; i++) {
         req.type.val = CLITYPE_T::LOAD;
-        req.valids[i] = rand() & 1;
+        req.valids[i] = gen.get() & 1;
         if (req.valids[i] == 0)
           continue;
 
@@ -107,7 +109,7 @@ public:
         bool success=0;
         unsigned addr;
         do {
-          addr = rand() &  (( 1 << local_mem::addr_width ) - 1);
+          addr = gen.get() &  (( 1 << local_mem::addr_width ) - 1);
           if (ref_mem_valid[addr]) {
             success = 1;
           }

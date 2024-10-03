@@ -3,6 +3,7 @@
 #include "dut.h"
 #include <mc_scverify.h>
 #include <memory>
+#include <stable_random.h>
 
 class Top : public sc_module
 {
@@ -59,6 +60,8 @@ public:
 
     static const int test_count = 1000;
 
+    stable_random gen;
+
     CCS_LOG("addr_width bank_sel_width capacity_in_words: " << std::dec << local_mem::addr_width << " " << local_mem::bank_sel_width << " " << local_mem::capacity_in_words);
 
     // Write random values to random memory locations:
@@ -69,7 +72,7 @@ public:
         bool success=0;
         unsigned addr;
         while (1) {
-          addr = rand() &  (( 1 << local_mem::addr_width ) - 1);
+          addr = gen.get() &  (( 1 << local_mem::addr_width ) - 1);
           if (ref_mem_valid[addr])
             continue;
 
@@ -85,7 +88,7 @@ public:
             continue;
 
           ref_mem_valid[addr] = 1;
-          ref_mem[addr] = rand();
+          ref_mem[addr] = gen.get();
           break;
         } 
 
@@ -104,7 +107,7 @@ public:
         bool success=0;
         unsigned addr;
         while (1) {
-          addr = rand() &  (( 1 << local_mem::addr_width ) - 1);
+          addr = gen.get() &  (( 1 << local_mem::addr_width ) - 1);
           if (!ref_mem_valid[addr])
             continue;
 

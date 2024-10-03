@@ -2,6 +2,7 @@
 
 #include "dut.h"
 #include <mc_scverify.h>
+#include <stable_random.h>
 
 class Top : public sc_module
 {
@@ -56,6 +57,7 @@ public:
     wait();
 
     dut_in_t dut_in1;
+    stable_random gen;
 
     CCS_LOG("addr_width bank_sel_width capacity_in_words: " << std::dec << local_mem::addr_width << " " << local_mem::bank_sel_width << " " << local_mem::capacity_in_words);
 
@@ -65,7 +67,7 @@ public:
       dut_in1.is_load = 0;
       dut_in1.addr = addr;
       for (unsigned i=0; i < local_mem::num_inputs; i++) {
-        dut_in1.data[i] = rand();
+        dut_in1.data[i] = gen.get();
         ++addr;
         ref_mem_valid[addr] = 1;
         ref_mem[addr] = dut_in1.data[i];
@@ -79,7 +81,7 @@ public:
     for (unsigned r = 0; r < test_count; r++) {
       unsigned addr;
       while (1) {
-        addr = rand() &  (( 1 << local_mem::addr_width ) - 1);
+        addr = gen.get() &  (( 1 << local_mem::addr_width ) - 1);
         if (addr < local_mem::capacity_in_words - local_mem::num_inputs)
           break;
       }
@@ -89,7 +91,7 @@ public:
       // compute MAC for ref model checking here:
       unsigned sum = 0;
       for (unsigned i=0; i < local_mem::num_inputs; i++) {
-        dut_in1.data[i] = rand();
+        dut_in1.data[i] = gen.get();
         ++addr;
         sum += dut_in1.data[i] * ref_mem[addr];
       }

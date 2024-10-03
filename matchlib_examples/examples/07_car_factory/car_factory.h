@@ -6,6 +6,8 @@
 
 #include "auto_gen_fields.h"
 
+#include <stable_random.h>
+
 struct chassis_t {
   sc_uint<16> chassis;
 
@@ -73,6 +75,8 @@ public:
     int count = 0;
     wait();                                 // WAIT
 
+    stable_random gen;
+
     while (1) {
       engine_t engine_in = engines_in.Pop();
       for (int i=0; i < engine_t::plugs; i++) {
@@ -82,7 +86,7 @@ public:
       wait(60);                             // WAIT
       busy = 0;
       engines_out.Push(engine_in);
-      if ((count++ & 1) && (rand() & 3)) {
+      if ((count++ & 1) && (gen.get() & 3)) {
         maintenance = 1;
         wait(60);                           // WAIT
         maintenance = 0;
@@ -202,6 +206,8 @@ public:
     cars.Reset();
     wait();                                 // WAIT
 
+    stable_random gen;
+
     while (1) {
       if (plug_count < engine_t::plugs) {
         if (spark_plugs.PopNB(plugs[plug_count])) { ++plug_count; }
@@ -221,7 +227,7 @@ public:
         spark_plug_robot_busy = 1;
         wait(60);                           // WAIT
         spark_plug_robot_busy = 0;
-        if ((spark_plug_robot_count++ & 1) && (rand() & 3)) {
+        if ((spark_plug_robot_count++ & 1) && (gen.get() & 3)) {
           spark_plug_robot_maintenance = 1;
           wait(60);                         // WAIT
           spark_plug_robot_maintenance = 0;

@@ -2,8 +2,10 @@
 
 set -e
 
-# Note: SystemC must be built with pthreads to use AddressSanitizer.
-# See ../../pthreads_build_systemc.sh
+echo
+echo Note: SystemC must be built with pthreads to use AddressSanitizer.
+echo See ../../pthreads_build_systemc.sh
+echo
 
 echo --------------------------------------------------
 echo TEST ASAN PREHLS GROUP START: `pwd`

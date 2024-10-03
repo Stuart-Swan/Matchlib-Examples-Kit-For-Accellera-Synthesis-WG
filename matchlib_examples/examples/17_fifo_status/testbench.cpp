@@ -4,6 +4,7 @@
 #include "dut.h"
 
 #include <mc_scverify.h>
+#include <stable_random.h>
 
 class Top : public sc_module
 {
@@ -50,8 +51,10 @@ public:
     in1.ResetWrite();
     wait();
 
+    stable_random gen;
+
     for (int i = 0; i < 40; i++) {
-      while (rand() & 1)
+      while (gen.get() & 1)
         wait();
       in1.Push(i);
     }
@@ -69,8 +72,10 @@ public:
     out1.ResetRead();
     wait();
 
+    stable_random gen;
+
     while (1) {
-      while (rand() & 1)
+      while (gen.get() & 1)
         wait();
       CCS_LOG("TB resp sees: " << std::hex << out1.Pop());
     }

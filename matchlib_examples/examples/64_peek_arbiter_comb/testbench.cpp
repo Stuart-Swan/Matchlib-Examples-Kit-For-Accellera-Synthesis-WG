@@ -1,7 +1,9 @@
 // INSERT_EULA_COPYRIGHT: 2020
 
-#include "dut.h"
 #include <mc_scverify.h>
+#include <stable_random.h>
+
+#include "dut.h"
 
 class Top : public sc_module
 {
@@ -44,16 +46,17 @@ public:
     wait();
 
     packet pkt;
+    stable_random gen;
 
     for (int i = 0; i < 30; ) {
       wait();
-      if (rand() & 1) {
+      if (gen.get() & 1) {
         for (int z=0; z < packet::SIZE; z++) 
           pkt.data[z] = i;
         in1.Push(pkt);
         ++i;
       }
-      if (rand() & 1) {
+      if (gen.get() & 1) {
         for (int z=0; z < packet::SIZE; z++) 
           pkt.data[z] = i;
         in2.Push(pkt);
@@ -68,10 +71,11 @@ public:
   void resp() {
     out1.ResetRead();
     wait();
+    stable_random gen;
 
     while (1) {
       wait();
-      if (rand() & 1) {
+      if (gen.get() & 1) {
         packet pkt = out1.Pop();
         uint32 t = pkt.data[0];
         CCS_LOG("TB resp sees: " << std::hex << t);

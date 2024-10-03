@@ -2,6 +2,7 @@
 
 #include "dut.h"
 #include <mc_scverify.h>
+#include <stable_random.h>
 
 class Top : public sc_module
 {
@@ -46,6 +47,8 @@ public:
     in_dat = 0;
     wait();
 
+    stable_random gen;
+
     for (int i = 0; i < 10; i++) {
       in_vld = 1;
       in_dat = i;
@@ -53,7 +56,7 @@ public:
       in_vld = 0;
       in_dat = 0;
       wait();
-      if (rand() & 1)
+      if (gen.get() & 1)
         wait();
     }
 

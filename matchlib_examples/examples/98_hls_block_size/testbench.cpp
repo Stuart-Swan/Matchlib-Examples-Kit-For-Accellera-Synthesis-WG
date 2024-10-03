@@ -1,6 +1,7 @@
 // INSERT_EULA_COPYRIGHT: 2020
 
 #include <mc_scverify.h>
+#include <stable_random.h>
 
 #include "dut.h"
 
@@ -38,8 +39,8 @@ public:
 
   sc_time start_time, end_time;
 
-  unsigned rand_up_to(unsigned n) {
-   return rand() & (n-1);
+  unsigned rand_up_to(unsigned n, stable_random& gen) {
+   return gen.get() & (n-1);
   }
 
   static constexpr unsigned test_cnt = 1000;
@@ -53,13 +54,15 @@ public:
 
     start_time = sc_time_stamp();
 
+    stable_random gen;
+
     // First write to the memory in DUT
     for (unsigned i=0; i < test_cnt; i++) {
       mem_req req1;
       req1.is_write = 1;
-      req1.index[0] = rand_up_to(DimSize[0]);
-      req1.index[1] = rand_up_to(DimSize[1]);
-      req1.data  = rand();
+      req1.index[0] = rand_up_to(DimSize[0], gen);
+      req1.index[1] = rand_up_to(DimSize[1], gen);
+      req1.data  = gen.get();
       writes[i] = req1;
       ref_mem[req1.index[0]][req1.index[1]] = req1.data;
       in1_chan.Push(req1);

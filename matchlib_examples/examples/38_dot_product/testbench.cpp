@@ -1,5 +1,7 @@
 #include <mc_connections.h>
 #include <ac_sysc_trace.h>
+#include <stable_random.h>
+
 
 #ifdef SINGLE_PROCESS
 #include "mat_mul_single_process.h"
@@ -60,9 +62,12 @@ class Top : public sc_module {
     CCS_LOG("Stimulus reset started");
     A.ResetWrite();
     wait();
+    
+    stable_random gen;
+
     for (int i=0; i<8; i++) {
       for (int j=0; j<8; j++) {
-        A_ref[i][j] = rand();
+        A_ref[i][j] = gen.get();
       }
     }
     for (int k=0; k<2; k++) 
@@ -77,9 +82,12 @@ class Top : public sc_module {
   void stimB() {
     B.ResetWrite();
     wait();
+
+    stable_random gen;
+
     for (int i=0; i<8; i++) {
       for (int j=0; j<8; j++) {
-        B_ref[i][j] = rand();
+        B_ref[i][j] = gen.get();
       }
     }
 

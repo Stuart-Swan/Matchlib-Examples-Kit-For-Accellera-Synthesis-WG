@@ -22,12 +22,14 @@ public:
     int count=0;
     wait();
 
+    stable_random gen;
+
     while (1) {
       spark_plug_t spark_plug;
       spark_plug.spark_plug = count++;
       spark_plugs.Push(spark_plug);
       wait(3);
-      if (rand() & 1) {
+      if (gen.get() & 1) {
         wait(3);
       }
     }
