@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef __AXI_T_SLAVE_FROM_FILE__
-#define __AXI_T_SLAVE_FROM_FILE__
+#ifndef __AXI_T_SUBORDINATE__
+#define __AXI_T_SUBORDINATE__
 
 #include <systemc.h>
 #include <ac_reset_signal_is.h>
 
 #include <axi/axi4.h>
-#include <axi/testbench/CSVFileReader.h>
 #include <nvhls_connections.h>
 #include <hls_globals.h>
 
@@ -29,29 +28,27 @@
 #include <map>
 #include <boost/assert.hpp>
 #include <algorithm>
-#include <string>
-#include <sstream>
 
 /**
- * \brief An AXI slave with its memory prepopulated from a file for use in testbenches.
+ * \brief An AXI subordinate for use in a testbench.
  * \ingroup AXI
  *
  * \tparam axiCfg                   A valid AXI config.
  *
  * \par Overview
- * AxiSlaveFromFile acts as an AXI slave in a testbench.  It differs from Slave in that at the beginning of simulation time its internal state is prepopulated according to the contents of a CSV file.  The CSV file format is as follows:
- * - address_in_hex,data_in_hex
- * 
- *  It's best to specify the full DATA_WIDTH of data.
+ * This test structure acts as an AXI subordinate memory, responding to read and write requests and generating responses.  An internal memory, initially unpopulated, stores the values of AXI write requests and is accessed for read requests.  The block enforces the following by assertion:
+ * - Read requests are only valid if the address has previously been written to.
+ * - Write data beats must each assert at least one strobe bit.
  *
  */
-template <typename axiCfg> class SlaveFromFile : public sc_module {
+template <typename axiCfg>
+class Subordinate : public sc_module {
  public:
   static const int kDebugLevel = 1;
   typedef axi::axi4<axiCfg> axi4_;
 
-  typename axi4_::read::template slave<> if_rd;
-  typename axi4_::write::template slave<> if_wr;
+  typename axi4_::read::template subordinate<> if_rd;
+  typename axi4_::write::template subordinate<> if_wr;
 
   sc_in<bool> reset_bar;
   sc_in<bool> clk;
@@ -63,43 +60,13 @@ template <typename axiCfg> class SlaveFromFile : public sc_module {
   std::queue <typename axi4_::WRespPayload> wr_resp;
 
   std::map<typename axi4_::Addr, typename axi4_::Data> localMem;
-  std::map<typename axi4_::Addr, NVUINT8> localMem_wstrb;
+  std::map<typename axi4_::Addr, NVUINT8 > localMem_wstrb;
   std::vector<typename axi4_::Addr> validReadAddresses;
-
-  typename axi4_::WritePayload load_data_pld;
 
   static const int bytesPerBeat = axi4_::DATA_WIDTH >> 3;
 
-  SC_HAS_PROCESS(SlaveFromFile);
-
-  SlaveFromFile(sc_module_name name_, std::string filename="mem.csv")
-      : sc_module(name_), if_rd("if_rd"), if_wr("if_wr"), reset_bar("reset_bar"), clk("clk") {
-
-    CSVFileReader reader(filename);
-    std::vector< std::vector<std::string> > dataList = reader.readCSV();
-    for (unsigned int i=0; i < dataList.size(); i++) {
-      std::vector<std::string> vec = dataList[i];
-      NVHLS_ASSERT_MSG(vec.size() == 2, "Each request must have two elements");
-      std::stringstream ss;
-      sc_uint<axi4_::ADDR_WIDTH> addr_sc_uint;
-      ss << hex << vec[0];
-      ss >> addr_sc_uint;
-      std::stringstream ss_data;
-      sc_biguint<axi4_::DATA_WIDTH> data;
-      ss_data << hex << vec[1];
-      ss_data >> data;
-      load_data_pld.data = TypeToNVUINT(data);
-      typename axi4_::Addr addr = static_cast<typename axi4_::Addr>(addr_sc_uint);
-      if (axiCfg::useWriteStrobes) {
-        for (int j=0; j<axi4_::WSTRB_WIDTH; j++) {
-          localMem_wstrb[addr+j] = nvhls::get_slc<8>(load_data_pld.data, 8*j);
-        }
-      } else {
-        localMem[addr] = load_data_pld.data;
-      }  
-      validReadAddresses.push_back(addr);
-    }
-
+  SC_CTOR(Subordinate)
+      : if_rd("if_rd"), if_wr("if_wr"), reset_bar("reset_bar"), clk("clk") {
     SC_THREAD(run_rd);
     sensitive << clk.pos();
     async_reset_signal_is(reset_bar, false);
@@ -109,7 +76,7 @@ template <typename axiCfg> class SlaveFromFile : public sc_module {
     async_reset_signal_is(reset_bar, false);
   }
 
-protected:
+ protected:
   void run_rd() {
     if_rd.reset();
     unsigned int rdBeatInFlight = 0;
@@ -120,6 +87,7 @@ protected:
       typename axi4_::AddrPayload rd_addr_pld;
       if (if_rd.nb_aread(rd_addr_pld)) {
         typename axi4_::Addr addr = rd_addr_pld.addr;
+        CMOD_ASSERT_MSG(addr % bytesPerBeat == 0, "Addresses must be word aligned");
         CDCOUT(sc_time_stamp() << " " << name() << " Received read request: ["
                       << rd_addr_pld << "]"
                       << endl, kDebugLevel);
@@ -182,6 +150,8 @@ protected:
     typename axi4_::WRespPayload resp_pld;
     typename axi4_::AddrPayload wr_addr_pld;
     typename axi4_::WritePayload wr_data_pld;
+    typename axi4_::AddrPayload wr_addr_pld_out;
+    typename axi4_::WritePayload wr_data_pld_out;
     unsigned int wrBeatInFlight = 0;
     bool first_beat = 1;
     typename axi4_::Addr wresp_addr;
@@ -195,17 +165,20 @@ protected:
           resp_pld = wr_resp.front();
           if (if_wr.nb_bwrite(resp_pld)) {
             wr_resp.pop();
-            CDCOUT(sc_time_stamp() << " " << name() << " Sent write response"
-                          << endl, kDebugLevel);
+            CDCOUT(sc_time_stamp() << " " << name() << " Sent write response: ["
+                                   << resp_pld << "]"
+                                   << endl, kDebugLevel);
           }
         }
       }
 
       // Grab a write request (addr) and put it in the local queue
       if (if_wr.aw.PopNB(wr_addr_pld)) {
+        CMOD_ASSERT_MSG(wr_addr_pld.addr.to_uint64() % bytesPerBeat == 0, "Addresses must be word aligned");
         wr_addr.push(wr_addr_pld);
-        CDCOUT(sc_time_stamp() << " " << name() << " Received write request:"
-                      << wr_addr_pld << endl, kDebugLevel);
+        CDCOUT(sc_time_stamp() << " " << name() << " Received write request: ["
+                      << wr_addr_pld << "]"
+                      << endl, kDebugLevel);
       }
 
       // Grab a write request (data) and put it in the local queue
@@ -223,34 +196,34 @@ protected:
       // Handle a write request in the local queues
       if (!wr_addr.empty() & !wr_data.empty()) {
         if (first_beat) {
-          wr_addr_pld = wr_addr.front();
-          wresp_addr = wr_addr_pld.addr;
+          wr_addr_pld_out = wr_addr.front();
+          wresp_addr = wr_addr_pld_out.addr;
           first_beat = 0;
         }
-        wr_data_pld = wr_data.front(); wr_data.pop();
+        wr_data_pld_out = wr_data.front(); wr_data.pop();
         // Store the data
         if (axiCfg::useWriteStrobes) {
           std::ostringstream msg;
           msg << "\nError @" << sc_time_stamp() << " from " << name()
               << ": Wstrb cannot be all zeros" << endl;
-          BOOST_ASSERT_MSG( wr_data_pld.wstrb != 0, msg.str().c_str() );
+          BOOST_ASSERT_MSG( wr_data_pld_out.wstrb != 0, msg.str().c_str() );
           for (int j=0; j<axi4_::WSTRB_WIDTH; j++) {
-            if (wr_data_pld.wstrb[j] == 1) {
-              localMem_wstrb[wresp_addr+j] = nvhls::get_slc<8>(wr_data_pld.data, 8*j);
+            if (wr_data_pld_out.wstrb[j] == 1) {
+              localMem_wstrb[wresp_addr+j] = nvhls::get_slc<8>(wr_data_pld_out.data, 8*j);
             }
           }
         } else {
-          localMem[wresp_addr] = wr_data_pld.data;
+          localMem[wresp_addr] = wr_data_pld_out.data;
         }
         validReadAddresses.push_back(wresp_addr);
         wresp_addr += bytesPerBeat;
-        if (wr_data_pld.last == 1) {
+        if (wr_data_pld_out.last == 1) {
           wr_addr.pop();
           first_beat = 1;
           // Generate a response
           if (axiCfg::useWriteResponses) {
             resp_pld.resp = axi4_::Enc::XRESP::OKAY;
-            resp_pld.id = wr_addr_pld.id;
+            resp_pld.id = wr_addr_pld_out.id;
             wr_resp.push(resp_pld);
           }
         }

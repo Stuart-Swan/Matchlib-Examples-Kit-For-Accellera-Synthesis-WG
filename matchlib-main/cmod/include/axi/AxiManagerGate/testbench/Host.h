@@ -27,14 +27,14 @@
 #include <deque>
 
 /**
- * \brief A testbench component to verify AxiMasterGate.
+ * \brief A testbench component to verify AxiManagerGate.
  * \ingroup AXI
  *
  * \tparam Cfg     A valid AXI config.
  *
  * \par Overview
  *
- * This component connects to the request-response (non-AXI) interface of AXIMasterGate.
+ * This component connects to the request-response (non-AXI) interface of AXIManagerGate.
  * It launches read and write requests and checks for appropriate responses.
  */
 template <typename Cfg>
@@ -189,7 +189,7 @@ SC_MODULE(Host) {
                 << "\t data = " << hex << rdResp.data
                 << "\t expected = " << hex << rd_data_expected
                 << std::endl, kDebugLevel);
-      NVHLS_ASSERT_MSG(rdResp.data == rd_data_expected, "Read response data did not match expected value");
+      CMOD_ASSERT_MSG(rdResp.data == rd_data_expected, "Read response data did not match expected value");
 
       if (rdResp.last == 1) ctr++;
       if (ctr == read_count) done_read = 1;

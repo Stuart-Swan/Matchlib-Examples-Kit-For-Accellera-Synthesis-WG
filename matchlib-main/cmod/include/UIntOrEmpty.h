@@ -43,6 +43,8 @@ struct EmptyField : public nvhls_message {
   }
   uint64 to_uint64() { return 0; }
   const sc_bit operator[](std::size_t idx) const { return static_cast<sc_bit>(0); }
+  bool and_reduce() { return 0; }
+  bool or_reduce() { return 0; }
 };
 
 /* Operator << for EmptyField. */
@@ -54,6 +56,11 @@ inline std::ostream &operator<<(ostream &os, const EmptyField &empty) {
 template <unsigned int Size>
 Marshaller<Size> &operator&(Marshaller<Size> &m, EmptyField &rhs) {
   return m;  // just do nothing
+}
+
+/* Operator != for EmptyField and int. */
+inline bool operator!=(const EmptyField lhs, const int rhs) {
+  return true; // EmptyField never equals anything
 }
 
 /**

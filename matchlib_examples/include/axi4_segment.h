@@ -8,7 +8,7 @@
 #undef CONNECTIONS_ASSERT_MSG
 #undef CONNECTIONS_SIM_ONLY_ASSERT_MSG
 
-#include "axi4_new.h"
+#include "axi/axi4.h"
 #include "auto_gen_port_info.h"
 
 namespace axi
@@ -106,9 +106,9 @@ namespace axi
     };
 
     template <Connections::connections_port_t PortType = AUTO_PORT>
-    struct w_master: public axi::axi4<Cfg>::write::template master<PortType>
+    struct w_master: public axi::axi4<Cfg>::write::template manager<PortType>
     {
-      typedef typename axi::axi4<Cfg>::write::template master<PortType> base;
+      typedef typename axi::axi4<Cfg>::write::template manager<PortType> base;
       w_master(sc_module_name nm) : base(nm) {}
 
       AUTO_GEN_PORT_INFO(w_master, ( \
@@ -163,8 +163,8 @@ namespace axi
     };
 
     template <Connections::connections_port_t PortType = AUTO_PORT>
-    struct r_master: public axi::axi4<Cfg>::read::template master<PortType> {
-      typedef typename axi::axi4<Cfg>::read::template master<PortType> base;
+    struct r_master: public axi::axi4<Cfg>::read::template manager<PortType> {
+      typedef typename axi::axi4<Cfg>::read::template manager<PortType> base;
       r_master(sc_module_name nm) : base(nm) {}
 
       AUTO_GEN_PORT_INFO(r_master, ( \
@@ -210,9 +210,9 @@ namespace axi
     };
 
     template <Connections::connections_port_t PortType = AUTO_PORT>
-    struct r_slave : public axi::axi4<Cfg>::read::template slave<PortType> 
+    struct r_slave : public axi::axi4<Cfg>::read::template subordinate<PortType> 
       {
-      typedef typename axi::axi4<Cfg>::read::template slave<PortType> base;
+      typedef typename axi::axi4<Cfg>::read::template subordinate<PortType> base;
 
       AUTO_GEN_PORT_INFO(r_slave, ( \
         base::ar \
@@ -266,8 +266,8 @@ namespace axi
     };
 
     template <Connections::connections_port_t PortType = AUTO_PORT>
-    struct w_slave : public axi::axi4<Cfg>::write::template slave<PortType> {
-      typedef typename axi::axi4<Cfg>::write::template slave<PortType> base;
+    struct w_slave : public axi::axi4<Cfg>::write::template subordinate<PortType> {
+      typedef typename axi::axi4<Cfg>::write::template subordinate<PortType> base;
       w_slave(sc_module_name nm) : base(nm) {}
 
       AUTO_GEN_PORT_INFO(w_slave, ( \

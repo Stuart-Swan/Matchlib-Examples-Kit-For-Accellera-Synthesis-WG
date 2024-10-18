@@ -19,6 +19,7 @@
 // annotate.h
 //
 // Revision History:
+//  2.2.1    - CAT-38184 - Replace "_val" string check with macro _VLDNAMESTR_
 //  1.2.0    - Fixed bug in pathname handling in annotate_design()
 //
 //*****************************************************************************************

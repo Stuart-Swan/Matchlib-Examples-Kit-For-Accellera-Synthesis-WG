@@ -19,7 +19,9 @@
 // connections.h
 //
 // Revision History:
+//   2.2.1   - CAT-38188 - Updates to support SystemC 3.0 and fixes
 //   2.2.0   - CAT-34924 - use DIRECT_PORT by default for pre-HLS simulation
+//             CAT-37259 - Add macro guard around include of sc_reset.h
 //   2.1.1   - CAT-31705 - free dynamically allocated memory
 //             CAT-35251 - applied missing '#pragma builtin modulario' to DIRECT_PORT methods
 //             CAT-34936 - support for trace/log for DIRECT_PORT
@@ -237,6 +239,7 @@ namespace Connections
 #if defined(__SYNTHESIS__)
 #undef AUTO_PORT
 #define AUTO_PORT Connections::SYN_PORT
+#undef AUTO_PORT_VAL
 #define AUTO_PORT_VAL 0
 #endif // defined(__SYNTHESIS__)
 
@@ -253,6 +256,7 @@ namespace Connections
 #if defined(FORCE_AUTO_PORT)
 #undef AUTO_PORT
 #define AUTO_PORT FORCE_AUTO_PORT
+#undef AUTO_PORT_VAL
 #define AUTO_PORT_VAL 2	  // Not always accurate, but OK..
 #endif // defined(FORCE_AUTO_PORT)
 
@@ -633,6 +637,7 @@ namespace Connections
     bool clock_registered{0};
     bool non_leaf_port{0};
     bool disable_spawn_true{0};
+    virtual void disable_spawn() {}
     int  clock_number{0};
     virtual void do_reset_check() {}
     virtual std::string report_name() {return std::string("unnamed"); }
@@ -4239,6 +4244,9 @@ namespace Connections
 
   template <typename Message>
   class Combinational_Ports_abs : public Combinational_abs<Message>
+#ifdef CONNECTIONS_SIM_ONLY
+    , public Blocking_abs
+#endif
   {
   public:
     // Interface
@@ -5460,7 +5468,6 @@ namespace Connections
   template <typename Message>
   class Combinational <Message, TLM_PORT> :
     public Combinational_Ports_abs<Message>
-  , public Blocking_abs
   , public sc_trace_marker
   , public sc_object
   , public write_log_if<Message>

@@ -5,10 +5,6 @@
 #include <mc_connections.h>
 #include "auto_gen_fields.h"
 
-// Prevent redefine warnings from NVHLS
-#undef CONNECTIONS_ASSERT_MSG
-#undef CONNECTIONS_SIM_ONLY_ASSERT_MSG
-
 #include "mc_toolkit_utils.h"
 
 typedef uint32 DTYPE;

@@ -4,9 +4,6 @@
 
 #include <ac_sysc_macros.h>
 #include <mc_connections.h>
-// Prevent redefine warnings from NVHLS
-#undef CONNECTIONS_ASSERT_MSG
-#undef CONNECTIONS_SIM_ONLY_ASSERT_MSG
 #include <nvhls_connections_buffered_ports.h>
 
 
@@ -73,7 +70,7 @@ class BufferStatus : public sc_module {
 #else
     sensitive << tail;
     for(int i = 0; i < NumEntries; i++){
-      sensitive << buffer[i].msg;
+      sensitive << buffer[i]._DATNAME_;
     }
 #endif
 
@@ -129,7 +126,7 @@ class BufferStatus : public sc_module {
     bool do_deq = !empty;
     if (do_deq) {
 #endif
-      deq.dat.write(buffer[tail.read()].msg.read());
+      deq.dat.write(buffer[tail.read()]._DATNAME_.read());
 #ifndef __SYNTHESIS__
     } else {
       deq.dat.write(0);
@@ -212,7 +209,7 @@ class BufferStatus : public sc_module {
 
       // Enqueue message
       if (enq.vld.read() && !full.read()) {
-        buffer[head.read()].msg.write(enq.dat.read());
+        buffer[head.read()]._DATNAME_.write(enq.dat.read());
       }
 
       wait();
@@ -226,7 +223,7 @@ class BufferStatus : public sc_module {
       unsigned int width = (Message().length() / 4);
       // Enqueue port
       if (enq.vld.read() && enq.rdy.read()) {
-        std::cout << std::hex << std::setw(width) << enq.msg.read();
+        std::cout << std::hex << std::setw(width) << enq._DATNAME_.read();
       } else {
         std::cout << std::setw(width + 1) << " ";
       }
@@ -235,7 +232,7 @@ class BufferStatus : public sc_module {
 
       // Dequeue port
       if (deq.vld.read() && deq.rdy.read()) {
-        std::cout << std::hex << std::setw(width) << deq.msg.read();
+        std::cout << std::hex << std::setw(width) << deq._DATNAME_.read();
       } else {
         std::cout << std::setw(width + 1) << " ";
       }

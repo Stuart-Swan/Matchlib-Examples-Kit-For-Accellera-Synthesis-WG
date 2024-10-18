@@ -5,8 +5,6 @@
 #include "keep_leading_one.h"
 #include "propagate_leading_one.h"
 
-#undef CONNECTIONS_ASSERT_MSG
-#undef CONNECTIONS_SIM_ONLY_ASSERT_MSG
 #include "mc_toolkit_utils.h"
 
 constexpr unsigned NUM_INPUTS = 9;

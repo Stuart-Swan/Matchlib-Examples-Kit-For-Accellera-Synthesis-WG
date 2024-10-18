@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __AXI_T_MASTER__
-#define __AXI_T_MASTER__
+#ifndef __AXI_T_MANAGER__
+#define __AXI_T_MANAGER__
 
 #include <systemc.h>
 #include <ac_reset_signal_is.h>
@@ -36,7 +36,7 @@
 #include <algorithm>
 
 /**
- * \brief An example config for the AXI master.
+ * \brief An example config for the AXI manager.
  * 
  * \par The following constants must be defined:
  *
@@ -47,7 +47,7 @@
  * - addrBoundUpper: The upper bound of generated addresses.
  * - seed: The random seed.
  */
-struct masterCfg {
+struct managerCfg {
   enum {
     numWrites = 100,
     numReads = 100,
@@ -60,21 +60,21 @@ struct masterCfg {
 };
 
 /**
- * \brief An AXI master that generates random traffic for use in a testbench.
+ * \brief An AXI manager that generates random traffic for use in a testbench.
  * \ingroup AXI
  *
  * \tparam axiCfg                   A valid AXI config.
- * \tparam cfg                      A valid config for the master (such as masterCfg).
+ * \tparam cfg                      A valid config for the manager (such as managerCfg).
  *
  * \par Overview
- * Master is an AXI master block for use in testbenches.  It generates read and write requests and checks the responses.  The block supports AXI configurations with and without burst mode, write strobes, and write responses.  The block enforces the following via assertion:
- * - Master may not issue a read to an address it has not yet written to.
+ * Manager is an AXI manager block for use in testbenches.  It generates read and write requests and checks the responses.  The block supports AXI configurations with and without burst mode, write strobes, and write responses.  The block enforces the following via assertion:
+ * - Manager may not issue a read to an address it has not yet written to.
  * - Read response data must match the most recent write data to the same address.
- * - Master may not issue writes with no strobe bits asserted to an address and then read from that address.
+ * - Manager may not issue writes with no strobe bits asserted to an address and then read from that address.
  * - Responses should assert the AXI "OKAY" response code.
  * - The number of read (write) responses should not exceed the number of read (write) requests.
  *
- * In addition, the block asserts a done signal only when each request has received a corresponding response.  The Master generates random requests according to the following algorithm:
+ * In addition, the block asserts a done signal only when each request has received a corresponding response.  The Manager generates random requests according to the following algorithm:
  * - Writes are generated to an address randomly selected from the valid range.  20% of writes have burst length greater than one; these writes randomly select a burst length from the valid range.  20% of write data beats have nonuniform strobes; the strobe bits of these write data beats are randomly set.  Some data bits are generated via a hash of the address, while others are randomly generated.  The data associated with a given address is stored locally so reads to that address can be validated later.
  * - Every AXI address that is written to (including multiple addresses for bursts) is added to the list of valid read addresses, which is initially empty.  If write responses are enabled, the addresses are added only when the write response is received; otherwise, they are added when the write is sent.
  * - If the readDelay is greater than zero, a delay elapses before addresses that have been written to are added to the list of valid read addresses.  If a write is issued to an address that has been previously written to, the address is removed from the list of valid read addresses and the readDelay timer for that address is reset.
@@ -84,15 +84,15 @@ struct masterCfg {
  *
  */
 template <typename axiCfg, typename cfg>
-class Master : public sc_module {
+class Manager : public sc_module {
   BOOST_STATIC_ASSERT_MSG(axiCfg::useWriteResponses || cfg::numReads == 0 || cfg::readDelay != 0,
                 "Must use a substantial read delay if reading without write responses");
  public:
   static const int kDebugLevel = 1;
   typedef axi::axi4<axiCfg> axi4_;
 
-  typename axi4_::read::template master<> if_rd;
-  typename axi4_::write::template master<> if_wr;
+  typename axi4_::read::template manager<> if_rd;
+  typename axi4_::write::template manager<> if_wr;
 
   sc_in<bool> reset_bar;
   sc_in<bool> clk;
@@ -108,7 +108,7 @@ class Master : public sc_module {
 
   sc_out<bool> done;
 
-  SC_CTOR(Master)
+  SC_CTOR(Manager)
       : if_rd("if_rd"), if_wr("if_wr"), reset_bar("reset_bar"), clk("clk") {
 
     SC_THREAD(run);

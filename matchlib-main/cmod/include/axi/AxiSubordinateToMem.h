@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __AXISLAVETOMEM_H__
-#define __AXISLAVETOMEM_H__
+#ifndef __AXISUBORDINATETOMEM_H__
+#define __AXISUBORDINATETOMEM_H__
 
 #include <systemc.h>
 #include <ac_reset_signal_is.h>
@@ -25,7 +25,7 @@
 #include <fifo.h>
 
 /**
- * \brief An AXI slave SRAM.
+ * \brief An AXI subordinate SRAM.
  * \ingroup AXI
  *
  * \tparam axiCfg     A valid AXI config.
@@ -33,7 +33,7 @@
  * \tparam fifoDepth  Depth of the input and output FIFO queues.
  *
  * \par Overview
- * AxiSlaveToMem is an AXI slave with an internal dual-ported memory used for storage.
+ * AxiSubordinateToMem is an AXI subordinate with an internal dual-ported memory used for storage.
  * The module only handles AXI addresses within the range of its internal memory, with a base address of 0.
  * It does not support write strobes.
  * It has internal queues to handle multiple simultaneous requests in flight, and can handle read and write requests independently, but it does not reorder requests.
@@ -46,7 +46,7 @@
  * mode via TCL directive:
  *
  * \code
- * directive set /path/to/AxiSlaveToMem/run/while -PIPELINE_STALL_MODE stall
+ * directive set /path/to/AxiSubordinateToMem/run/while -PIPELINE_STALL_MODE stall
  * \endcode
  *
  * This may reduce area/power.
@@ -54,7 +54,7 @@
  *
  */
 template <typename axiCfg, int capacity, int fifoDepth = 8>
-class AxiSlaveToMem : public sc_module {
+class AxiSubordinateToMem : public sc_module {
  private:
   static const int capacity_in_bytes = capacity;
   static const int banks = 1;
@@ -70,8 +70,8 @@ class AxiSlaveToMem : public sc_module {
   typedef typename axi::axi4<axiCfg> axi4_;
   static const int bytesPerWord = axiCfg::dataWidth >> 3;
 
-  typename axi4_::read::template slave<> if_rd;
-  typename axi4_::write::template slave<> if_wr;
+  typename axi4_::read::template subordinate<> if_rd;
+  typename axi4_::write::template subordinate<> if_wr;
 
   sc_in<bool> reset_bar;
   sc_in<bool> clk;
@@ -81,7 +81,7 @@ class AxiSlaveToMem : public sc_module {
   FIFO<typename axi4_::AddrPayload, fifoDepth> rd_addr;
   FIFO<typename axi4_::WRespPayload, fifoDepth> wr_resp;
 
-  SC_CTOR(AxiSlaveToMem)
+  SC_CTOR(AxiSubordinateToMem)
       : if_rd("if_rd"), if_wr("if_wr"), reset_bar("reset_bar"), clk("clk") {
     SC_THREAD(run);
     sensitive << clk.pos();

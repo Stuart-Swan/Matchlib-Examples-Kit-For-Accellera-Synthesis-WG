@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __AXISLAVETOREADYVALID_H__
-#define __AXISLAVETOREADYVALID_H__
+#ifndef __AXISUBORDINATETOREADYVALID_H__
+#define __AXISUBORDINATETOREADYVALID_H__
 
 #include <systemc.h>
 #include <ac_int.h>
@@ -23,18 +23,18 @@
 #include <axi/axi4.h>
 #include <mem_array.h>
 #include <fifo.h>
-#include <axi/AxiSlaveToReadyValid/testbench/RVSink.h>
+#include <axi/AxiSubordinateToReadyValid/testbench/RVSink.h>
 #include "Arbiter.h"
 
 /**
- * \brief An AXI slave that converts AXI requests into a simplified format.
+ * \brief An AXI subordinate that converts AXI requests into a simplified format.
  * \ingroup AXI
  *
  * \tparam axiCfg    A valid AXI config.
- * \tparam rvCfg     A config for the ready-valid interface that is the output of the slave. The data and strobe fields are assumed to match the widths of their AXI counterparts.
+ * \tparam rvCfg     A config for the ready-valid interface that is the output of the subordinate. The data and strobe fields are assumed to match the widths of their AXI counterparts.
  *
  * \par Overview
- * This block converts AXI read and write requests into a simplified format consisting of a single ready-valid interface that has address, data, and write strobe fields, as well as a read/write indicator.  Read responses are returned to the block via a second ready-valid interface (there are no write responses expected).  AxiSlaveToReadyValid handles all of the AXI-specific protocol, generating write responses and packing/unpacking bursts as necessary.
+ * This block converts AXI read and write requests into a simplified format consisting of a single ready-valid interface that has address, data, and write strobe fields, as well as a read/write indicator.  Read responses are returned to the block via a second ready-valid interface (there are no write responses expected).  AxiSubordinateToReadyValid handles all of the AXI-specific protocol, generating write responses and packing/unpacking bursts as necessary.
  *
  * \par Usage Guidelines
  *
@@ -44,7 +44,7 @@
  * mode via TCL directive:
  *
  * \code
- * directive set /path/to/AxiSlaveToReadyValid/run/while -PIPELINE_STALL_MODE stall
+ * directive set /path/to/AxiSubordinateToReadyValid/run/while -PIPELINE_STALL_MODE stall
  * \endcode
  *
  * This may reduce area/power.
@@ -52,14 +52,14 @@
  *
  */
 template <typename axiCfg, typename rvCfg>
-class AxiSlaveToReadyValid : public sc_module {
+class AxiSubordinateToReadyValid : public sc_module {
  public:
   static const int kDebugLevel = 5;
   
   typedef typename axi::axi4<axiCfg> axi4_;
 
-  typename axi4_::read::template slave<> if_axi_rd;
-  typename axi4_::write::template slave<> if_axi_wr;
+  typename axi4_::read::template subordinate<> if_axi_rd;
+  typename axi4_::write::template subordinate<> if_axi_wr;
 
   sc_in<bool> reset_bar;
   sc_in<bool> clk;
@@ -78,7 +78,7 @@ class AxiSlaveToReadyValid : public sc_module {
   Connections::Out<Write> if_rv_wr;
 
  public:
-  SC_CTOR(AxiSlaveToReadyValid)
+  SC_CTOR(AxiSubordinateToReadyValid)
       : if_axi_rd("if_axi_rd"),
         if_axi_wr("if_axi_wr"),
         reset_bar("reset_bar"),

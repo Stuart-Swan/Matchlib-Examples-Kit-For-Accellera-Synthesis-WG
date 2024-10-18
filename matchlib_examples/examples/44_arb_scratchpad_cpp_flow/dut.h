@@ -12,9 +12,6 @@
 #include "nvhls_array_new.h"
 
 
-#undef CONNECTIONS_SIM_ONLY_ASSERT_MSG
-#undef CONNECTIONS_ASSERT_MSG
-
 #define HLS_ALGORITHMICC
 #include <ArbitratedScratchpad.h>
 #undef HLS_ALGORITHMICC

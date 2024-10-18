@@ -18,6 +18,7 @@
 
 
 #include <cstddef>
+#include <list>
 #include <ac_assert.h>
 #include "systemc.h"
 
@@ -40,12 +41,13 @@ struct nv_array_pow2
 };
 
 
-static const char* make_permanent(const char* s) {
+static const char* make_permanent(const char* nm) {
 #ifdef __SYNTHESIS__
-  return s;
+  return nm;
 #else
-  std::string* str = new std::string(s);  // this is an intentional memory leak..
-  return str->c_str();
+  static std::list<std::string> nm_str;
+  nm_str.push_back(std::string(nm));
+  return nm_str.back().c_str();
 #endif
 }
 
@@ -58,6 +60,9 @@ class nv_array_bank_array_no_assert_base;
 template <typename B>
 class nv_array_bank_array_no_assert_base<B, 1>
 {
+#ifdef CCS_SYSC
+public:
+#endif
   B a;
 
 public:
@@ -76,6 +81,9 @@ public:
 template <typename B, size_t C>
 class nv_array_bank_array_no_assert_base
 {
+#ifdef CCS_SYSC
+public:
+#endif
   static const size_t W = nv_array_pow2<C-1>::P;
   nv_array_bank_array_no_assert_base<B, W  > a0;
   nv_array_bank_array_no_assert_base<B, C-W> a1;

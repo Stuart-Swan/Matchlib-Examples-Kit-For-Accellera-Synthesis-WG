@@ -56,9 +56,9 @@ class InBuffered : public InBlocking<Message, port_marshall_type> {
   void TransferNB() {
 
     if (!fifo.isFull()) {
-      Message msg;
-      if (this->PopNB(msg)) {
-        fifo.push(msg);
+      Message _DATNAME_;
+      if (this->PopNB(_DATNAME_)) {
+        fifo.push(_DATNAME_);
       }
     }
   }
@@ -85,12 +85,12 @@ class OutBuffered : public OutBlocking<Message, port_marshall_type> {
 
   AddressPlusOne NumAvailable() { return fifo.NumAvailable(); }
 
-  void Push(const Message& msg) { fifo.push(msg); }
+  void Push(const Message& _DATNAME_) { fifo.push(_DATNAME_); }
 
   void TransferNB() {
     if (!fifo.isEmpty()) {
-      Message msg = fifo.peek();
-      if (this->PushNB(msg)) {
+      Message _DATNAME_ = fifo.peek();
+      if (this->PushNB(_DATNAME_)) {
         fifo.pop();
       }
     }
@@ -112,14 +112,14 @@ class StateSignal<Message, SYN_PORT> {
   typedef Wrapped<Message> WMessage;
   static const unsigned int width = WMessage::width;
   typedef sc_lv<WMessage::width> MsgBits;
-  sc_signal<MsgBits> msg;
+  sc_signal<MsgBits> _DATNAME_;
   
- StateSignal() : msg(sc_gen_unique_name("msg")) {}
+ StateSignal() : _DATNAME_(sc_gen_unique_name(_DATNAMESTR_)) {}
 
- StateSignal(sc_module_name name) : msg(CONNECTIONS_CONCAT(name, "_msg")) { }
+ StateSignal(sc_module_name name) : _DATNAME_(CONNECTIONS_CONCAT(name, "_" _DATNAMESTR_)) { }
   
   void reset_state() {
-    msg.write(0);
+    _DATNAME_.write(0);
   }
 };
  
@@ -130,14 +130,14 @@ class StateSignal<Message, MARSHALL_PORT> {
   typedef Wrapped<Message> WMessage;
   static const unsigned int width = WMessage::width;
   typedef sc_lv<WMessage::width> MsgBits;
-  sc_signal<MsgBits> msg;
+  sc_signal<MsgBits> _DATNAME_;
   
- StateSignal() : msg(sc_gen_unique_name("msg")) {}
+ StateSignal() : _DATNAME_(sc_gen_unique_name(_DATNAMESTR_)) {}
 
- StateSignal(sc_module_name name) : msg(CONNECTIONS_CONCAT(name, "_msg")) { }
+ StateSignal(sc_module_name name) : _DATNAME_(CONNECTIONS_CONCAT(name, "_" _DATNAMESTR_)) { }
   
   void reset_state() {
-    msg.write(0);
+    _DATNAME_.write(0);
   }
 };
 
@@ -145,15 +145,15 @@ template <typename Message>
 class StateSignal<Message, DIRECT_PORT> {
  public:
   // Interface
-  sc_signal<Message> msg;
+  sc_signal<Message> _DATNAME_;
   
- StateSignal() : msg(sc_gen_unique_name("msg")) {}
+ StateSignal() : _DATNAME_(sc_gen_unique_name(_DATNAMESTR_)) {}
 
- StateSignal(sc_module_name name) : msg(CONNECTIONS_CONCAT(name, "_msg")) { }
+ StateSignal(sc_module_name name) : _DATNAME_(CONNECTIONS_CONCAT(name, "_" _DATNAMESTR_)) { }
 
   void reset_state() {
     Message dc;
-    msg.write(dc);
+    _DATNAME_.write(dc);
   }
 };
 
@@ -214,14 +214,14 @@ class Bypass : public sc_module {
     SC_METHOD(EnqRdy);
     sensitive << full;
 
-    SC_METHOD(DeqVal);
-    sensitive << enq.val << full;
+    SC_METHOD(DeqVld);
+    sensitive << enq._VLDNAME_ << full;
 
     SC_METHOD(WriteEn);
-    sensitive << enq.val << deq.rdy << full;
+    sensitive << enq._VLDNAME_ << deq._RDYNAME_ << full;
 
     SC_METHOD(BypassMux);
-    sensitive << enq.msg << state.msg << full;
+    sensitive << enq._DATNAME_ << state._DATNAME_ << full;
 
     SC_THREAD(Seq);
     sensitive << clk.pos();
@@ -232,23 +232,23 @@ class Bypass : public sc_module {
 
   // Write enable
   void WriteEn() {
-    wen.write(enq.val.read() && !deq.rdy.read() && !full.read());
+    wen.write(enq._VLDNAME_.read() && !deq._RDYNAME_.read() && !full.read());
   }
 
   // Enqueue ready
-  void EnqRdy() { enq.rdy.write(!full.read()); }
+  void EnqRdy() { enq._RDYNAME_.write(!full.read()); }
 
   // Dequeue valid
-  void DeqVal() {
-    deq.val.write(full.read() || (!full.read() && enq.val.read()));
+  void DeqVld() {
+    deq._VLDNAME_.write(full.read() || (!full.read() && enq._VLDNAME_.read()));
   }
 
   // Bypass mux
   void BypassMux() {
     if (full.read()) {
-      deq.msg.write(state.msg.read());
+      deq._DATNAME_.write(state._DATNAME_.read());
     } else {
-      deq.msg.write(enq.msg.read());
+      deq._DATNAME_.write(enq._DATNAME_.read());
     }
   }
 
@@ -256,21 +256,21 @@ class Bypass : public sc_module {
   void Seq() {
     // Reset state
     full.write(0);
-    state.msg.write(0);
+    state._DATNAME_.write(0);
 
     wait();
 
     while (1) {
       // Full update
-      if (deq.rdy.read()) {
+      if (deq._RDYNAME_.read()) {
         full.write(false);
-      } else if (enq.val.read() && !deq.rdy.read() && !full.read()) {
+      } else if (enq._VLDNAME_.read() && !deq._RDYNAME_.read() && !full.read()) {
         full.write(true);
       }
 
       // State Update
       if (wen.read()) {
-        state.msg.write(enq.msg.read());
+        state._DATNAME_.write(enq._DATNAME_.read());
       }
       wait();
     }
@@ -282,8 +282,8 @@ class Bypass : public sc_module {
     if (rst.read()) {
       unsigned int width = (Message().length() / 4);
       // Enqueue port
-      if (enq.val.read() && enq.rdy.read()) {
-        CDCOUT(std::hex << std::setw(width) << enq.msg.read(), kDebugLevel);
+      if (enq._VLDNAME_.read() && enq._RDYNAME_.read()) {
+        CDCOUT(std::hex << std::setw(width) << enq._DATNAME_.read(), kDebugLevel);
       } else {
         CDCOUT(std::setw(width + 1) << " ", kDebugLevel);
       }
@@ -291,8 +291,8 @@ class Bypass : public sc_module {
       CDCOUT(" ( " << full.read() << " ) ", kDebugLevel);
 
       // Dequeue port
-      if (deq.val.read() && deq.rdy.read()) {
-        CDCOUT(std::hex << std::setw(width) << deq.msg.read(), kDebugLevel);
+      if (deq._VLDNAME_.read() && deq._RDYNAME_.read()) {
+        CDCOUT(std::hex << std::setw(width) << deq._DATNAME_.read(), kDebugLevel);
       } else {
         CDCOUT(std::setw(width + 1) << " ", kDebugLevel);
       }
@@ -357,16 +357,16 @@ class Pipeline : public sc_module {
 #endif
     
     SC_METHOD(EnqRdy);
-    sensitive << full << deq.rdy;
+    sensitive << full << deq._RDYNAME_;
 
-    SC_METHOD(DeqVal);
+    SC_METHOD(DeqVld);
     sensitive << full;
 
     SC_METHOD(WriteEn);
-    sensitive << enq.val << deq.rdy << full;
+    sensitive << enq._VLDNAME_ << deq._RDYNAME_ << full;
 
     SC_METHOD(DeqMsg);
-    sensitive << state.msg;
+    sensitive << state._DATNAME_;
 
     SC_THREAD(Seq);
     sensitive << clk.pos();
@@ -375,21 +375,21 @@ class Pipeline : public sc_module {
 
   // Combinational logic
 
-  // Internal state write enable: incoming msg is valid and (internal state is
+  // Internal state write enable: incoming _DATNAME_ is valid and (internal state is
   // not set or outgoing channel is ready.
   void WriteEn() {
-    wen.write(enq.val.read() && (!full.read() || (full && deq.rdy.read())));
+    wen.write(enq._VLDNAME_.read() && (!full.read() || (full && deq._RDYNAME_.read())));
   }
 
   // Enqueue ready if either internal state is not set or outgoing channel is
   // ready.
-  void EnqRdy() { enq.rdy.write(!full.read() || (full && deq.rdy.read())); }
+  void EnqRdy() { enq._RDYNAME_.write(!full.read() || (full && deq._RDYNAME_.read())); }
 
   // Dequeue valid if the internal state is set.
-  void DeqVal() { deq.val.write(full.read()); }
+  void DeqVld() { deq._VLDNAME_.write(full.read()); }
 
   // Dequeue Msg is from the internal state.
-  void DeqMsg() { deq.msg.write(state.msg.read()); }
+  void DeqMsg() { deq._DATNAME_.write(state._DATNAME_.read()); }
 
   // Sequential logic
   void Seq() {
@@ -401,16 +401,16 @@ class Pipeline : public sc_module {
 
     while (1) {
       // Full update
-      if (full.read() && deq.rdy.read() && !enq.val.read()) {
+      if (full.read() && deq._RDYNAME_.read() && !enq._VLDNAME_.read()) {
         full.write(false);
-      } else if (enq.val.read() &&
-                 (!full.read() || (full.read() && deq.rdy.read()))) {
+      } else if (enq._VLDNAME_.read() &&
+                 (!full.read() || (full.read() && deq._RDYNAME_.read()))) {
         full.write(true);
       }
 
       // State Update
       if (wen.read()) {
-        state.msg.write(enq.msg.read());
+        state._DATNAME_.write(enq._DATNAME_.read());
       }
       wait();
     }
@@ -422,8 +422,8 @@ class Pipeline : public sc_module {
     if (rst.read()) {
       unsigned int width = (Message().length() / 4);
       // Enqueue port
-      if (enq.val.read() && enq.rdy.read()) {
-        CDCOUT(std::hex << std::setw(width) << enq.msg.read(), kDebugLevel);
+      if (enq._VLDNAME_.read() && enq._RDYNAME_.read()) {
+        CDCOUT(std::hex << std::setw(width) << enq._DATNAME_.read(), kDebugLevel);
       } else {
         CDCOUT(std::setw(width + 1) << " ", kDebugLevel);
       }
@@ -431,8 +431,8 @@ class Pipeline : public sc_module {
       CDCOUT(" ( " << full.read() << " ) ", kDebugLevel);
 
       // Dequeue port
-      if (deq.val.read() && deq.rdy.read()) {
-        CDCOUT(std::hex << std::setw(width) << deq.msg.read(), kDebugLevel);
+      if (deq._VLDNAME_.read() && deq._RDYNAME_.read()) {
+        CDCOUT(std::hex << std::setw(width) << deq._DATNAME_.read(), kDebugLevel);
       } else {
         CDCOUT(std::setw(width + 1) << " ", kDebugLevel);
       }
@@ -512,24 +512,24 @@ class BypassBuffered : public sc_module {
     SC_METHOD(EnqRdy);
     sensitive << full;
 
-    SC_METHOD(DeqVal);
-    sensitive << full << head << tail << enq.val;
+    SC_METHOD(DeqVld);
+    sensitive << full << head << tail << enq._VLDNAME_;
 
     SC_METHOD(DeqMsg);
 #ifndef __SYNTHESIS__
-    sensitive << deq.rdy << full << head << tail << enq.val << enq.msg;
+    sensitive << deq._RDYNAME_ << full << head << tail << enq._VLDNAME_ << enq._DATNAME_;
 #else
-    sensitive << full << head << tail << enq.msg;
+    sensitive << full << head << tail << enq._DATNAME_;
 #endif
 
     SC_METHOD(HeadNext);
-    sensitive << enq.val << full << head << tail << deq.rdy;
+    sensitive << enq._VLDNAME_ << full << head << tail << deq._RDYNAME_;
 
     SC_METHOD(TailNext);
-    sensitive << deq.rdy << full << head << tail;
+    sensitive << deq._RDYNAME_ << full << head << tail;
 
     SC_METHOD(FullNext);
-    sensitive << enq.val << deq.rdy << full << head << tail;
+    sensitive << enq._VLDNAME_ << deq._RDYNAME_ << full << head << tail;
 
     SC_THREAD(Seq);
     sensitive << clk.pos();
@@ -542,29 +542,29 @@ class BypassBuffered : public sc_module {
   // Combinational logic
 
   // Enqueue ready
-  void EnqRdy() { enq.rdy.write(!full.read()); }
+  void EnqRdy() { enq._RDYNAME_.write(!full.read()); }
 
   // Dequeue valid
-  void DeqVal() {
+  void DeqVld() {
     bool empty = (!full.read() && (head.read() == tail.read()));
-    deq.val.write(!empty || enq.val.read());
+    deq._VLDNAME_.write(!empty || enq._VLDNAME_.read());
   }
 
   // Dequeue messsage
   void DeqMsg() {
     bool empty = (!full.read() && (head.read() == tail.read()));
 #ifndef __SYNTHESIS__
-    bool do_deq = !empty || enq.val.read();
+    bool do_deq = !empty || enq._VLDNAME_.read();
     if (do_deq) {
 #endif
       if (!empty) {
-	deq.msg.write(buffer[tail.read()].msg.read());
+	deq._DATNAME_.write(buffer[tail.read()]._DATNAME_.read());
       } else {
-	deq.msg.write(enq.msg.read());
+	deq._DATNAME_.write(enq._DATNAME_.read());
       }
 #ifndef __SYNTHESIS__
     } else {
-      deq.msg.write(0);
+      deq._DATNAME_.write(0);
     }
 #endif
   }
@@ -572,8 +572,8 @@ class BypassBuffered : public sc_module {
   // Head next calculations
   void HeadNext() {
     bool empty = (!full.read() && (head.read() == tail.read()));
-    bool do_enq = (enq.val.read() && !full.read() &&
-		   !(empty && deq.rdy.read()));
+    bool do_enq = (enq._VLDNAME_.read() && !full.read() &&
+		   !(empty && deq._RDYNAME_.read()));
     BuffIdx head_inc;
     if ((head.read() + 1) == NumEntries)
       head_inc = 0;
@@ -589,7 +589,7 @@ class BypassBuffered : public sc_module {
   // Tail next calculations
   void TailNext() {
     bool empty = (!full.read() && (head.read() == tail.read()));
-    bool do_deq = (deq.rdy.read() && !empty);
+    bool do_deq = (deq._RDYNAME_.read() && !empty);
     BuffIdx tail_inc;
     if ((tail.read() + 1) == NumEntries)
       tail_inc = 0;
@@ -605,9 +605,9 @@ class BypassBuffered : public sc_module {
   // Full next calculations
   void FullNext() {
     bool empty = (!full.read() && (head.read() == tail.read()));
-    bool do_enq = (enq.val.read() && !full.read() &&
-		   !(empty && deq.rdy.read()));
-    bool do_deq = (deq.rdy.read() && !empty);
+    bool do_enq = (enq._VLDNAME_.read() && !full.read() &&
+		   !(empty && deq._RDYNAME_.read()));
+    bool do_deq = (deq._RDYNAME_.read() && !empty);
 
     BuffIdx head_inc;
     if ((head.read() + 1) == NumEntries)
@@ -631,7 +631,7 @@ class BypassBuffered : public sc_module {
     tail.write(0);
 #pragma hls_unroll yes
     for (unsigned int i = 0; i < NumEntries; ++i)
-      buffer[i].msg.reset_state();
+      buffer[i]._DATNAME_.reset_state();
 
     wait();
 
@@ -649,9 +649,9 @@ class BypassBuffered : public sc_module {
       // Enqueue message
       bool empty = (!full.read() && (head.read() == tail.read()));
 
-      if (enq.val.read() && !full.read() &&
-	  !(empty && deq.rdy.read())) {
-        buffer[head.read()].msg.write(enq.msg.read());
+      if (enq._VLDNAME_.read() && !full.read() &&
+	  !(empty && deq._RDYNAME_.read())) {
+        buffer[head.read()]._DATNAME_.write(enq._DATNAME_.read());
       }
 
       wait();
@@ -664,8 +664,8 @@ class BypassBuffered : public sc_module {
     if (rst.read()) {
       unsigned int width = (Message().length() / 4);
       // Enqueue port
-      if (enq.val.read() && enq.rdy.read()) {
-        CDCOUT(std::hex << std::setw(width) << enq.msg.read(), kDebugLevel);
+      if (enq._VLDNAME_.read() && enq._RDYNAME_.read()) {
+        CDCOUT(std::hex << std::setw(width) << enq._DATNAME_.read(), kDebugLevel);
       } else {
         CDCOUT(std::setw(width + 1) << " ", kDebugLevel);
       }
@@ -673,8 +673,8 @@ class BypassBuffered : public sc_module {
       CDCOUT(" ( " << full.read() << " ) ", kDebugLevel);
 
       // Dequeue port
-      if (deq.val.read() && deq.rdy.read()) {
-        CDCOUT(std::hex << std::setw(width) << deq.msg.read(), kDebugLevel);
+      if (deq._VLDNAME_.read() && deq._RDYNAME_.read()) {
+        CDCOUT(std::hex << std::setw(width) << deq._DATNAME_.read(), kDebugLevel);
       } else {
         CDCOUT(std::setw(width + 1) << " ", kDebugLevel);
       }
@@ -748,27 +748,27 @@ class Buffer : public sc_module {
     SC_METHOD(EnqRdy);
     sensitive << full;
 
-    SC_METHOD(DeqVal);
+    SC_METHOD(DeqVld);
     sensitive << full << head << tail;
 
     SC_METHOD(DeqMsg);
 #ifndef __SYNTHESIS__
-    sensitive << deq.rdy << full << head << tail;
+    sensitive << deq._RDYNAME_ << full << head << tail;
 #else
     sensitive << tail;
     for(int i=0;i < NumEntries;i++){
-      sensitive << buffer[i].msg;
+      sensitive << buffer[i]._DATNAME_;
     }
 #endif
 
     SC_METHOD(HeadNext);
-    sensitive << enq.val << full << head;
+    sensitive << enq._VLDNAME_ << full << head;
 
     SC_METHOD(TailNext);
-    sensitive << deq.rdy << full << head << tail;
+    sensitive << deq._RDYNAME_ << full << head << tail;
 
     SC_METHOD(FullNext);
-    sensitive << enq.val << deq.rdy << full << head << tail;
+    sensitive << enq._VLDNAME_ << deq._RDYNAME_ << full << head << tail;
 
     SC_THREAD(Seq);
     sensitive << clk.pos();
@@ -781,12 +781,12 @@ class Buffer : public sc_module {
   // Combinational logic
 
   // Enqueue ready
-  void EnqRdy() { enq.rdy.write(!full.read()); }
+  void EnqRdy() { enq._RDYNAME_.write(!full.read()); }
 
   // Dequeue valid
-  void DeqVal() {
+  void DeqVld() {
     bool empty = (!full.read() && (head.read() == tail.read()));
-    deq.val.write(!empty);
+    deq._VLDNAME_.write(!empty);
   }
 
   // Dequeue messsage
@@ -796,17 +796,17 @@ class Buffer : public sc_module {
     bool do_deq = !empty;
     if (do_deq) {
 #endif
-      deq.msg.write(buffer[tail.read()].msg.read());
+      deq._DATNAME_.write(buffer[tail.read()]._DATNAME_.read());
 #ifndef __SYNTHESIS__
     } else {
-      deq.msg.write(0);
+      deq._DATNAME_.write(0);
     }
 #endif
   }
 
   // Head next calculations
   void HeadNext() {
-    bool do_enq = (enq.val.read() && !full.read());
+    bool do_enq = (enq._VLDNAME_.read() && !full.read());
     BuffIdx head_inc;
     if ((head.read() + 1) == NumEntries)
       head_inc = 0;
@@ -822,7 +822,7 @@ class Buffer : public sc_module {
   // Tail next calculations
   void TailNext() {
     bool empty = (!full.read() && (head.read() == tail.read()));
-    bool do_deq = (deq.rdy.read() && !empty);
+    bool do_deq = (deq._RDYNAME_.read() && !empty);
     BuffIdx tail_inc;
     if ((tail.read() + 1) == NumEntries)
       tail_inc = 0;
@@ -838,8 +838,8 @@ class Buffer : public sc_module {
   // Full next calculations
   void FullNext() {
     bool empty = (!full.read() && (head.read() == tail.read()));
-    bool do_enq = (enq.val.read() && !full.read());
-    bool do_deq = (deq.rdy.read() && !empty);
+    bool do_enq = (enq._VLDNAME_.read() && !full.read());
+    bool do_deq = (deq._RDYNAME_.read() && !empty);
 
     BuffIdx head_inc;
     if ((head.read() + 1) == NumEntries)
@@ -878,8 +878,8 @@ class Buffer : public sc_module {
       full.write(full_next);
 
       // Enqueue message
-      if (enq.val.read() && !full.read()) {
-        buffer[head.read()].msg.write(enq.msg.read());
+      if (enq._VLDNAME_.read() && !full.read()) {
+        buffer[head.read()]._DATNAME_.write(enq._DATNAME_.read());
       }
 
       wait();
@@ -892,8 +892,8 @@ class Buffer : public sc_module {
     if (rst.read()) {
       unsigned int width = (Message().length() / 4);
       // Enqueue port
-      if (enq.val.read() && enq.rdy.read()) {
-        CDCOUT(std::hex << std::setw(width) << enq.msg.read(), kDebugLevel);
+      if (enq._VLDNAME_.read() && enq._RDYNAME_.read()) {
+        CDCOUT(std::hex << std::setw(width) << enq._DATNAME_.read(), kDebugLevel);
       } else {
         CDCOUT(std::setw(width + 1) << " ", kDebugLevel);
       }
@@ -901,8 +901,8 @@ class Buffer : public sc_module {
       CDCOUT(" ( " << full.read() << " ) ", kDebugLevel);
 
       // Dequeue port
-      if (deq.val.read() && deq.rdy.read()) {
-        CDCOUT(std::hex << std::setw(width) << deq.msg.read(), kDebugLevel);
+      if (deq._VLDNAME_.read() && deq._RDYNAME_.read()) {
+        CDCOUT(std::hex << std::setw(width) << deq._DATNAME_.read(), kDebugLevel);
       } else {
         CDCOUT(std::setw(width + 1) << " ", kDebugLevel);
       }

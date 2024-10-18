@@ -22,19 +22,19 @@
 #include <axi/axi4.h>
 #include <mem_array.h>
 #include <fifo.h>
-#include <axi/AxiSlaveToReadyValid.h>
+#include <axi/AxiSubordinateToReadyValid.h>
 #include <queue>
 #include <map>
 
 /**
- * \brief A testbench component to verify AxiSlaveToReadyValid.
+ * \brief A testbench component to verify AxiSubordinateToReadyValid.
  * \ingroup AXI
  *
- * \tparam rvCfg     A config for the ready-valid interface that is the output of AxiSlaveToReadyValid.
+ * \tparam rvCfg     A config for the ready-valid interface that is the output of AxiSubordinateToReadyValid.
  *
  * \par Overview
  * 
- * This component connects to the ready-valid (non-AXI) interface of AxiSlaveToReadyValid.
+ * This component connects to the ready-valid (non-AXI) interface of AxiSubordinateToReadyValid.
  * It contains internal state and responds to read and write requests appropriately.
  *
  */

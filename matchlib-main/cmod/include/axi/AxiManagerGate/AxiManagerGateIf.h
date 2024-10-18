@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef __AXIMASTERGATEIF_H__
-#define __AXIMASTERGATEIF_H__
+#ifndef __AXIMANAGERGATEIF_H__
+#define __AXIMANAGERGATEIF_H__
 
 #include <nvhls_message.h>
 #include <axi/axi4.h>
 
 /**
- * \brief The base type for read or write requests for AxiMasterGate, containing common fields.
+ * \brief The base type for read or write requests for AxiManagerGate, containing common fields.
  *
  * \tparam Cfg    A valid AXI config.
  */
@@ -72,7 +72,7 @@ struct Request : public nvhls_message {
 };
 
 /**
- * \brief The struct for read requests for AxiMasterGate.
+ * \brief The struct for read requests for AxiManagerGate.
  *
  * \tparam Cfg    A valid AXI config.
  */
@@ -80,7 +80,7 @@ template <typename Cfg>
 struct RdRequest : public Request<Cfg> {};
 
 /**
- * \brief The struct for write requests for AxiMasterGate.
+ * \brief The struct for write requests for AxiManagerGate.
  *
  * \tparam Cfg    A valid AXI config.
  */
@@ -116,7 +116,7 @@ struct WrRequest : public Request<Cfg> {
 };
 
 /** 
- * \brief The struct for write responses for AxiMasterGate.
+ * \brief The struct for write responses for AxiManagerGate.
  *
  * \tparam Cfg    A valid AXI config.
  */
@@ -137,7 +137,7 @@ struct WrResp : public nvhls_message
 };
 
 /** 
- * \brief The struct for read responses for AxiMasterGate.
+ * \brief The struct for read responses for AxiManagerGate.
  *
  * \tparam Cfg    A valid AXI config.
  */

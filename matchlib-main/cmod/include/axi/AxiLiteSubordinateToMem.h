@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __LITESLAVETOMEM_H__
-#define __LITESLAVETOMEM_H__
+#ifndef __LITESUBORDINATETOMEM_H__
+#define __LITESUBORDINATETOMEM_H__
 
 #include <systemc.h>
 #include <ac_reset_signal_is.h>
@@ -25,13 +25,13 @@
 #include <mem_array.h>
 
 /**
- * \brief An AXI slave SRAM for the AXI-Lite protocol.
+ * \brief An AXI subordinate SRAM for the AXI-Lite protocol.
  * \ingroup AXI
  *
  * \tparam capacity   The capacity in bytes of the local SRAM.
  *
  * \par Overview
- * AxiLiteSlaveToMem is an AXI slave compliant with the AXI-Lite protocol (32-bit data words, no bursts).
+ * AxiLiteSubordinateToMem is an AXI subordinate compliant with the AXI-Lite protocol (32-bit data words, no bursts).
  * The module only handles AXI addresses within the range of its internal memory, with a base address of 0.
  * It does not support write strobes.
  *
@@ -43,7 +43,7 @@
  * mode via TCL directive:
  *
  * \code
- * directive set /path/to/AxiLiteSlaveToMem/run/while -PIPELINE_STALL_MODE stall
+ * directive set /path/to/AxiLiteSubordinateToMem/run/while -PIPELINE_STALL_MODE stall
  * \endcode
  *
  * This may reduce area/power.
@@ -51,7 +51,7 @@
  *
  */
 template <int capacity>
-class AxiLiteSlaveToMem : public sc_module {
+class AxiLiteSubordinateToMem : public sc_module {
  private:
   typedef typename axi::axi4<axi::cfg::lite_nowstrb> axi_;
 
@@ -64,13 +64,13 @@ class AxiLiteSlaveToMem : public sc_module {
   Memarray memarray;
 
  public:
-  axi_::read::template slave<> if_rd;
-  axi_::write::template slave<> if_wr;
+  axi_::read::template subordinate<> if_rd;
+  axi_::write::template subordinate<> if_wr;
 
   sc_in<bool> reset_bar;
   sc_in<bool> clk;
 
-  SC_CTOR(AxiLiteSlaveToMem)
+  SC_CTOR(AxiLiteSubordinateToMem)
       : if_rd("if_rd"), if_wr("if_wr"), reset_bar("reset_bar"), clk("clk") {
     SC_THREAD(run);
     sensitive << clk.pos();

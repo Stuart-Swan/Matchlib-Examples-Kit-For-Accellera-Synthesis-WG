@@ -2,9 +2,6 @@
 
 #pragma once
 
-// Prevent redefine warnings from NVHLS
-#undef CONNECTIONS_ASSERT_MSG
-#undef CONNECTIONS_SIM_ONLY_ASSERT_MSG
 
 #include <ac_assert.h>
 #include "mc_toolkit_utils.h"

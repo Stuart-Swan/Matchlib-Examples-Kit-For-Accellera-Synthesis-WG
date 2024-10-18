@@ -18,9 +18,6 @@ apb_transactor.h        - ARM APB transactor
 testbench.cpp           - example testbench for pre-HLS and post-HLS models
 go_hls.tcl              - Catapult HLS synthesis script
 Makefile                - Makefile to compile/run
-wrappers/dma_wrap.cpp
-wrappers/dma_wrap.h
-wrappers/dma_wrap.v     - Verilog wrapper around SystemC DUT
 
 Steps:
 

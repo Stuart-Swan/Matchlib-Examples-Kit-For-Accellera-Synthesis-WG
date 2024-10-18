@@ -2,6 +2,7 @@
 #pragma once
 
 #include <mc_connections.h>
+#include <connections/connections_utils.h>
 
 #include <random>
 #include <functional>

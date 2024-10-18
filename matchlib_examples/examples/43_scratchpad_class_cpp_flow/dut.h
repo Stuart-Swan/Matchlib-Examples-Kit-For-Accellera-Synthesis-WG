@@ -10,9 +10,6 @@
 #include "ac_channel.h"
 #include "mc_scverify.h"
 
-#undef CONNECTIONS_SIM_ONLY_ASSERT_MSG
-#undef CONNECTIONS_ASSERT_MSG
-
 #include "ScratchpadClass.h"
 
 #include "auto_gen_fields.h"

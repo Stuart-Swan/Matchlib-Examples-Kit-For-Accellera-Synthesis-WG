@@ -28,6 +28,7 @@ public:
   Connections::Combinational<dut::elem_type>        CCS_INIT_S1(raddr_in);
   Connections::Combinational<dut::elem_type>        CCS_INIT_S1(waddr_in);
   Connections::Combinational<dut::elem_type>        CCS_INIT_S1(data_in);
+  sc_signal<bool> zero;
 
 
   SC_CTOR(Top)
@@ -42,6 +43,7 @@ public:
     dut1.data_in(data_in);
     dut1.raddr_in(raddr_in);
     dut1.waddr_in(waddr_in);
+    dut1.zero(zero);
 
     SC_CTHREAD(reset, clk);
 
@@ -64,6 +66,8 @@ public:
     data_in.ResetWrite();
     raddr_in.ResetWrite();
     waddr_in.ResetWrite();
+
+    zero = 0;
 
     wait();
 

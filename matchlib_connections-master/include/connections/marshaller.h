@@ -20,6 +20,7 @@
 // marshaller.h
 //
 // Revision History:
+//  2.2.1    - CAT-38139 - Fix BitUnion2 compile error
 //  2.1.0    - CAT-34971 - clean up compiler warnings (added methods to set default values)
 //  1.2.8    - fix number of long bits which can change based on 32-bit/64-bit target arch
 //  1.2.6    - CAT-29221

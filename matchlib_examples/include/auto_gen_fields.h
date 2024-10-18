@@ -16,6 +16,9 @@
 #define OK_BOOST_PASS 1
 #endif
 
+#include <connections/connections_utils.h>
+
+/*
 #ifndef __CONNECTIONS__CONNECTIONS_UTILS_H_
 // Prevent redefine warnings from NVHLS
 #undef CONNECTIONS_ASSERT_MSG
@@ -29,6 +32,7 @@
 #undef CONNECTIONS_SIM_ONLY_ASSERT_MSG
 #include <nvhls_connections_utils.h>
 #endif
+*/
 
 #include <boost/preprocessor/list/for_each.hpp>
 #include <boost/preprocessor/tuple/to_list.hpp>

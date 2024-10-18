@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __AXIMASTERGATE_H__
-#define __AXIMASTERGATE_H__
+#ifndef __AXIMANAGERGATE_H__
+#define __AXIMANAGERGATE_H__
 
 #include <systemc.h>
 #include <ac_reset_signal_is.h>
@@ -23,13 +23,13 @@
 #include <mem_array.h>
 #include <fifo.h>
 #include <ReorderBuf.h>
-#include <axi/AxiMasterGate/ReorderBufWBeats.h>
+#include <axi/AxiManagerGate/ReorderBufWBeats.h>
 #include <nvhls_connections.h>
 #include <nvhls_assert.h>
-#include <axi/AxiMasterGate/AxiMasterGateIf.h>
+#include <axi/AxiManagerGate/AxiManagerGateIf.h>
 
 /**
- * \brief An AXI master that converts from a simple request/response interface to AXI with reordering support.
+ * \brief An AXI manager that converts from a simple request/response interface to AXI with reordering support.
  * \ingroup AXI
  *
  * \tparam Cfg                A valid AXI config.
@@ -38,7 +38,7 @@
  *
  * \par Overview
  * This block takes as inputs RdRequest and WrRequest Connections. The block converts the requests into
- * AXI format, sends them to AXI master ports, and processes the responses into RdResponse and WrResponse ports.
+ * AXI format, sends them to AXI manager ports, and processes the responses into RdResponse and WrResponse ports.
  * ReorderBuf and ReorderBufWBeats are used to allow reordering via use of the AXI ID field.
  *
  * \par Usage Guidelines
@@ -49,7 +49,7 @@
  * mode via TCL directive:
  *
  * \code
- * directive set /path/to/AxiMasterGate/run_rd/while -PIPELINE_STALL_MODE stall
+ * directive set /path/to/AxiManagerGate/run_rd/while -PIPELINE_STALL_MODE stall
  * \endcode
  *
  * This may reduce area/power.
@@ -57,7 +57,7 @@
  *
  */
 template <typename Cfg, int ROBDepth = 8, int MaxInFlightTrans = 4>
-class AxiMasterGate : public sc_module {
+class AxiManagerGate : public sc_module {
  private:
   typedef axi::axi4<Cfg> axi4_;
 
@@ -73,8 +73,8 @@ class AxiMasterGate : public sc_module {
 
  public:
   static const int kDebugLevel = 2;
-  typename axi4_::read::template master<> if_rd;
-  typename axi4_::write::template master<> if_wr;
+  typename axi4_::read::template manager<> if_rd;
+  typename axi4_::write::template manager<> if_wr;
 
   sc_in<bool> reset_bar;
   sc_in<bool> clk;
@@ -83,7 +83,7 @@ class AxiMasterGate : public sc_module {
   Connections::In<RdRequest<Cfg> > rdRequestIn;
   Connections::Out<RdResp<Cfg> > rdRespOut;
 
-  SC_CTOR(AxiMasterGate)
+  SC_CTOR(AxiManagerGate)
       : if_rd("if_rd"), if_wr("if_wr"), reset_bar("reset_bar"), clk("clk") {
     SC_THREAD(run_rd);
     sensitive << clk.pos();
@@ -151,7 +151,7 @@ class AxiMasterGate : public sc_module {
       // receive responses
       {
         typename axi4_::WRespPayload resp_pld;
-        CDCOUT("@" << sc_time_stamp() << "\t\t Receiving resp from slave"
+        CDCOUT("@" << sc_time_stamp() << "\t\t Receiving resp from subordinate"
              << endl, kDebugLevel);
         if (if_wr.b.PopNB(resp_pld)) {
           WrResp<Cfg> wrResp;
