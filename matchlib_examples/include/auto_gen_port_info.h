@@ -597,7 +597,7 @@ public:
    }
   }
 
-  void gen_wrappers(int clkper=10, bool enable_trace=true, int clk_offset=0) {
+  void gen_wrappers(double clkper=10, bool enable_trace=true, double clk_offset=0) {
     time_t now = time(0);
     char* dt = ctime(&now);
     remove_base();
