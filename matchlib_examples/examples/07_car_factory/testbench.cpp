@@ -3,6 +3,7 @@
 
 #include "car_factory.h"
 #include <mc_scverify.h>
+#include <memory.h>
 
 class spark_plug_producer : public sc_module
 {
@@ -185,12 +186,12 @@ int sc_main(int argc, char **argv)
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file("trace");
   trace_file_ptr->set_time_unit(0.1, SC_SEC);
 
-  Top top("top");
-  trace_hierarchy(&top, trace_file_ptr);
+  auto top = std::make_shared<Top>("top");
+  trace_hierarchy(top.get(), trace_file_ptr);
 
   channel_logs logs;
   logs.enable("chan_log");
-  logs.log_hierarchy(top);
+  logs.log_hierarchy(*top);
 
   sc_start();
   if (sc_report_handler::get_count(SC_ERROR) > 0) {

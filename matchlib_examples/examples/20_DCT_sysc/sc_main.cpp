@@ -1,6 +1,7 @@
 // INSERT_EULA_COPYRIGHT: 2020
 
 #include "top.h"  //contains the DUT and testbench
+#include <memory.h>
 
 sc_trace_file *trace_file_ptr;
 
@@ -22,8 +23,8 @@ int sc_main (int argc, char *argv[])
     trace_file_ptr = sc_create_vcd_trace_file(output_trace_vcd.c_str());
   }
 
-  top top_inst("top",input_image_bmp);
-  trace_hierarchy(&top_inst, trace_file_ptr);
+  auto top_inst = std::make_shared<top>("top", input_image_bmp);
+  trace_hierarchy(top_inst.get(), trace_file_ptr);
 
   // sc_report_handler::set_actions(SC_ERROR, SC_DISPLAY);
   sc_report_handler::set_actions("/IEEE_Std_1666/deprecated", SC_DO_NOTHING);

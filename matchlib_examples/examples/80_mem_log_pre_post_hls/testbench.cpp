@@ -10,6 +10,7 @@ std::vector<block_data_abs*> block_data_vec;
 #endif
 
 #include <mc_scverify.h>
+#include <memory.h>
 
 ofstream log_stream;
 
@@ -119,13 +120,13 @@ int sc_main(int argc, char **argv)
   sc_report_handler::set_actions(SC_ERROR, SC_DISPLAY);
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file("trace");
 
-  Top top("top");
-  trace_hierarchy(&top, trace_file_ptr);
+  auto top = std::make_shared<Top>("top");
+  trace_hierarchy(top.get(), trace_file_ptr);
 
 /*
   channel_logs logs;
   logs.enable("chan_log");
-  logs.log_hierarchy(top);
+  logs.log_hierarchy(*top);
 */
 
   sc_start();

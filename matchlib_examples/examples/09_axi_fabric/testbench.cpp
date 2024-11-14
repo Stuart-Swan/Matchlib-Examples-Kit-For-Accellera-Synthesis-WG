@@ -3,6 +3,7 @@
 
 #include "fabric.h"
 #include "ram.h"
+#include <memory>
 
 #include <mc_scverify.h>
 
@@ -226,13 +227,13 @@ int sc_main(int argc, char **argv)
   }
 
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file("trace");
-  Top top("top", test_num);
+  auto top = std::make_shared<Top>("top", test_num);
 
   channel_logs logs;
   logs.enable("chan_log", true);
-  logs.log_hierarchy(top);
+  logs.log_hierarchy(*top);
 
-  trace_hierarchy(&top, trace_file_ptr);
+  trace_hierarchy(top.get(), trace_file_ptr);
 
   sc_start();
   if (sc_report_handler::get_count(SC_ERROR) > 0) {

@@ -3,6 +3,7 @@
 #define SC_INCLUDE_DYNAMIC_PROCESSES 1
 #include <ac_sysc_trace.h>
 #include "dut.h"
+#include <memory.h>
 
 #include <mc_scverify.h>
 using namespace::std;
@@ -66,8 +67,8 @@ int sc_main(int argc, char **argv)
   sc_report_handler::set_actions(SC_ERROR, SC_DISPLAY);
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file("trace");
 
-  Top top("top");
-  trace_hierarchy(&top, trace_file_ptr);
+  auto top = std::make_shared<Top>("top");
+  trace_hierarchy(top.get(), trace_file_ptr);
   sc_start();
   if (sc_report_handler::get_count(SC_ERROR) > 0) {
     std::cout << "Simulation FAILED" << std::endl;

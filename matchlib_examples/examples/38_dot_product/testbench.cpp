@@ -1,6 +1,7 @@
 #include <mc_connections.h>
 #include <ac_sysc_trace.h>
 #include <stable_random.h>
+#include <memory.h>
 
 
 #ifdef SINGLE_PROCESS
@@ -143,13 +144,13 @@ class Top : public sc_module {
 int sc_main(int argc, char **argv) {
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file("trace");
 
-  Top top("top");
-  trace_hierarchy(&top, trace_file_ptr);
+  auto top = std::make_shared<Top>("top");
+  trace_hierarchy(top.get(), trace_file_ptr);
 
   channel_logs logs;
 
   logs.enable("my_log",true);
-  logs.log_hierarchy(top);
+  logs.log_hierarchy(*top);
 
   sc_start();
   return 0;

@@ -2,6 +2,7 @@
 
 #include <mc_connections.h>
 #include <ac_sysc_trace.h>
+#include <memory.h>
 
 #ifndef __SYNTHESIS__
 #ifndef CCS_SYSC
@@ -86,19 +87,19 @@ int sc_main(int argc, char **argv)
   // Create a trace file
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file("trace");
 
-  Testbench testbench("testbench");
+  auto testbench = std::make_shared<Testbench>("testbench");
 
   // Trace waveforms
-  trace_hierarchy(&testbench, trace_file_ptr);
+  trace_hierarchy(testbench.get(), trace_file_ptr);
 
   // Enable data logging
   channel_logs logs;
   logs.enable("chan_log",true);
-  logs.log_hierarchy(testbench);
+  logs.log_hierarchy(*testbench);
 
   #ifndef __SYNTHESIS__
   #ifndef CCS_SYSC
-  Connections::annotate_design(testbench);
+  Connections::annotate_design(*testbench);
   #endif
   #endif
 

@@ -2,6 +2,7 @@
 
 #include "dut.h"
 #include <mc_scverify.h>
+#include <memory.h>
 
 int retcode = 0;
 
@@ -144,11 +145,11 @@ int sc_main(int argc, char **argv)
 
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file(trace_file.c_str());
 
-  testbench top("top", resp_log);
+  auto top = std::make_shared<testbench>("top", resp_log);
   channel_logs logs;
   logs.enable("chan_log", true);
-  logs.log_hierarchy(top);
-  trace_hierarchy(&top, trace_file_ptr);
+  logs.log_hierarchy(*top);
+  trace_hierarchy(top.get(), trace_file_ptr);
 
   sc_start();
   std::string diff_cmd;

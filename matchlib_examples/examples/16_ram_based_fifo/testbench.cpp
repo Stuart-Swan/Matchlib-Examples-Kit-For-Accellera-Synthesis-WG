@@ -2,6 +2,7 @@
 
 #include "dut.h"
 #include <mc_scverify.h>
+#include <memory.h>
 
 class Top : public sc_module {
 public:
@@ -69,8 +70,8 @@ int sc_main(int argc, char** argv) {
   sc_report_handler::set_actions("/IEEE_Std_1666/deprecated", SC_DO_NOTHING);
   trace_file_ptr = sc_create_vcd_trace_file("trace");
 
-  Top top("top");
-  trace_hierarchy(&top, trace_file_ptr);
+  auto top = std::make_shared<Top>("top");
+  trace_hierarchy(top.get(), trace_file_ptr);
   sc_start();
   return 0;
 }

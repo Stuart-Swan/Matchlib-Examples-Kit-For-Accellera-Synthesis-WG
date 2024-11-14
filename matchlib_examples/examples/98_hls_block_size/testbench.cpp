@@ -2,6 +2,7 @@
 
 #include <mc_scverify.h>
 #include <stable_random.h>
+#include <memory.h>
 
 #include "dut.h"
 
@@ -107,8 +108,8 @@ int sc_main(int argc, char **argv)
 {
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file("trace");
 
-  Top* top = new Top("top");
-  trace_hierarchy(top, trace_file_ptr);
+  auto top = std::make_shared<Top>("top");
+  trace_hierarchy(top.get(), trace_file_ptr);
 
   sc_start();
   return 0;

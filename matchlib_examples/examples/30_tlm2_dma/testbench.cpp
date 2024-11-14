@@ -1,6 +1,7 @@
 // INSERT_EULA_COPYRIGHT: 2020
 
 #include <mc_scverify.h>
+#include <memory.h>
 
 #include "tlm2_axi4_adapters.h"
 
@@ -141,12 +142,12 @@ int sc_main(int argc, char **argv)
   sc_report_handler::set_actions(SC_ERROR, SC_DISPLAY);
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file("trace");
 
-  Top top("top");
-  trace_hierarchy(&top, trace_file_ptr);
+  auto top = std::make_shared<Top>("top");
+  trace_hierarchy(top.get(), trace_file_ptr);
 
   channel_logs logs;
   logs.enable("chan_log");
-  logs.log_hierarchy(top);
+  logs.log_hierarchy(*top);
 
   sc_start();
   if (sc_report_handler::get_count(SC_ERROR) > 0) {

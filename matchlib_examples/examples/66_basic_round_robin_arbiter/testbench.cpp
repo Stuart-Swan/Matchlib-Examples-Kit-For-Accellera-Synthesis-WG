@@ -1,6 +1,7 @@
 
 #include "mc_scverify.h"
 #include "dut.h"
+#include <memory.h>
 
 SC_MODULE(driver){
   sc_in<bool> clk{"clk"};
@@ -163,10 +164,10 @@ int sc_main(int argc, char **argv) {
   sc_report_handler::set_actions(SC_ERROR, SC_DISPLAY);
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file("trace");
 
-  testbench tb("tb");
-  trace_hierarchy(&tb, trace_file_ptr);
-  sc_trace(trace_file_ptr, tb.clk, "tb.clk");
-  sc_trace(trace_file_ptr, tb.rst, "tb.rst");
+  auto top = std::make_shared<testbench>("top");
+  trace_hierarchy(top.get(), trace_file_ptr);
+  sc_trace(trace_file_ptr, top->clk, "top.clk");
+  sc_trace(trace_file_ptr, top->rst, "top.rst");
   sc_start();
 
   return 0;

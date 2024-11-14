@@ -9,28 +9,38 @@
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(dut) CCS_INIT_S1(dut1);
+  CCS_DESIGN(merge_comb) CCS_INIT_S1(merge_comb1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  Connections::Combinational<packet>       CCS_INIT_S1(in1);
-  Connections::Combinational<packet>       CCS_INIT_S1(in2);
-  Connections::Combinational<packet>       CCS_INIT_S1(out1);
+  Connections::Combinational<type1_t>       CCS_INIT_S1(in1);
+  Connections::Combinational<type2_t>       CCS_INIT_S1(in2);
+  Connections::Combinational<type3_t>       CCS_INIT_S1(in3);
+  Connections::Combinational<out_t>       CCS_INIT_S1(out1);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
     sc_object_tracer<sc_clock> trace_clk(clk);
 
-    dut1.clk(clk);
-    dut1.rst_bar(rst_bar);
-    dut1.out1(out1);
-    dut1.in1(in1);
-    dut1.in2(in2);
+    merge_comb1.clk(clk);
+    merge_comb1.rst_bar(rst_bar);
+    merge_comb1.out1(out1);
+    merge_comb1.in1(in1);
+    merge_comb1.in2(in2);
+    merge_comb1.in3(in3);
 
     SC_CTHREAD(reset, clk);
 
-    SC_THREAD(stim);
+    SC_THREAD(stim1);
+    sensitive << clk.posedge_event();
+    async_reset_signal_is(rst_bar, false);
+
+    SC_THREAD(stim2);
+    sensitive << clk.posedge_event();
+    async_reset_signal_is(rst_bar, false);
+
+    SC_THREAD(stim3);
     sensitive << clk.posedge_event();
     async_reset_signal_is(rst_bar, false);
 
@@ -40,27 +50,55 @@ public:
   }
 
 
-  void stim() {
-    CCS_LOG("Stimulus started");
+  void stim1() {
+    CCS_LOG("Stimulus1 started");
     in1.ResetWrite();
-    in2.ResetWrite();
     wait();
 
-    packet pkt;
     stable_random gen;
 
     for (int i = 0; i < 30; ) {
       wait();
       if (gen.get() & 1) {
-        for (int z=0; z < packet::SIZE; z++) 
-          pkt.data[z] = i;
-        in1.Push(pkt);
+        in1.Push(i);
         ++i;
       }
+    }
+
+    sc_stop();
+    wait();
+  }
+
+  void stim2() {
+    CCS_LOG("Stimulus2 started");
+    in2.ResetWrite();
+    wait();
+
+    stable_random gen;
+
+    for (int i = 0x0; i < 30; ) {
+      wait();
       if (gen.get() & 1) {
-        for (int z=0; z < packet::SIZE; z++) 
-          pkt.data[z] = i;
-        in2.Push(pkt);
+        in2.Push(i + 0x100);
+        ++i;
+      }
+    }
+
+    sc_stop();
+    wait();
+  }
+
+  void stim3() {
+    CCS_LOG("Stimulus3 started");
+    in3.ResetWrite();
+    wait();
+
+    stable_random gen;
+
+    for (int i = 0; i < 30; ) {
+      wait();
+      if (gen.get() & 1) {
+        in3.Push(i + 0x200);
         ++i;
       }
     }
@@ -77,9 +115,8 @@ public:
     while (1) {
       wait();
       if (gen.get() & 1) {
-        packet pkt = out1.Pop();
-        uint32 t = pkt.data[0];
-        CCS_LOG("TB resp sees: " << std::hex << t);
+        out_t pkt = out1.Pop();
+        CCS_LOG("TB resp sees: " << std::hex << pkt );
       }
     }
   }

@@ -2,6 +2,7 @@
 
 #include "dut.h"
 #include <mc_scverify.h>
+#include <memory.h>
 
 #ifndef __SYNTHESIS__
 #include <connections/annotate.h>
@@ -81,15 +82,15 @@ int sc_main(int argc, char **argv)
   sc_report_handler::set_actions(SC_ERROR, SC_DISPLAY);
   trace_file_ptr = sc_create_vcd_trace_file("trace");
 
-  Top top("top");
-  trace_hierarchy(&top, trace_file_ptr);
+  auto top = std::make_shared<Top>("top");
+  trace_hierarchy(top.get(), trace_file_ptr);
 
   // Enable data logging
   channel_logs logs;
   logs.enable("chan_log",true);
-  logs.log_hierarchy(top);
+  logs.log_hierarchy(*top);
 #ifndef __SYNTHESIS__
-  Connections::annotate_design(top);
+  Connections::annotate_design(*top);
 #endif
   sc_start();
   if (sc_report_handler::get_count(SC_ERROR) > 0) {
