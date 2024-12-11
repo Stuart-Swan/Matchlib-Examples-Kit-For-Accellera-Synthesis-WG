@@ -36,6 +36,8 @@ class ac_shared_bank_array_base;
 template <typename B>
 class ac_shared_bank_array_base<B, 1>
 {
+public:
+#pragma hls_ac_bank_mem
   B a;
 public:
   B &operator[](size_t idx) { return a; }
@@ -46,7 +48,9 @@ public:
 template <typename E, size_t D>
 class ac_shared_bank_array_base<E [D], 1>
 {
+public:
   typedef ac_array_1D<E,D> AC;
+#pragma hls_ac_bank_mem
   ac_shared<AC> a;
 public:
   AC &operator[](size_t idx) { return a; }
