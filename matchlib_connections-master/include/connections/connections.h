@@ -1925,9 +1925,10 @@ namespace Connections
       get_sim_clk().check_on_clock_edge(this->clock_number);
 #endif
       if (Empty_SIM()) {
-        Message m;
-        set_default_value(m);
-        data = m;
+        // Message m;
+        // set_default_value(m);
+        // data = m;
+        // If PopNB returns false, want to leave data value unchanged, like HW works..
         return false;
       } else {
         data = ConsumeBuf_SIM();
