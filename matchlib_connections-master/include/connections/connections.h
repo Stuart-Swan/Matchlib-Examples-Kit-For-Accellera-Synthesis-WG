@@ -454,7 +454,7 @@ namespace Connections
     }
 #endif
 
-    void check() {
+    bool check() {
       if (!is_reset) {
 #ifndef __SYNTHESIS__
         std::string name = report_name();
@@ -463,7 +463,9 @@ namespace Connections
             + std::string(sc_core::sc_get_current_process_b()->basename()) + "'.").c_str());
 #endif
         is_reset = true;
+        return 1;
       }
+      return 0;
     }
 
     void set_val_name(const char *name_) {
@@ -639,7 +641,7 @@ namespace Connections
     bool disable_spawn_true{0};
     virtual void disable_spawn() {}
     int  clock_number{0};
-    virtual void do_reset_check() {}
+    virtual bool do_reset_check() {return 0;}
     virtual std::string report_name() {return std::string("unnamed"); }
     Blocking_abs *sibling_port{0};
   };
@@ -781,8 +783,16 @@ namespace Connections
     void check_registration(bool b) {
       wait(50, SC_PS); // allow all Reset calls to complete, so that add_clock_event calls are all done
 
-      // 2 loops here: first will produce list of all warnings, second will error out on first error.
-      for (unsigned i=0; i < tracked.size(); i++) { tracked[i]->do_reset_check(); }
+      bool error{0};
+
+      // first produce list of all warnings
+      for (unsigned i=0; i < tracked.size(); i++) { error |= tracked[i]->do_reset_check(); }
+
+      if (error) {
+         SC_REPORT_ERROR("CONNECTIONS-125",
+           std::string("Unable to resolve clock on port - check and fix any prior warnings about missing Reset() on ports: ").c_str());
+         sc_stop();
+      }
 
       for (unsigned i=0; i < tracked.size(); i++) {
         if (!!tracked[i] && (!tracked[i]->clock_registered || (map_port_to_event[tracked[i]] == 0))) {
@@ -1763,8 +1773,8 @@ namespace Connections
 #endif
     }
 
-    void do_reset_check() {
-      this->read_reset_check.check();
+    bool do_reset_check() {
+      return this->read_reset_check.check();
     }
 
 #ifndef __SYNTHESIS__
@@ -1876,8 +1886,8 @@ namespace Connections
 #endif
     }
 
-    void do_reset_check() {
-      this->read_reset_check.check();
+    bool do_reset_check() {
+      return this->read_reset_check.check();
     }
 
 #ifndef __SYNTHESIS__
@@ -2825,8 +2835,8 @@ namespace Connections
       while (i_fifo->nb_get(temp));
     }
 
-    void do_reset_check() {
-      this->read_reset_check.check();
+    bool do_reset_check() {
+      return this->read_reset_check.check();
     }
 
 #ifndef __SYNTHESIS__
@@ -3132,8 +3142,8 @@ namespace Connections
 #endif
     }
 
-    void do_reset_check() {
-      this->write_reset_check.check();
+    bool do_reset_check() {
+      return this->write_reset_check.check();
     }
 
 #ifndef __SYNTHESIS__
@@ -3224,8 +3234,8 @@ namespace Connections
 #endif
     }
 
-    void do_reset_check() {
-      this->write_reset_check.check();
+    bool do_reset_check() {
+      return this->write_reset_check.check();
     }
 
 #ifndef __SYNTHESIS__
@@ -3980,8 +3990,8 @@ namespace Connections
       get_conManager().add_clock_event(this);
     }
 
-    void do_reset_check() {
-      this->write_reset_check.check();
+    bool do_reset_check() {
+      return this->write_reset_check.check();
     }
 
 #ifndef __SYNTHESIS__
@@ -4292,9 +4302,11 @@ namespace Connections
       reset_msg();
     }
 
-    void do_reset_check() {
-      this->read_reset_check.check();
-      this->write_reset_check.check();
+    bool do_reset_check() {
+      bool r{0};
+      r |= this->read_reset_check.check();
+      r |= this->write_reset_check.check();
+      return r;
     }
 
 #ifndef __SYNTHESIS__
@@ -4527,7 +4539,7 @@ namespace Connections
 #endif
     }
 
-    void do_reset_check() {
+    bool do_reset_check() {
       /*
           this->read_reset_check.check();
           this->write_reset_check.check();
@@ -4543,6 +4555,7 @@ namespace Connections
           been called, even though get_conManager().add() method is always called for this channel.
           So, in ConManager if we see that add_clock_event was not called for this class, it is OK.
       */
+      return 0;
     }
 
 // Pop
@@ -4551,7 +4564,11 @@ namespace Connections
 #ifdef CONNECTIONS_SIM_ONLY
       /* assert(! out_bound); */
 
-      this->read_reset_check.check();
+      if (this->read_reset_check.check()) {
+         SC_REPORT_ERROR("CONNECTIONS-125",
+           std::string("Unable to resolve clock on port - check and fix any prior warnings about missing Reset() on ports: ").c_str());
+         sc_stop();
+      }
 #ifdef CONNECTIONS_ACCURATE_SIM
       get_sim_clk().check_on_clock_edge(this->clock_number);
 #endif
@@ -4568,7 +4585,11 @@ namespace Connections
 #ifdef CONNECTIONS_SIM_ONLY
       /* assert(! out_bound); */
 
-      this->read_reset_check.check();
+      if (this->read_reset_check.check()) {
+         SC_REPORT_ERROR("CONNECTIONS-125",
+           std::string("Unable to resolve clock on port - check and fix any prior warnings about missing Reset() on ports: ").c_str());
+         sc_stop();
+      }
 #ifdef CONNECTIONS_ACCURATE_SIM
       get_sim_clk().check_on_clock_edge(this->clock_number);
 #endif
@@ -4585,7 +4606,11 @@ namespace Connections
 #ifdef CONNECTIONS_SIM_ONLY
       /* assert(! out_bound); */
 
-      this->read_reset_check.check();
+      if (this->read_reset_check.check()) {
+         SC_REPORT_ERROR("CONNECTIONS-125",
+           std::string("Unable to resolve clock on port - check and fix any prior warnings about missing Reset() on ports: ").c_str());
+         sc_stop();
+      }
 #ifdef CONNECTIONS_ACCURATE_SIM
       get_sim_clk().check_on_clock_edge(this->clock_number);
 #endif
@@ -4610,7 +4635,11 @@ namespace Connections
 #ifdef CONNECTIONS_SIM_ONLY
       /* assert(! in_bound); */
 
-      this->write_reset_check.check();
+      if (this->write_reset_check.check()) {
+         SC_REPORT_ERROR("CONNECTIONS-125",
+           std::string("Unable to resolve clock on port - check and fix any prior warnings about missing Reset() on ports: ").c_str());
+         sc_stop();
+      }
 #ifdef CONNECTIONS_ACCURATE_SIM
       get_sim_clk().check_on_clock_edge(this->clock_number);
 #endif
@@ -4628,7 +4657,11 @@ namespace Connections
 #ifdef CONNECTIONS_SIM_ONLY
       /* assert(! in_bound); */
 
-      this->write_reset_check.check();
+      if (this->write_reset_check.check()) {
+         SC_REPORT_ERROR("CONNECTIONS-125",
+           std::string("Unable to resolve clock on port - check and fix any prior warnings about missing Reset() on ports: ").c_str());
+         sc_stop();
+      }
 #ifdef CONNECTIONS_ACCURATE_SIM
       get_sim_clk().check_on_clock_edge(this->clock_number);
 #endif
@@ -5496,11 +5529,12 @@ namespace Connections
       get_conManager().add_clock_event(this);
     }
 
-    void do_reset_check() {
+    bool do_reset_check() {
       /*
           this->read_reset_check.check();
           this->write_reset_check.check();
       */
+      return 0;
     }
 
 #ifndef __SYNTHESIS__
