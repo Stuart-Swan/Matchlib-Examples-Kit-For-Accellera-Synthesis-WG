@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2024, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
 
 
 #include <cstddef>
-#include <list>
 #include <ac_assert.h>
+#include <list>
 #include "systemc.h"
 
 namespace nvhls {
@@ -60,9 +60,6 @@ class nv_array_bank_array_no_assert_base;
 template <typename B>
 class nv_array_bank_array_no_assert_base<B, 1>
 {
-#ifdef CCS_SYSC
-public:
-#endif
   B a;
 
 public:
@@ -81,9 +78,6 @@ public:
 template <typename B, size_t C>
 class nv_array_bank_array_no_assert_base
 {
-#ifdef CCS_SYSC
-public:
-#endif
   static const size_t W = nv_array_pow2<C-1>::P;
   nv_array_bank_array_no_assert_base<B, W  > a0;
   nv_array_bank_array_no_assert_base<B, C-W> a1;

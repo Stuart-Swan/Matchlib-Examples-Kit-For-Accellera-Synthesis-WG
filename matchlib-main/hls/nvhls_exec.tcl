@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2024, NVIDIA CORPORATION.  All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License")
 # you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ namespace eval nvhls {
         go extract
         
         if { $RUN_SCVERIFY eq "1" } {
-          flow run /SCVerify/launch_make ./scverify/Verify_concat_sim_rtl_v_vcs.mk {} SIMTOOL=vcs sim
+          flow run /SCVerify/launch_make ./scverify/Verify_concat_sim_rtl_sv_vcs.mk {} SIMTOOL=vcs sim
         }
 
         project save

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2016-2024, NVIDIA CORPORATION.  All rights reserved.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License")
 # you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@
 DESIGNS ?= \
 	unittests/axi/AxiAddRemoveWRespTop \
 	unittests/axi/AxiArbSplitTop \
-	unittests/axi/AxiLiteSlaveToMemTop \
-	unittests/axi/AxiMasterGateTop \
-	unittests/axi/AxiSlaveToMemTop \
-	unittests/axi/AxiSlaveToReadyValidTop \
-	unittests/axi/AxiSlaveToRegTop \
+	unittests/axi/AxiLiteSubordinateToMemTop \
+	unittests/axi/AxiManagerGateTop \
+	unittests/axi/AxiSubordinateToMemTop \
+	unittests/axi/AxiSubordinateToReadyValidTop \
+	unittests/axi/AxiSubordinateToRegTop \
 	unittests/WHVCRouterTop \
 	unittests/ArbiterModule \
 	unittests/ArbiterTop \
@@ -32,8 +32,10 @@ DESIGNS ?= \
 	unittests/CrossbarTop \
 	unittests/FifoTop \
 	unittests/LzdTop \
+	unittests/MemArrayOpt \
 	unittests/ReorderBufTop \
 	unittests/ScratchpadTop \
+	unittests/ScratchpadClassTop \
 	unittests/VectorUnit \
 	MemModel \
 	ConnectionsRecipes/Adder \
@@ -42,7 +44,8 @@ DESIGNS ?= \
 	ConnectionsRecipes/Adder4 \
 	Counter \
 
-SKIP_DESIGNS ?=
+SKIP_DESIGNS ?= \
+	ConnectionsRecipes/Adder3 \
 
 RUN_DESIGNS := $(filter-out $(SKIP_DESIGNS),$(DESIGNS))
 

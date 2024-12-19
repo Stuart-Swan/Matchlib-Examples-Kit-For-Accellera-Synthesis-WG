@@ -9,7 +9,6 @@
 
 #include "ac_channel.h"
 #include "mc_scverify.h"
-#include "nvhls_array_new.h"
 
 
 #define HLS_ALGORITHMICC

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2016-2024, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -70,8 +70,8 @@
    #define CDCOUT(x,y) DISABLED_PRINT_STMT()
 #else
    #define DCOUT(x) cout << x
-   #define CDCOUT(x,y) \
+   #define CDCOUT(x,y) { \
       CTC_SKIP_CDCOUT \
          if (DEBUG_LEVEL >= y) cout << x; \
-      CTC_ENDSKIP_CDCOUT
+      CTC_ENDSKIP_CDCOUT }
 #endif

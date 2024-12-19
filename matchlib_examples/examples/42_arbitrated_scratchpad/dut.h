@@ -4,8 +4,6 @@
 
 #include <mc_connections.h>
 
-#include "nvhls_array_new.h"
-
 #define HLS_ALGORITHMICC
 #include <ArbitratedScratchpad.h>
 #undef HLS_ALGORITHMICC

@@ -24,13 +24,14 @@ class ac_wr_mask_array_1D {
 
   static const unsigned num_slices = NumSlices;
   static const unsigned dim1 = Dim1;
-  typedef ac_int<NumSlices> WriteMask;
+  typedef ac_int<NumSlices, false> WriteMask;
   typedef Wrapped<T> WData_t;
   static const unsigned int WordWidth = WData_t::width;
   static const unsigned int SliceWidth = WordWidth/NumSlices;
   typedef sc_lv<WordWidth> Data_t;
   typedef sc_lv<SliceWidth> Slice_t;
   ac_bank_array_2D<Slice_t, NumSlices, Dim1> mem;
+  static_assert(WordWidth % NumSlices == 0, "Word width must be evenly divisible by NumSlices");
 
 
   struct elem_proxy {

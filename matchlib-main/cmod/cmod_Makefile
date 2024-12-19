@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2016-2024, NVIDIA CORPORATION.  All rights reserved.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License")
 # you may not use this file except in compliance with the License.
@@ -23,11 +23,10 @@ RAPIDJSON_HOME ?= $(ROOT)/rapidjson
 CC = g++
 
 INCDIR ?=
-INCDIR += -I. -I$(SYSTEMC_HOME)/include -I$(BOOST_HOME)/include -I$(CATAPULT_HOME)/Mgc_home/shared/include
-INCDIR += -I$(RAPIDJSON_HOME)/include 
+INCDIR += -I. -I$(BOOST_HOME)/include -I$(RAPIDJSON_HOME)/include -I$(CATAPULT_HOME)/Mgc_home/shared/include
 
 LIBDIR ?=
-LIBDIR += -L. -L$(SYSTEMC_HOME)/lib-linux64 -L$(BOOST_HOME)/lib
+LIBDIR += -L. -L$(BOOST_HOME)/lib -L$(CATAPULT_HOME)/Mgc_home/shared/lib
 
 DEBUG_LEVEL ?= 1
 CFLAGS ?= 
@@ -36,6 +35,9 @@ CFLAGS += -Wall -Wno-unknown-pragmas -std=c++11 $(INCDIR) $(LIBDIR) -DDEBUG_LEVE
 HLS_CATAPULT ?= 1
 ifeq ($(HLS_CATAPULT),1)
   CFLAGS += -DHLS_CATAPULT
+endif
+ifneq ($(findstring FORCE_AUTO_PORT,$(CFLAGS)),FORCE_AUTO_PORT)
+	CFLAGS += -DFORCE_AUTO_PORT=Connections::DIRECT_PORT
 endif
 
 LIBS ?=

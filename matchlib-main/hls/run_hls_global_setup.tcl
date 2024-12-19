@@ -1,4 +1,4 @@
-# Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2016-2024, NVIDIA CORPORATION.  All rights reserved.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License")
 # you may not use this file except in compliance with the License.
@@ -26,6 +26,8 @@ flow package require /VCS
 solution options set /Output/PackageOutput false
 
 solution options set Input/CppStandard c++11
+
+options set General/BranchOnChange {Never branch}
 
 ## Use fsdb file for power flow - make sure your environment var $NOVAS_INST_DIR has been set before you launch Catapult.
 solution options set /Flows/LowPower/SWITCHING_ACTIVITY_TYPE fsdb
@@ -93,3 +95,5 @@ directive set -CLUSTER_TYPE combinational
 directive set -COMPGRADE fast
 directive set -PIPELINE_RAMP_UP true
 directive set -CHAN_IO_PROTOCOL coupled
+directive set -PRESERVE_STRUCTS true
+directive set -STRUCT_LAYOUT c_style

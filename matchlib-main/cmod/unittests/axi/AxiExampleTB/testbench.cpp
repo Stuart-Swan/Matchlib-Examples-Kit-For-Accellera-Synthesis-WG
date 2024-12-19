@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2017-2024, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Licensed under the Apache License, Version 2.0 (the "License")
  * you may not use this file except in compliance with the License.
@@ -19,17 +19,17 @@
 
 #include <axi/axi4.h>
 #include <mc_scverify.h>
-#include <axi/testbench/Master.h>
-#include <axi/testbench/Slave.h>
+#include <axi/testbench/Manager.h>
+#include <axi/testbench/Subordinate.h>
 #include <testbench/nvhls_rand.h>
 
-// A simple AXI testbench example.  A Master and Slave are wired together
+// A simple AXI testbench example.  A Manager and Subordinate are wired together
 // directly with no DUT in between.
 
 SC_MODULE(testbench) {
 
-  Slave<axi::cfg::standard> slave;
-  Master<axi::cfg::standard, masterCfg> master;
+  Subordinate<axi::cfg::standard> subordinate;
+  Manager<axi::cfg::standard, managerCfg> manager;
 
   sc_clock clk;
   sc_signal<bool> reset_bar;
@@ -40,8 +40,8 @@ SC_MODULE(testbench) {
   typename axi::axi4<axi::cfg::standard>::write::template chan<> axi_write;
 
   SC_CTOR(testbench)
-      : slave("slave"),
-        master("master"),
+      : subordinate("subordinate"),
+        manager("manager"),
         clk("clk", 1.0, SC_NS, 0.5, 0, SC_NS, true),
         reset_bar("reset_bar"),
         axi_read("axi_read"),
@@ -49,19 +49,19 @@ SC_MODULE(testbench) {
 
     Connections::set_sim_clk(&clk);
 
-    slave.clk(clk);
-    master.clk(clk);
+    subordinate.clk(clk);
+    manager.clk(clk);
 
-    slave.reset_bar(reset_bar);
-    master.reset_bar(reset_bar);
+    subordinate.reset_bar(reset_bar);
+    manager.reset_bar(reset_bar);
 
-    master.if_rd(axi_read);
-    slave.if_rd(axi_read);
+    manager.if_rd(axi_read);
+    subordinate.if_rd(axi_read);
 
-    master.if_wr(axi_write);
-    slave.if_wr(axi_write);
+    manager.if_wr(axi_write);
+    subordinate.if_wr(axi_write);
 
-    master.done(done);
+    manager.done(done);
 
     SC_THREAD(run);
   }

@@ -1,4 +1,4 @@
-# Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2019-2024, NVIDIA CORPORATION.  All rights reserved.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License")
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,9 @@
 #
 
 ROOT            := ../../../..
-SRC_PATH				:= $(ROOT)/cmod/unittests/axi
+SRC_PATH        := $(ROOT)/cmod/unittests/axi
+
+COMPILER_FLAGS += FORCE_AUTO_PORT=Connections::MARSHALL_PORT
 
 include $(ROOT)/hls/hls_Makefile
 

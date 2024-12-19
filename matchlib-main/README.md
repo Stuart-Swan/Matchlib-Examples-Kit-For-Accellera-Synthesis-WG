@@ -1,6 +1,6 @@
 MatchLib
 ========
-[![Build Status](https://travis-ci.org/NVlabs/matchlib.svg?branch=master)](https://travis-ci.org/NVlabs/matchlib)
+[![GitHub Pages](https://github.com/NVlabs/matchlib/actions/workflows/gh-pages.yml/badge.svg)](https://github.com/NVlabs/matchlib/actions/workflows/gh-pages.yml)
 
 MatchLib is a SystemC/C++ library of commonly-used hardware functions and components that can
 be synthesized by most commercially-available HLS tools into RTL.
@@ -29,7 +29,7 @@ MatchLib is regressed against the following tool/dependency versions:
 * `connections` - 2.1.1 (included with Catapult)
 * `vcs` - 2023.03
 * `verdi` - 2023.03
-* `python` - 3.4.2
+* `python` - 3.6.1
 * `rapidjson` - 06d58b9 (included as submodule)
 
 ## Environment requirements
@@ -91,7 +91,7 @@ In addition, the boost and systemc library locations are expected to be in `LD_L
 * `COV_ENABLE` - Set to enable coverage collection with CTC.
 * `NVHLS_VERIFY_ISVCSMX` - Set for standalone VCS-MX co-simulations of SystemC with Catapult-generated RTL. Do not use in SystemC simulation or Catapult sc_verify.
 * `ENABLE_SYNC_RESET` - Enables synchronous, active-low reset instead of asynchronous, active-low reset in MatchLib.
-* `NV_ARRAY_MAX_SPECIALIZATIONS` - Set to redefine the maximum allowed vector length for nv_arrays (default 64). Larger values may result in increased compile times.
+* `NVHLS_CONTINUE_ON_ASSERT` - Raise an `SC_ERROR` on assertion failures rather than exiting. Do not use during Catapult HLS, only during simulation.
 
 Additional macros such as `AUTO_PORT`, `FORCE_AUTO_PORT`, `CONNECTIONS_ACCURATE_SIM`, `CONNECTIONS_FAST_SIM`, `CONNECTIONS_SIM_ONLY`, `CONN_RAND_STALL`, `CONN_RAND_STALL_PRINT_DEBUG`, `CONNECTIONS_ASSERT_ON_QUERY`, and `DISABLE_PACER` may be used in MatchLib. These macros are primarily defined, implemented, and documented in Connections. For more detail on these macros, see the [Connections documentation](https://github.com/hlslibs/matchlib_connections).
 

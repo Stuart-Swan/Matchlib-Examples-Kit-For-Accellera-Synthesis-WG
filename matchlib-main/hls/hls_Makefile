@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
+# Copyright (c) 2016-2024, NVIDIA CORPORATION.  All rights reserved.
 # 
 # Licensed under the Apache License, Version 2.0 (the "License")
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ export HLS_CATAPULT   ?= 1
 export RUN_SCVERIFY   ?= 1
 export SYSTEMC_DESIGN ?= 1
 
-export RUN_CDESIGN_CHECKER	?= 0
+export RUN_CDESIGN_CHECKER ?= 0
 
 # Default compiler flags set by switches below.
 export COMPILER_FLAGS ?=
@@ -40,13 +40,19 @@ export COMPILER_FLAGS ?=
 # 2 = Faster TLM view of Connections port and channel code, CONNECTIONS_FAST_SIM.
 SIM_MODE ?= 1
 ifeq ($(SIM_MODE),0)
-	COMPILER_FLAGS += CONNECTIONS_SYN_SIM
+  COMPILER_FLAGS += CONNECTIONS_SYN_SIM
+  ifneq ($(findstring FORCE_AUTO_PORT,$(COMPILER_FLAGS)),FORCE_AUTO_PORT)
+    COMPILER_FLAGS += FORCE_AUTO_PORT=Connections::DIRECT_PORT
+  endif
 endif
 ifeq ($(SIM_MODE),1)
-	COMPILER_FLAGS += CONNECTIONS_ACCURATE_SIM SC_INCLUDE_DYNAMIC_PROCESSES
+  COMPILER_FLAGS += CONNECTIONS_ACCURATE_SIM SC_INCLUDE_DYNAMIC_PROCESSES
+  ifneq ($(findstring FORCE_AUTO_PORT,$(COMPILER_FLAGS)),FORCE_AUTO_PORT)
+    COMPILER_FLAGS += FORCE_AUTO_PORT=Connections::DIRECT_PORT
+  endif
 endif
 ifeq ($(SIM_MODE),2)
-	COMPILER_FLAGS += CONNECTIONS_FAST_SIM SC_INCLUDE_DYNAMIC_PROCESSES
+  COMPILER_FLAGS += CONNECTIONS_FAST_SIM SC_INCLUDE_DYNAMIC_PROCESSES
 endif
 
 
@@ -57,7 +63,7 @@ endif
 #   Note: Only valid if SIM_MODE = 1 (accurate) or 2 (fast)
 RAND_STALL ?= 0
 ifeq ($(RAND_STALL),1)
-	COMPILER_FLAGS += CONN_RAND_STALL
+  COMPILER_FLAGS += CONN_RAND_STALL
 endif
 
 DEBUG_LEVEL ?= 1
@@ -75,7 +81,7 @@ gui:
 
 cdc:
 	env RUN_CDESIGN_CHECKER=1 catapult -shell -product ultra -file go_hls.tcl
-	$(ROOT)/hls/design_checker_summary.py
+	$(ROOT)/bin/design_checker_summary.py
 	cat DesignCheckSummary.csv
 
 .PHONY: clean

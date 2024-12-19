@@ -2,7 +2,6 @@
 
 #pragma once
 
-#include "nvhls_array_new.h"
 #include "dma.h"
 #include "axi/AxiSplitter.h"
 #include "axi/AxiArbiter.h"
