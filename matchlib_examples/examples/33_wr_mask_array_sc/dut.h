@@ -18,7 +18,8 @@ public:
   Connections::In<uint32>                 CCS_INIT_S1(data_port);
   Connections::In<uint32>                 CCS_INIT_S1(addr_port);
 
-  ac_wr_mask_array_1D<uint32, 0x1000, 4> mem;
+  // last template arg==1 means we are mapping to actual byte_enable RAM
+  ac_wr_mask_array_1D<uint32, 0x1000, 8, 1> mem;
 
   SC_CTOR(dut) {
     SC_THREAD(main);
@@ -43,7 +44,7 @@ private:
       uint32 addr = addr_port.Pop();
 
       if (mask_val != 0) {
-        mem[addr].mask(mask_val) = data;
+       mem[addr].mask(mask_val) = data;
       } else {
         out1.Push(mem[addr]);
       }
