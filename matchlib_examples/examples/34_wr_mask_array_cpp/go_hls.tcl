@@ -29,12 +29,14 @@ go analyze
 
 go compile
 solution library add nangate-45nm_beh -- -rtlsyntool OasysRTL -vendor Nangate -technology 045nm
-solution library add ccs_sample_mem
+solution library add ram_nangate-45nm-singleport_beh
 
 go libraries
-directive set -CLOCKS {clk {-CLOCK_PERIOD 2.0}}
+directive set -CLOCKS {clk {-CLOCK_PERIOD 4.0}}
 
 go assembly
+directive set /dut/run/mem.mem:rsc -MAP_TO_MODULE \
+  {ram_nangate-45nm-singleport_beh.RAM num_byte_enables=4}
 go architect
 go allocate
 go extract

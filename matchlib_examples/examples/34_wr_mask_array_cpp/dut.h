@@ -14,7 +14,8 @@ class dut
 public:
   dut() {}
 
-  ac_wr_mask_array_1D<uint32, 0x1000, 4> mem;
+  // last template arg==1 means we are mapping to actual byte_enable RAM
+  ac_wr_mask_array_1D<uint32, 0x1000, 8, 1> mem;
 
 #pragma hls_design interface top
 #pragma hls_pipeline_init_interval 1
