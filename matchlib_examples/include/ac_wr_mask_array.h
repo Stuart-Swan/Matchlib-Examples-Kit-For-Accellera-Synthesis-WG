@@ -118,11 +118,10 @@ class ac_wr_mask_array_1D<T, Dim1, SliceWidth, true> {
     void operator=(const ac_wr_mask_array_1D::data_t& val) { 
       assert(idx < ac_wr_mask_array_1D::dim1);
       const ac_int<32, false> slice_w = SliceWidth;
-      ac_int<256, false> v = val; // compiler workaround, stuart still need to clean up..
       #pragma hls_unroll yes
       for (ac_int<32, false> i=0; i < num_slices; ++i) {
         if (mask_val[i] == 1)
-          array.mem[idx].set_slc(i * slice_w, v.slc<SliceWidth>( i * slice_w));
+          array.mem[idx].set_slc(i * slice_w, val.template slc<SliceWidth>( i * slice_w));
       }
     }
 
