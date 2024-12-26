@@ -99,6 +99,13 @@ class ac_wr_mask_array_1D<T, Dim1, SliceWidth, true> {
 
   T mem[Dim1];  // ** User must use -MAP_TO_MODULE and num_byte_enables in Catapult tcl file **
 
+  ac_wr_mask_array_1D() {
+#ifndef __SYNTHESIS__
+   std::cout << "ac_wr_mask_array_1D: Note: In Catapult tcl script need to set num_byte_enables to " << 
+     num_slices << "\n";
+#endif
+  }
+
   static_assert(WordWidth == num_slices * SliceWidth, 
        "Word width must be evenly divisible by SliceWidth");
 
