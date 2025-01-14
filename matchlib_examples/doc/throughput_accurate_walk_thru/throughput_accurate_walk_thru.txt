@@ -1,0 +1,74 @@
+
+
+Matchlib Pre-HLS Thruput Accurate Modeling Walk Through
+Stuart Swan
+14 Jan 2025
+
+
+Fred asked me to put together a short walk-thru presentation for how "throughput accurate" modeling works in Matchlib for the meeting.
+
+In a nutshell, the idea behind throughput accurate modeling is combine all of the wait() statements that all blocking message passing operations would incur within a user process on any particular clock cycle into a single wait statement. The simplest example that shows this in action is here:
+
+https://github.com/Stuart-Swan/Matchlib-Examples-Kit-For-Accellera-Synthesis-WG/tree/master/matchlib_examples/examples/06_thruput_accurate
+
+In that example , there are 3 Pops and 2 Pushes in the DUT, and they are all blocking. In the pre-HLS sim, the loop iterates once per clock cycle, so that it is thruput accurate wrt to the RTL.
+
+(All further discussion in this document refers to the attached connections.h file line numbers.)
+
+The way this is achieved in Matchlib is by moving the wait statements out of the user process. In the Matchlib connections.h on line 567 we find
+all the SystemC clocks in the entire TB + DUT, using the find_clocks method.
+
+Then we set up machinery to run just before, and just after, each clock edge in the entire system
+on line 1032.
+
+The Pre and the Post methods are implemented by each Connections::In/Out port instance in the system. The Pre and the Post methods manage the rdy/vld/dat signal level
+protocol for the message passing operations. The user process simply calls Push/Pop and data is transferred into/out of a 1 place buffer.
+
+The user process Push/Pop methods will never call wait unless data cannot be transferred on that clock cycle. The net result is that the pre-HLS sim is throughput accurate wrt the RTL.
+
+The assumption is that the process is pipelined with II=1. If the II is > 1, then the
+user needs to put explicit wait statements in the process to make the pre-HLS sim accurate
+wrt the RTL.
+
+
+
+
+Pre-HLS Thruput Accurate Modeling Detailed Walk Through:
+
+Connections::In<>
+
+Pop() line 1916
+ calls Pop_SIM, which waits if no data in buffer on line 2331
+
+Pre() line 2250
+  Line 2262, if buffer is empty, calls line 2236, which checks vld signal and puts dat signal
+   into buffer if data is valid.
+
+Post() line 2315
+  Calls line 2225, which sets rdy signal to true if buffer is empty, else sets rdy to false
+
+Connections::Out<>
+
+Push() line 3291
+ Calls Push_SIM which waits on line 3410 if no space in buffer, else puts data into buffer.
+
+Pre() line 3373
+ If vld and rdy signals are both true, sets data buffer as now being empty.
+
+Post() line 3387
+ Calls 3359 which sets vld signal if buffer is full. The dat signal is written on line 
+  5113 via line 3400.
+
+
+During HLS, Connections::In<> / Connections::Out<> Use Following:
+
+Pop() Line 2775
+  Resolves to line 1796
+
+PopNB() line 1841
+
+Push 3860
+  Resolves to line 3200
+
+PushNB line 3216
+
