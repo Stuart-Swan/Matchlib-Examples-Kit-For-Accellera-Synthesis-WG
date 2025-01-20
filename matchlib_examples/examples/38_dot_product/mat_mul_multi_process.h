@@ -41,16 +41,16 @@ class matrixMultiply  : public sc_module {
     bool ping_pong = false;
     wait();
 
+    #pragma hls_pipeline_init_interval 1
+    #pragma pipeline_stall_mode flush
     while (1) {
-      #pragma hls_pipeline_init_interval 1
-      #pragma pipeline_stall_mode flush
       TRANSPOSEB_ROW0:for (int i=0; i<8; i++) { // Transpose operation must complete first
         TRANSPOSEB_COL0:for (int j=0; j<8; j++) {
           B_transpose[j*8 + i + 64*ping_pong] = B.Pop();
         }
       }
       ping_pong = !ping_pong;
-      sync.sync_out();
+      sync.sync_out(B_transpose);
     }
   }
 
@@ -79,11 +79,11 @@ class matrixMultiply  : public sc_module {
     bool ping_pong = false;
     wait();
 
+    #pragma hls_pipeline_init_interval 1
+    #pragma pipeline_stall_mode flush
     while (1) {
       ac_int<8+8+3> acc = 0;
-      sync.sync_in();
-      #pragma hls_pipeline_init_interval 1
-      #pragma pipeline_stall_mode flush
+      sync.sync_in(B_transpose);
       ROW:for (int i = 0; i < 8; i++) {
         A_dat = A_row.Pop();
         COL:for (int j = 0; j < 8; j++) {

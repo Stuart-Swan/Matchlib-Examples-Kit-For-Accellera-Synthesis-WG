@@ -19,6 +19,8 @@
 // connections.h
 //
 // Revision History:
+//   2.2.2   - CAT-38997 - Add simulation support for In/Out/Combinational::PeekNB()
+//           - CAT-39113 - Enforce Reset() is called for simulation
 //   2.2.1   - CAT-38188 - Updates to support SystemC 3.0 and fixes
 //   2.2.0   - CAT-34924 - use DIRECT_PORT by default for pre-HLS simulation
 //             CAT-37259 - Add macro guard around include of sc_reset.h
@@ -1718,6 +1720,11 @@ namespace Connections
       return m;
     }
 
+    bool PeekNB(Message &/*data*/, const bool &/*unused*/ = true) {
+      CONNECTIONS_ASSERT_MSG(0, "Unreachable virtual function in abstract class!");
+      return false;      
+    }
+
 // PopNB
 #pragma design modulario < in >
     virtual bool PopNB(Message &data, const bool &do_wait = true) {
@@ -1820,6 +1827,14 @@ namespace Connections
       return m;
     }
 
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+      read_msg(data);
+#ifdef __SYNTHESIS__      
+      _RDYNAME_.write(false);
+#endif
+      return _VLDNAME_.read();
+    }
+
 // PopNB
 #pragma builtin_modulario
 #pragma design modulario < in >
@@ -1916,6 +1931,10 @@ namespace Connections
       return InBlocking_Ports_abs<Message>::Peek();
     }
 
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+      return InBlocking_Ports_abs<Message>::PeekNB(data);
+    }
+
 // PopNB
 #pragma design modulario < in >
     bool PopNB(Message &data, const bool &do_wait = true) {
@@ -1925,10 +1944,9 @@ namespace Connections
       get_sim_clk().check_on_clock_edge(this->clock_number);
 #endif
       if (Empty_SIM()) {
-        // Message m;
-        // set_default_value(m);
-        // data = m;
-        // If PopNB returns false, want to leave data value unchanged, like HW works..
+        Message m;
+        set_default_value(m);
+        data = m;
         return false;
       } else {
         data = ConsumeBuf_SIM();
@@ -2386,6 +2404,12 @@ namespace Connections
       return InBlocking_Ports_abs<Message>::Peek();
     }
 
+#pragma builtin_modulario
+#pragma design modulario < peek >
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+      return InBlocking_Ports_abs<Message>::PeekNB(data);
+    }
+    
 // PopNB
 #pragma builtin_modulario
 #pragma design modulario < in >
@@ -2576,6 +2600,12 @@ namespace Connections
       return InBlocking_SimPorts_abs<Message>::Peek();
     }
 
+#pragma builtin_modulario
+#pragma design modulario < peek >    
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+      return InBlocking_SimPorts_abs<Message>::PeekNB(data);
+    }
+    
 // PopNB
 #pragma design modulario < in >
     bool PopNB(Message &data, const bool &do_wait = true) {
@@ -2754,6 +2784,12 @@ namespace Connections
       return InBlocking_SimPorts_abs<Message>::Peek();
     }
 
+#pragma builtin_modulario
+#pragma design modulario < peek >
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+        return InBlocking_SimPorts_abs<Message>::PeekNB(data);
+    }    
+
     // PopNB
 #pragma builtin_modulario
 #pragma design modulario < in >
@@ -2867,6 +2903,11 @@ namespace Connections
       get_sim_clk().check_on_clock_edge(this->clock_number);
 #endif
       return i_fifo->peek();
+    }
+
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+      assert(0);
+      return false; // i_fifo-> tlm::tlm_get_peek_if<Message> ::nb_peek(data);
     }
 
 // PopNB
@@ -4224,6 +4265,11 @@ namespace Connections
       return m;
     }
 
+    bool PeekNB(Message &/*data*/, const bool &/*unused*/ = true) {
+      CONNECTIONS_ASSERT_MSG(0, "Unreachable virtual function in abstract class!");
+      return false;
+    }
+    
 // PopNB
 #pragma design modulario < in >
     bool PopNB(Message &data) {
@@ -4349,6 +4395,15 @@ namespace Connections
       return m;
     }
 
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+      read_msg(data);
+#ifdef __SYNTHESIS__      
+      _RDYNAME_.write(false);
+#endif
+      return _VLDNAME_.read();
+    }
+    
+    
 // PopNB
 #pragma builtin_modulario
 #pragma design modulario < in >
@@ -4599,6 +4654,19 @@ namespace Connections
 #else
       return Combinational_Ports_abs<Message>::Peek();
 #endif
+    }
+
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+#ifdef CONNECTIONS_SIM_ONLY
+      this->read_reset_check.check();
+#ifdef CONNECTIONS_ACCURATE_SIM
+      get_sim_clk().check_on_clock_edge(this->clock_number);
+#endif
+      return sim_in.PeekNB(data);
+#else
+      return Combinational_Ports_abs<Message>::PeekNB(data);
+#endif
+
     }
 
 // PopNB
@@ -4995,6 +5063,13 @@ namespace Connections
       return Combinational_Ports_abs<Message>::Peek();
     }
 
+#pragma builtin_modulario
+#pragma design modulario < peek >    
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+      return Combinational_Ports_abs<Message>::PeekNB(data, true);
+    }
+    
+
 // PopNB
 #pragma builtin_modulario
 #pragma design modulario < in >
@@ -5064,7 +5139,7 @@ namespace Connections
 #ifdef CONNECTIONS_SIM_ONLY
     sc_signal<MsgBits> _DATNAMEIN_;
     sc_signal<MsgBits> _DATNAMEOUT_;
-    OutBlocking<Message> *driver;
+    OutBlocking<Message, MARSHALL_PORT> *driver;
 #else
     sc_signal<MsgBits> _DATNAME_;
 #endif
@@ -5145,6 +5220,12 @@ namespace Connections
     Message Pop() { return Combinational_SimPorts_abs<Message,MARSHALL_PORT>::Pop(); }
 #pragma design modulario < in >
     Message Peek() { return Combinational_SimPorts_abs<Message,MARSHALL_PORT>::Peek(); }
+#pragma builtin_modulario
+#pragma design modulario < peek >    
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+      return Combinational_SimPorts_abs<Message,MARSHALL_PORT>::PeekNB(data, true);
+    }
+    
 #pragma design modulario < in >
     bool PopNB(Message &data) { return Combinational_SimPorts_abs<Message,MARSHALL_PORT>::PopNB(data); }
 #pragma design modulario < out >
@@ -5367,6 +5448,13 @@ namespace Connections
     Message Pop() { return Combinational_SimPorts_abs<Message,DIRECT_PORT>::Pop(); }
 #pragma design modulario < in >
     Message Peek() { return Combinational_SimPorts_abs<Message,DIRECT_PORT>::Peek(); }
+
+#pragma builtin_modulario
+#pragma design modulario < peek >    
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+      return Combinational_SimPorts_abs<Message,DIRECT_PORT>::PeekNB(data, true);
+    }
+    
 #pragma builtin_modulario
 #pragma design modulario < in >
     bool PopNB(Message &data) { return Combinational_SimPorts_abs<Message,DIRECT_PORT>::PopNB(data); }
@@ -5564,6 +5652,10 @@ namespace Connections
       return fifo.peek();
     }
 
+    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+      return fifo.nb_peek(data);
+    }
+    
 // PopNB
 #pragma design modulario < in >
     bool PopNB(Message &data) {

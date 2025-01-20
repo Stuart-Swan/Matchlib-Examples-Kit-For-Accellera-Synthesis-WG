@@ -27,7 +27,7 @@ ac_math-master	           - AC Math downloaded from github
 rapidjson-master	   - RapidJson downloaded from github
 matchlib_connections-master -Matchlib connections downloaded from github
 matchlib-main              - Matchlib library downloaded from github
-systemc-2.3.3	           - Open source SystemC source code downloaded from Accellera.org
+systemc-2.3.3	           - Open source SystemC kit from Accellera.org (completely unmodified)
 
 README	                   - This file
 LICENSE		           - Open Source LICENSE file
@@ -72,6 +72,8 @@ to run the examples.
 If you want to do this, use
   sh pthreads_build_systemc.sh
 instead of the build_systemc.sh command above.)
+
+Note that the SystemC simulator is the standard Accellera download and is completely unmodified.
 
 
 Running a Test Example

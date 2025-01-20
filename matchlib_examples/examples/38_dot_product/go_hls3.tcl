@@ -15,6 +15,8 @@ options set /Input/SearchPath {$MGC_HOME/shared/pkgs/matchlib/cmod/include} -app
 options set /Output/OutputVHDL false
 flow package require /SCVerify
 
+directive set -SYSC_CHANOPER_FLOW true
+
 # Read Design and Libraries
 solution file add ${sfd}/testbench.cpp -type C++
 solution library add nangate-45nm_beh

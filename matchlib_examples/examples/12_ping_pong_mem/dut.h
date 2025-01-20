@@ -29,13 +29,13 @@ SC_MODULE(dut)
     in1.Reset();
     sync1.reset_sync_out();
     wait();                                 // WAIT
-    while (1) {
 #pragma hls_pipeline_init_interval 1
 #pragma pipeline_stall_mode flush
+    while (1) {
       for (int i=0; i < 8; i++) {
         mem[i + (8 * ping_pong)] = in1.Pop();
       }
-      sync1.sync_out();
+      sync1.sync_out(mem);
       ping_pong = !ping_pong;
     }
   }
@@ -46,10 +46,10 @@ SC_MODULE(dut)
     sync1.reset_sync_in();
     wait();                                 // WAIT
 
-    while (1) {
-      sync1.sync_in();
 #pragma hls_pipeline_init_interval 1
 #pragma pipeline_stall_mode flush
+    while (1) {
+      sync1.sync_in(mem);
       for (int i=0; i < 8; i++) {
         out1.Push(mem[i + (8 * ping_pong)]);
       }
@@ -63,6 +63,7 @@ SC_MODULE(dut)
   extended_array<ac_int<16>,128> mem{"mem_prehls"};
 #else
   ac_shared_array_1D<ac_int<16>, 128> mem;
+  // ac_shared<ac_int<16> [128]> mem;
 #endif
 };
 
