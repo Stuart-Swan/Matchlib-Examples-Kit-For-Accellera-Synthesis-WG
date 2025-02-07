@@ -42,6 +42,30 @@ class ac_wr_mask_array_1D {
   static_assert(WordWidth == num_slices * SliceWidth, 
        "Word width must be evenly divisible by SliceWidth");
 
+  // use this function when HLS cannot handle elem_proxy functions
+  void write(unsigned idx, T val, WriteMask mask_val=~0) {
+      assert(idx < ac_wr_mask_array_1D::dim1);
+      Data_t write_data = TypeToBits<T>(val);
+      #pragma hls_unroll yes
+      for (unsigned i = 0; i < ac_wr_mask_array_1D::num_slices; i++) {
+        if (mask_val[i] == 1)
+          mem[i][idx] = write_data.range((i+1)*SliceWidth-1, i*SliceWidth);
+      }
+  }
+
+  // use this function when HLS cannot handle elem_proxy functions
+  T read(unsigned idx) {
+      assert(idx < ac_wr_mask_array_1D::dim1);
+      Data_t read_data = TypeToBits<NVUINTW(ac_wr_mask_array_1D::WordWidth)>(0);
+      #pragma hls_unroll yes
+      for (unsigned i = 0; i < ac_wr_mask_array_1D::num_slices; i++) {
+        read_data.range((i+1)*SliceWidth-1, i*SliceWidth) = mem[i][idx];
+      }
+
+      CMOD_ASSERT_MSG(read_data.xor_reduce()!=sc_logic('X'), "Read data is X");
+      return BitsToType<T>(read_data);
+  }
+
   struct elem_proxy {
     ac_wr_mask_array_1D& array;
     unsigned idx;
@@ -108,6 +132,23 @@ class ac_wr_mask_array_1D<T, Dim1, SliceWidth, true> {
 
   static_assert(WordWidth == num_slices * SliceWidth, 
        "Word width must be evenly divisible by SliceWidth");
+
+  // use this function when HLS cannot handle elem_proxy functions
+  void write(unsigned idx, data_t val, WriteMask mask_val=~0) {
+      assert(idx < ac_wr_mask_array_1D::dim1);
+      const ac_int<32, false> slice_w = SliceWidth;
+      #pragma hls_unroll yes
+      for (ac_int<32, false> i=0; i < num_slices; ++i) {
+        if (mask_val[i] == 1)
+          mem[idx].set_slc(i * slice_w, val.template slc<SliceWidth>( i * slice_w));
+      }
+  }
+
+  // use this function when HLS cannot handle elem_proxy functions
+  T read(unsigned idx) {
+      assert(idx < ac_wr_mask_array_1D::dim1);
+      return mem[idx];
+  }
 
   struct elem_proxy {
     ac_wr_mask_array_1D& array;
