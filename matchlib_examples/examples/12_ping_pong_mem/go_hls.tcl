@@ -30,7 +30,7 @@ solution file add "$sfd/testbench.cpp" -type C++ -exclude true
 directive set -SYSC_CHANOPER_FLOW true
 
 go analyze
-directive set -DESIGN_HIERARCHY dut
+solution design set dut -top
 
 go compile
 solution library add nangate-45nm_beh -- -rtlsyntool OasysRTL -vendor Nangate -technology 045nm

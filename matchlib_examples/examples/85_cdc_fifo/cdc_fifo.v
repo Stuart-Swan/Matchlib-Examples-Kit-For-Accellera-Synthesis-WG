@@ -9,7 +9,7 @@
 `timescale 1ns / 1ns
 
 module cdc_fifo (clk1, clk2, rst_bar1, rst_bar2, in1_rdy, in1_vld, in1_dat, out1_rdy, out1_vld, out1_dat);
-    parameter width=32;
+    parameter width=8;
     input  clk1;
     input  clk2;
     input  rst_bar1;

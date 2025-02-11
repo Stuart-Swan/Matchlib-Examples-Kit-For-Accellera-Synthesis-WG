@@ -10,14 +10,15 @@
 #include "ac_blackbox.h"
 #endif
 
+template <class T>
 class block1 : public sc_module
 {
 public:
   sc_in<bool> CCS_INIT_S1(clk);
   sc_in<bool> CCS_INIT_S1(rst_bar);
 
-  Connections::Out<uint32_t> CCS_INIT_S1(out1);
-  Connections::In <uint32_t> CCS_INIT_S1(in1);
+  Connections::Out<T> CCS_INIT_S1(out1);
+  Connections::In <T> CCS_INIT_S1(in1);
 
   SC_CTOR(block1) {
     SC_THREAD(main);
@@ -32,20 +33,21 @@ public:
     #pragma hls_pipeline_init_interval 1
     #pragma pipeline_stall_mode flush
     while (1) {
-      uint32_t t = in1.Pop();
+      T t = in1.Pop();
       out1.Push(t + 0x100);
     }
   }
 };
 
+template <class T>
 class block2 : public sc_module
 {
 public:
   sc_in<bool> CCS_INIT_S1(clk);
   sc_in<bool> CCS_INIT_S1(rst_bar);
 
-  Connections::Out<uint32_t> CCS_INIT_S1(out1);
-  Connections::In <uint32_t> CCS_INIT_S1(in1);
+  Connections::Out<T> CCS_INIT_S1(out1);
+  Connections::In <T> CCS_INIT_S1(in1);
 
   SC_CTOR(block2) {
     SC_THREAD(main);
@@ -60,12 +62,13 @@ public:
     #pragma hls_pipeline_init_interval 1
     #pragma pipeline_stall_mode flush
     while (1) {
-      uint32_t t = in1.Pop();
+      T t = in1.Pop();
       out1.Push(t + 0x100);
     }
   }
 };
 
+template <class T>
 class cdc_fifo : public sc_module
 {
 public:
@@ -74,11 +77,11 @@ public:
   sc_in<bool> CCS_INIT_S1(rst_bar1);
   sc_in<bool> CCS_INIT_S1(rst_bar2);
 
-  Connections::Out<uint32_t> CCS_INIT_S1(out1);
-  Connections::In <uint32_t> CCS_INIT_S1(in1);
+  Connections::Out<T> CCS_INIT_S1(out1);
+  Connections::In <T> CCS_INIT_S1(in1);
 
 #ifdef CONNECTIONS_SIM_ONLY
-  tlm::tlm_fifo<uint32_t>    CCS_INIT_S1(fifo1);
+  tlm::tlm_fifo<T>    CCS_INIT_S1(fifo1);
 #endif
 
   SC_CTOR(cdc_fifo) {
@@ -99,6 +102,7 @@ public:
            .architecture("cdc_fifo")
            .library("work")
            .verilog_files("cdc_fifo.v")
+           .parameter("width", Wrapped<T>::width)
            .end();
 
 #endif
@@ -114,7 +118,7 @@ public:
         wait();
       } while (!in1.vld);
       in1.rdy = false;
-      uint32_t tmp;
+      T tmp;
       bits_to_type_if_needed(tmp, in1.dat);
       fifo1.put(tmp);
     }
@@ -124,7 +128,7 @@ public:
     // out1.Reset();
     wait();
     while (1) {
-      uint32_t t = fifo1.get();
+      T t = fifo1.get();
       out1.vld = true;
       out1.dat = t;
       do {
@@ -149,9 +153,9 @@ public:
   Connections::Combinational<uint32_t> CCS_INIT_S1(chan1);
   Connections::Combinational<uint32_t> CCS_INIT_S1(chan2);
 
-  block1    CCS_INIT_S1(b1);
-  block2    CCS_INIT_S1(b2);
-  cdc_fifo  CCS_INIT_S1(cdc_fifo1);
+  block1<uint32_t>    CCS_INIT_S1(b1);
+  block2<uint32_t>    CCS_INIT_S1(b2);
+  cdc_fifo<uint32_t>  CCS_INIT_S1(cdc_fifo1);
 
   SC_CTOR(dut) {
     b1.clk(clk1);
