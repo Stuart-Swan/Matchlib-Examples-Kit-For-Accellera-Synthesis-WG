@@ -35,6 +35,8 @@ class ac_shared_wr_mask_array_1D {
   static const unsigned int WordWidth = WData_t::width;
   static const unsigned num_slices = WordWidth/SliceWidth;
   typedef ac_int<num_slices, false> WriteMask;
+  static const unsigned idx_width = ac::log2_ceil<Dim1>::val;
+  typedef ac_int<idx_width, false> idx_t;
   typedef sc_lv<WordWidth> Data_t;
   typedef sc_lv<SliceWidth> Slice_t;
   ac_shared_bank_array_2D<Slice_t, num_slices, Dim1> mem;
@@ -53,6 +55,17 @@ class ac_shared_wr_mask_array_1D {
       }
   }
 
+  template <typename slice_t>
+  void write(idx_t idx, const slice_t val[num_slices], WriteMask mask_val=~0) {
+      assert(idx < ac_shared_wr_mask_array_1D::dim1);
+      const ac_int<32, false> slice_w = SliceWidth;
+      #pragma hls_unroll yes
+      for (ac_int<32, false> i=0; i < num_slices; ++i) {
+        if (mask_val[i] == 1)
+          mem[i][idx] = val[i];
+      }
+  }
+
   // use this function when HLS cannot handle elem_proxy functions
   T read(unsigned idx) {
       assert(idx < ac_shared_wr_mask_array_1D::dim1);
@@ -64,6 +77,18 @@ class ac_shared_wr_mask_array_1D {
 
       CMOD_ASSERT_MSG(read_data.xor_reduce()!=sc_logic('X'), "Read data is X");
       return BitsToType<T>(read_data);
+  }
+
+  template <typename slice_t>
+  void read(slice_t val[num_slices], unsigned idx) {
+      assert(idx < ac_shared_wr_mask_array_1D::dim1);
+      #pragma hls_unroll yes
+      for (unsigned i = 0; i < ac_shared_wr_mask_array_1D::num_slices; i++) {
+        auto read_data = mem[i][idx];
+        CMOD_ASSERT_MSG(read_data.xor_reduce()!=sc_logic('X'), "Read data is X");
+        auto v = BitsToType<slice_t>(read_data);
+        val[i] = v;
+      }
   }
 
   struct elem_proxy {
@@ -118,7 +143,9 @@ class ac_shared_wr_mask_array_1D<T, Dim1, SliceWidth, true> {
   typedef Wrapped<T> WData_t;
   static const unsigned int WordWidth = WData_t::width;
   static const unsigned num_slices = WordWidth/SliceWidth;
+  static const unsigned idx_width = ac::log2_ceil<Dim1>::val;
   typedef ac_int<num_slices, false> WriteMask;
+  typedef ac_int<idx_width, false> idx_t;
   typedef T data_t;
 
   ac_shared<T [Dim1]> mem;  // ** User must use -MAP_TO_MODULE and num_byte_enables in Catapult tcl file **
@@ -134,7 +161,7 @@ class ac_shared_wr_mask_array_1D<T, Dim1, SliceWidth, true> {
        "Word width must be evenly divisible by SliceWidth");
 
   // use this function when HLS cannot handle elem_proxy functions
-  void write(unsigned idx, data_t val, WriteMask mask_val=~0) {
+  void write(idx_t idx, data_t val, WriteMask mask_val=~0) {
       assert(idx < ac_shared_wr_mask_array_1D::dim1);
       const ac_int<32, false> slice_w = SliceWidth;
       #pragma hls_unroll yes
@@ -144,15 +171,36 @@ class ac_shared_wr_mask_array_1D<T, Dim1, SliceWidth, true> {
       }
   }
 
+  template <typename slice_t>
+  void write(idx_t idx, const slice_t val[num_slices], WriteMask mask_val=~0) {
+      assert(idx < ac_shared_wr_mask_array_1D::dim1);
+      const ac_int<32, false> slice_w = SliceWidth;
+      #pragma hls_unroll yes
+      for (ac_int<32, false> i=0; i < num_slices; ++i) {
+        if (mask_val[i] == 1)
+          mem[idx].set_slc(i * slice_w, val[i]);
+      }
+  }
+
   // use this function when HLS cannot handle elem_proxy functions
-  T read(unsigned idx) {
+  T read(idx_t idx) {
       assert(idx < ac_shared_wr_mask_array_1D::dim1);
       return mem[idx];
   }
 
+  template <typename slice_t>
+  void read(slice_t val[num_slices], unsigned idx) {
+      assert(idx < ac_shared_wr_mask_array_1D::dim1);
+      #pragma hls_unroll yes
+      for (unsigned i = 0; i < ac_shared_wr_mask_array_1D::num_slices; i++) {
+        auto read_data = mem[idx];
+        val[i] = read_data.range((i+1)*SliceWidth-1, i*SliceWidth);
+      }
+  }
+
   struct elem_proxy {
     ac_shared_wr_mask_array_1D& array;
-    unsigned idx;
+    ac_shared_wr_mask_array_1D::idx_t idx;
     ac_shared_wr_mask_array_1D::WriteMask mask_val{~0};
 
     elem_proxy(ac_shared_wr_mask_array_1D& _array, unsigned _idx, ac_shared_wr_mask_array_1D::WriteMask _mask=~0) 
