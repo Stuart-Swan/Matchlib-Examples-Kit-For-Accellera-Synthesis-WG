@@ -1,5 +1,6 @@
 
 
+
 /*
  * Copyright (c) 2016-2019, NVIDIA CORPORATION.  All rights reserved.
  *
@@ -99,6 +100,7 @@
 #include <iomanip>
 #include <vector>
 #include <map>
+#include <type_traits>
 #include <tlm.h>
 #if !defined(NC_SYSTEMC) && !defined(XM_SYSTEMC) && !defined(NO_SC_RESET_INCLUDE)
 #include <sysc/kernel/sc_reset.h>
@@ -381,6 +383,57 @@ SpecialWrapperIfc(Connections::Out);
 
 namespace Connections
 {
+
+
+// primary template
+template <typename T, typename = void>
+class dbg_signal : public sc_signal<T>
+{
+public:
+  dbg_signal() {}
+  dbg_signal(const char* s) : sc_signal<T>(s) {}
+};
+
+#ifndef __SYNTHESIS__
+
+// Helper trait to detect .Marshall() method
+template <typename T, typename = void>
+struct has_Marshall_method : std::false_type {};
+
+template <typename T>
+struct has_Marshall_method<T,
+  decltype(std::declval<T>().Marshall(std::declval<Marshaller<Wrapped<T>::width>&>()), void())>
+  : std::true_type {};
+
+// specialization for types that have a marshall method (needs custom debug callback in vsim)
+template <typename T>
+class dbg_signal<T,  typename std::enable_if<has_Marshall_method<T>::value>::type>
+  : public sc_signal<T>
+{
+public:
+  dbg_signal() { do_reg(); }
+  dbg_signal(const char* s) : sc_signal<T>(s) { do_reg();}
+
+  static const int maxlen = 100;
+
+  static void debug_cb(void* var, char* mti_value, char format_str)
+  {
+    T* p = reinterpret_cast<T*>(var);
+    std::ostringstream ss;
+    ss << std::hex << *p;
+    strncpy(mti_value, ss.str().c_str(), maxlen - 2);
+    mti_value[maxlen-1] = 0;
+  }
+
+  void do_reg() {
+#ifdef SC_MTI_REGISTER_CUSTOM_DEBUG
+   sc_signal<T>* sig = this;
+   SC_MTI_REGISTER_CUSTOM_DEBUG(sig, maxlen, debug_cb);
+#endif
+  }
+};
+
+#endif
 
   template <class T>
   T
@@ -2589,6 +2642,7 @@ namespace Connections
     }
 
     // Pop
+#pragma builtin_modulario
 #pragma design modulario < in >
     Message Pop() {
       return InBlocking_SimPorts_abs<Message>::Pop();
@@ -2607,6 +2661,7 @@ namespace Connections
     }
     
 // PopNB
+#pragma builtin_modulario
 #pragma design modulario < in >
     bool PopNB(Message &data, const bool &do_wait = true) {
       return InBlocking_SimPorts_abs<Message>::PopNB(data, do_wait);
@@ -3656,12 +3711,14 @@ namespace Connections
     }
 
 // Push
+#pragma builtin_modulario
 #pragma design modulario < out >
     void Push(const Message &m) {
       OutBlocking_SimPorts_abs<Message>::Push(m);
     }
 
 // PushNB
+#pragma builtin_modulario
 #pragma design modulario < out >
     bool PushNB(const Message &m, const bool &do_wait = true) {
       return OutBlocking_SimPorts_abs<Message>::PushNB(m,do_wait);
@@ -5216,6 +5273,7 @@ namespace Connections
     // Parent functions, to get around Catapult virtual function bug.
     void ResetRead() { return Combinational_SimPorts_abs<Message,MARSHALL_PORT>::ResetRead(); }
     void ResetWrite() { return Combinational_SimPorts_abs<Message,MARSHALL_PORT>::ResetWrite(); }
+#pragma builtin_modulario
 #pragma design modulario < in >
     Message Pop() { return Combinational_SimPorts_abs<Message,MARSHALL_PORT>::Pop(); }
 #pragma design modulario < in >
@@ -5226,10 +5284,13 @@ namespace Connections
       return Combinational_SimPorts_abs<Message,MARSHALL_PORT>::PeekNB(data, true);
     }
     
+#pragma builtin_modulario
 #pragma design modulario < in >
     bool PopNB(Message &data) { return Combinational_SimPorts_abs<Message,MARSHALL_PORT>::PopNB(data); }
+#pragma builtin_modulario
 #pragma design modulario < out >
     void Push(const Message &m) { Combinational_SimPorts_abs<Message,MARSHALL_PORT>::Push(m); }
+#pragma builtin_modulario
 #pragma design modulario < out >
     bool PushNB(const Message &m) { return Combinational_SimPorts_abs<Message,MARSHALL_PORT>::PushNB(m);  }
 
@@ -5373,11 +5434,11 @@ namespace Connections
   public:
     // Interface
 #ifdef CONNECTIONS_SIM_ONLY
-    sc_signal<Message> _DATNAMEIN_;
-    sc_signal<Message> _DATNAMEOUT_;
+    dbg_signal<Message> _DATNAMEIN_;
+    dbg_signal<Message> _DATNAMEOUT_;
     OutBlocking<Message, DIRECT_PORT> *driver{0};  // DGB
 #else
-    sc_signal<Message> _DATNAME_;
+    dbg_signal<Message> _DATNAME_;
 #endif
 
     Combinational() : Combinational_SimPorts_abs<Message, DIRECT_PORT>()
