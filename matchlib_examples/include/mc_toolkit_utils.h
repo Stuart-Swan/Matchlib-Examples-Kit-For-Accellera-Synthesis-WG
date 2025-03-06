@@ -3,6 +3,7 @@
 
 
 #include "TypeToBits.h"
+#include "sc_named.h"
 
 template <class L>
 void type_to_bits_if_needed(L& left, L& right)

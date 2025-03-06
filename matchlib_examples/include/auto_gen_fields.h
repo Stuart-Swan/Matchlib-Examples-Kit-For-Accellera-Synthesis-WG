@@ -41,6 +41,8 @@
 
 #include <type_traits>
 
+#include <sc_named.h>
+
 struct field_info {
   std::string name;    // field name
   unsigned width{0};   // bit width
