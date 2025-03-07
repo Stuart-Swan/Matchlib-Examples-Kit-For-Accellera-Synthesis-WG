@@ -321,16 +321,16 @@ namespace axi
 // which will allow pushing the fifos into the segment module
 //
 #define AXI4_W_SEGMENT(n) \
-  w_segment CCS_INIT_S1(n); \
-  Connections::Combinational<ex_aw_payload> CCS_INIT_S1(n ## _ex_aw_chan); \
-  Connections::Combinational<w_payload>     CCS_INIT_S1(n ## _w_chan); \
-  Connections::Combinational<b_payload> CCS_INIT_S1(n ## _b_chan);
+  w_segment SC_NAMED(n); \
+  Connections::Combinational<ex_aw_payload> SC_NAMED(n ## _ex_aw_chan); \
+  Connections::Combinational<w_payload>     SC_NAMED(n ## _w_chan); \
+  Connections::Combinational<b_payload> SC_NAMED(n ## _b_chan);
 
 #define AXI4_W_SEGMENT_CFG(cfg, n) \
-  cfg::w_segment CCS_INIT_S1(n); \
-  Connections::Combinational<cfg::ex_aw_payload> CCS_INIT_S1(n ## _ex_aw_chan); \
-  Connections::Combinational<cfg::w_payload>     CCS_INIT_S1(n ## _w_chan); \
-  Connections::Combinational<cfg::b_payload> CCS_INIT_S1(n ## _b_chan); 
+  cfg::w_segment SC_NAMED(n); \
+  Connections::Combinational<cfg::ex_aw_payload> SC_NAMED(n ## _ex_aw_chan); \
+  Connections::Combinational<cfg::w_payload>     SC_NAMED(n ## _w_chan); \
+  Connections::Combinational<cfg::b_payload> SC_NAMED(n ## _b_chan); 
 
 #define AXI4_W_SEGMENT_BIND(n, _clk, _rst_bar, _w_master) \
     n .clk(_clk); \
@@ -349,26 +349,26 @@ namespace axi
 
 
     struct w_segment : public sc_module {
-      sc_in<bool> CCS_INIT_S1(clk);
-      sc_in<bool> CCS_INIT_S1(rst_bar);
-      Connections::Out<aw_payload>   CCS_INIT_S1(aw_out);
-      Connections::Out<w_payload>    CCS_INIT_S1(w_out);
-      Connections::In<b_payload> CCS_INIT_S1(b_in);
+      sc_in<bool> SC_NAMED(clk);
+      sc_in<bool> SC_NAMED(rst_bar);
+      Connections::Out<aw_payload>   SC_NAMED(aw_out);
+      Connections::Out<w_payload>    SC_NAMED(w_out);
+      Connections::In<b_payload> SC_NAMED(b_in);
 
       // queue incoming ex_aw_payload items
-      Connections::In<ex_aw_payload> CCS_INIT_S1(ex_aw_chan);
+      Connections::In<ex_aw_payload> SC_NAMED(ex_aw_chan);
 
       // queue incoming w_payload items
-      Connections::In<w_payload>     CCS_INIT_S1(w_chan);
+      Connections::In<w_payload>     SC_NAMED(w_chan);
 
       // queue outgoing (combined) b items
-      Connections::Out<b_payload> CCS_INIT_S1(b_chan);
+      Connections::Out<b_payload> SC_NAMED(b_chan);
 
       // sets last bit for w_payload item
-      Connections::Combinational<bool>          CCS_INIT_S1(last_bit_chan);
+      Connections::Combinational<bool>          SC_NAMED(last_bit_chan);
 
       // one bit per each aw_payload item, true iff it is last burst in overall segmented burst
-      Connections::Combinational<bool>          CCS_INIT_S1(last_burst_chan);
+      Connections::Combinational<bool>          SC_NAMED(last_burst_chan);
 
       SC_CTOR(w_segment) {
         SC_THREAD(ex_aw_process);
@@ -527,12 +527,12 @@ namespace axi
 // which will allow pushing the fifo into the segment module
 //
 #define AXI4_R_SEGMENT(n) \
-  r_segment CCS_INIT_S1(n); \
-  Connections::Combinational<ex_ar_payload> CCS_INIT_S1(n ## _ex_ar_chan);
+  r_segment SC_NAMED(n); \
+  Connections::Combinational<ex_ar_payload> SC_NAMED(n ## _ex_ar_chan);
 
 #define AXI4_R_SEGMENT_CFG(cfg, n) \
-  cfg::r_segment CCS_INIT_S1(n); \
-  Connections::Combinational<cfg::ex_ar_payload> CCS_INIT_S1(n ## _ex_ar_chan);
+  cfg::r_segment SC_NAMED(n); \
+  Connections::Combinational<cfg::ex_ar_payload> SC_NAMED(n ## _ex_ar_chan);
 
 #define AXI4_R_SEGMENT_BIND(n, _clk, _rst_bar, _r_master) \
     n .clk(_clk); \
@@ -546,10 +546,10 @@ namespace axi
 
 
     struct r_segment : public sc_module {
-      sc_in<bool> CCS_INIT_S1(clk);
-      sc_in<bool> CCS_INIT_S1(rst_bar);
-      Connections::Out<ar_payload>   CCS_INIT_S1(ar_out);
-      Connections::In<ex_ar_payload> CCS_INIT_S1(ex_ar_chan);
+      sc_in<bool> SC_NAMED(clk);
+      sc_in<bool> SC_NAMED(rst_bar);
+      Connections::Out<ar_payload>   SC_NAMED(ar_out);
+      Connections::In<ex_ar_payload> SC_NAMED(ex_ar_chan);
 
       AUTO_GEN_PORT_INFO(r_segment, ( \
         ar_out \

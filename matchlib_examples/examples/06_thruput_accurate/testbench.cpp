@@ -7,16 +7,16 @@
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(dut) CCS_INIT_S1(dut1);
+  CCS_DESIGN(dut) SC_NAMED(dut1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  Connections::Combinational<sc_uint<32>>        CCS_INIT_S1(in1);
-  Connections::Combinational<sc_uint<32>>        CCS_INIT_S1(in2);
-  Connections::Combinational<sc_uint<32>>        CCS_INIT_S1(in3);
-  Connections::Combinational<sc_uint<32>>        CCS_INIT_S1(out1);
-  Connections::Combinational<sc_uint<32>>        CCS_INIT_S1(out2);
+  Connections::Combinational<sc_uint<32>>        SC_NAMED(in1);
+  Connections::Combinational<sc_uint<32>>        SC_NAMED(in2);
+  Connections::Combinational<sc_uint<32>>        SC_NAMED(in3);
+  Connections::Combinational<sc_uint<32>>        SC_NAMED(out1);
+  Connections::Combinational<sc_uint<32>>        SC_NAMED(out2);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

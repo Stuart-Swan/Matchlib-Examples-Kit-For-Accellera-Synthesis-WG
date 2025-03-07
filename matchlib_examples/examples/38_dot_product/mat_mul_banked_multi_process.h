@@ -11,16 +11,16 @@
 #pragma hls_design top
 class matrixMultiply  : public sc_module {
  public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rstn);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rstn);
 
-  Connections::In <ac_int<8>> CCS_INIT_S1(A);
-  Connections::In <ac_int<8>> CCS_INIT_S1(B);
-  Connections::Out<ac_int<8+8+3>> CCS_INIT_S1(C);
+  Connections::In <ac_int<8>> SC_NAMED(A);
+  Connections::In <ac_int<8>> SC_NAMED(B);
+  Connections::Out<ac_int<8+8+3>> SC_NAMED(C);
 
   ac_shared_bank_array_2D<ac_int<8>, 8, 8*2> B_transpose;
   Connections::SyncChannel sync; // memory synchronization between threads
-  Connections::Combinational <array_t<ac_int<8>,8>> CCS_INIT_S1(A_row);
+  Connections::Combinational <array_t<ac_int<8>,8>> SC_NAMED(A_row);
 
   SC_CTOR(matrixMultiply) {
     SC_THREAD(pack_A);

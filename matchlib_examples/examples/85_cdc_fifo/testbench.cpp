@@ -7,14 +7,14 @@
 class testbench : public sc_module
 {
 public:
-  CCS_DESIGN(dut) CCS_INIT_S1(dut1);
+  CCS_DESIGN(dut) SC_NAMED(dut1);
 
   sc_clock clk1;
   sc_clock clk2;
   SC_SIG(bool, rst_bar);
 
-  Connections::Combinational<uint32_t>        CCS_INIT_S1(out1);
-  Connections::Combinational<uint32_t>        CCS_INIT_S1(in1);
+  Connections::Combinational<uint32_t>        SC_NAMED(out1);
+  Connections::Combinational<uint32_t>        SC_NAMED(in1);
 
   SC_CTOR(testbench)
     :   clk1("clk1", 3, SC_NS, 0.5,0,SC_NS,true)

@@ -6,21 +6,21 @@
 
 class wrap_dma_tlm2 : public sc_module , public local_axi {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
   tlm_utils::multi_passthrough_target_socket<wrap_dma_tlm2>    tlm2_target;
   tlm_utils::multi_passthrough_initiator_socket<wrap_dma_tlm2> tlm2_initiator;
-  Connections::Out<bool> CCS_INIT_S1(dma_done);
-  Connections::Out<sc_uint<32>> CCS_INIT_S1(dma_dbg);
+  Connections::Out<bool> SC_NAMED(dma_done);
+  Connections::Out<sc_uint<32>> SC_NAMED(dma_dbg);
 
-  dma CCS_INIT_S1(dma1);
+  dma SC_NAMED(dma1);
 
-  tlm2_target_to_axi4_master<local_axi> CCS_INIT_S1(target_to_master);
-  axi4_slave_to_tlm2_initiator<local_axi> CCS_INIT_S1(slave_to_initiator);
-  r_chan<> CCS_INIT_S1(dma_slave_r_chan);
-  w_chan<> CCS_INIT_S1(dma_slave_w_chan);
-  r_chan<> CCS_INIT_S1(dma_master_r_chan);
-  w_chan<> CCS_INIT_S1(dma_master_w_chan);
+  tlm2_target_to_axi4_master<local_axi> SC_NAMED(target_to_master);
+  axi4_slave_to_tlm2_initiator<local_axi> SC_NAMED(slave_to_initiator);
+  r_chan<> SC_NAMED(dma_slave_r_chan);
+  w_chan<> SC_NAMED(dma_slave_w_chan);
+  r_chan<> SC_NAMED(dma_master_r_chan);
+  w_chan<> SC_NAMED(dma_master_w_chan);
   
   SC_CTOR(wrap_dma_tlm2) {
     dma1.clk(clk);

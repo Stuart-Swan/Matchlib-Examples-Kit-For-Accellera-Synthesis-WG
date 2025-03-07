@@ -33,11 +33,11 @@ struct transaction_t {
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::Out<transaction_t> CCS_INIT_S1(out1);
-  Connections::In <transaction_t> CCS_INIT_S1(in1);
+  Connections::Out<transaction_t> SC_NAMED(out1);
+  Connections::In <transaction_t> SC_NAMED(in1);
 
   AUTO_GEN_PORT_INFO(dut, ( \
     clk \

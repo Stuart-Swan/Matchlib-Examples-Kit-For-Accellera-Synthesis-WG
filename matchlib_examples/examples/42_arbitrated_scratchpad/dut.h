@@ -42,11 +42,11 @@ static const int addr_width = mem_t::addr_width;
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In <local_mem::req_t> CCS_INIT_S1(in1);
-  Connections::Out<local_mem::rsp_t> CCS_INIT_S1(out1);
+  Connections::In <local_mem::req_t> SC_NAMED(in1);
+  Connections::Out<local_mem::rsp_t> SC_NAMED(out1);
 
   SC_CTOR(dut) {
     SC_THREAD(main);

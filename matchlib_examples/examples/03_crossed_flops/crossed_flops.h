@@ -7,10 +7,10 @@
 class flop : public sc_module
 {
 public:
-  sc_in<bool>      CCS_INIT_S1(clk);
-  sc_in<bool>      CCS_INIT_S1(rst_bar);
-  sc_in<uint32_t>  CCS_INIT_S1(in1);
-  sc_out<uint32_t> CCS_INIT_S1(out1);
+  sc_in<bool>      SC_NAMED(clk);
+  sc_in<bool>      SC_NAMED(rst_bar);
+  sc_in<uint32_t>  SC_NAMED(in1);
+  sc_out<uint32_t> SC_NAMED(out1);
 
   const uint32_t reset_value;
 
@@ -40,12 +40,12 @@ public:
 class crossed_flops : public sc_module
 {
 public:
-  sc_in<bool>      CCS_INIT_S1(clk);
-  sc_in<bool>      CCS_INIT_S1(rst_bar);
-  sc_out<uint32_t> CCS_INIT_S1(out0);
-  sc_out<uint32_t> CCS_INIT_S1(out1);
+  sc_in<bool>      SC_NAMED(clk);
+  sc_in<bool>      SC_NAMED(rst_bar);
+  sc_out<uint32_t> SC_NAMED(out0);
+  sc_out<uint32_t> SC_NAMED(out1);
 
-  flop CCS_INIT_S1(flop0);
+  flop SC_NAMED(flop0);
   flop CCS_INIT_S2(flop1, 1);
 
   SC_CTOR(crossed_flops) {

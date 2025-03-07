@@ -9,14 +9,14 @@
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(dut)                         CCS_INIT_S1(dut1);   // the DUT
+  CCS_DESIGN(dut)                         SC_NAMED(dut1);   // the DUT
   sc_clock                                clk;
   sc_signal<bool>                         rst_bar;
 
-  Connections::Combinational<uint32>      CCS_INIT_S1(mask_chan);
-  Connections::Combinational<uint32>      CCS_INIT_S1(data_chan);
-  Connections::Combinational<uint32>      CCS_INIT_S1(addr_chan);
-  Connections::Combinational<uint32>      CCS_INIT_S1(out1_chan);
+  Connections::Combinational<uint32>      SC_NAMED(mask_chan);
+  Connections::Combinational<uint32>      SC_NAMED(data_chan);
+  Connections::Combinational<uint32>      SC_NAMED(addr_chan);
+  Connections::Combinational<uint32>      SC_NAMED(out1_chan);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

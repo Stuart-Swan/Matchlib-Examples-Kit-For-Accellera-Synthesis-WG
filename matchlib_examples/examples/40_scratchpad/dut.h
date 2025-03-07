@@ -21,13 +21,13 @@ typedef ScratchpadTraits<uint32, 16, 16 * 0x1000> local_mem;
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In <local_mem::base_req_t> CCS_INIT_S1(in1);
-  Connections::Out<local_mem::base_rsp_t> CCS_INIT_S1(out1);
+  Connections::In <local_mem::base_req_t> SC_NAMED(in1);
+  Connections::Out<local_mem::base_rsp_t> SC_NAMED(out1);
 
-  local_mem::mem_module_t CCS_INIT_S1(scratchpad1);
+  local_mem::mem_module_t SC_NAMED(scratchpad1);
 
   SC_CTOR(dut) {
     scratchpad1.clk(clk);

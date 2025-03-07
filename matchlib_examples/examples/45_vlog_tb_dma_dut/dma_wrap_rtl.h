@@ -8,44 +8,44 @@
 
 class dma_rtl_proxy_type : public sc_foreign_module {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
-  sc_in<bool> CCS_INIT_S1(r_master0_ar_rdy);
-  sc_out<bool> CCS_INIT_S1(r_master0_ar_vld);
-  sc_out<sc_lv<44>> CCS_INIT_S1(r_master0_ar_dat);
-  sc_out<bool> CCS_INIT_S1(r_master0_r_rdy);
-  sc_in<bool> CCS_INIT_S1(r_master0_r_vld);
-  sc_in<sc_lv<71>> CCS_INIT_S1(r_master0_r_dat);
-  sc_in<bool> CCS_INIT_S1(w_master0_aw_rdy);
-  sc_out<bool> CCS_INIT_S1(w_master0_aw_vld);
-  sc_out<sc_lv<44>> CCS_INIT_S1(w_master0_aw_dat);
-  sc_in<bool> CCS_INIT_S1(w_master0_w_rdy);
-  sc_out<bool> CCS_INIT_S1(w_master0_w_vld);
-  sc_out<sc_lv<73>> CCS_INIT_S1(w_master0_w_dat);
-  sc_out<bool> CCS_INIT_S1(w_master0_b_rdy);
-  sc_in<bool> CCS_INIT_S1(w_master0_b_vld);
-  sc_in<sc_lv<6>> CCS_INIT_S1(w_master0_b_dat);
-  sc_out<bool> CCS_INIT_S1(r_slave0_ar_rdy);
-  sc_in<bool> CCS_INIT_S1(r_slave0_ar_vld);
-  sc_in<sc_lv<44>> CCS_INIT_S1(r_slave0_ar_dat);
-  sc_in<bool> CCS_INIT_S1(r_slave0_r_rdy);
-  sc_out<bool> CCS_INIT_S1(r_slave0_r_vld);
-  sc_out<sc_lv<71>> CCS_INIT_S1(r_slave0_r_dat);
-  sc_out<bool> CCS_INIT_S1(w_slave0_aw_rdy);
-  sc_in<bool> CCS_INIT_S1(w_slave0_aw_vld);
-  sc_in<sc_lv<44>> CCS_INIT_S1(w_slave0_aw_dat);
-  sc_out<bool> CCS_INIT_S1(w_slave0_w_rdy);
-  sc_in<bool> CCS_INIT_S1(w_slave0_w_vld);
-  sc_in<sc_lv<73>> CCS_INIT_S1(w_slave0_w_dat);
-  sc_in<bool> CCS_INIT_S1(w_slave0_b_rdy);
-  sc_out<bool> CCS_INIT_S1(w_slave0_b_vld);
-  sc_out<sc_lv<6>> CCS_INIT_S1(w_slave0_b_dat);
-  sc_in<bool> CCS_INIT_S1(dma_done_rdy);
-  sc_out<bool> CCS_INIT_S1(dma_done_vld);
-  sc_out<sc_lv<1>> CCS_INIT_S1(dma_done_dat);
-  sc_in<bool> CCS_INIT_S1(dma_dbg_rdy);
-  sc_out<bool> CCS_INIT_S1(dma_dbg_vld);
-  sc_out<sc_lv<32>> CCS_INIT_S1(dma_dbg_dat);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
+  sc_in<bool> SC_NAMED(r_master0_ar_rdy);
+  sc_out<bool> SC_NAMED(r_master0_ar_vld);
+  sc_out<sc_lv<44>> SC_NAMED(r_master0_ar_dat);
+  sc_out<bool> SC_NAMED(r_master0_r_rdy);
+  sc_in<bool> SC_NAMED(r_master0_r_vld);
+  sc_in<sc_lv<71>> SC_NAMED(r_master0_r_dat);
+  sc_in<bool> SC_NAMED(w_master0_aw_rdy);
+  sc_out<bool> SC_NAMED(w_master0_aw_vld);
+  sc_out<sc_lv<44>> SC_NAMED(w_master0_aw_dat);
+  sc_in<bool> SC_NAMED(w_master0_w_rdy);
+  sc_out<bool> SC_NAMED(w_master0_w_vld);
+  sc_out<sc_lv<73>> SC_NAMED(w_master0_w_dat);
+  sc_out<bool> SC_NAMED(w_master0_b_rdy);
+  sc_in<bool> SC_NAMED(w_master0_b_vld);
+  sc_in<sc_lv<6>> SC_NAMED(w_master0_b_dat);
+  sc_out<bool> SC_NAMED(r_slave0_ar_rdy);
+  sc_in<bool> SC_NAMED(r_slave0_ar_vld);
+  sc_in<sc_lv<44>> SC_NAMED(r_slave0_ar_dat);
+  sc_in<bool> SC_NAMED(r_slave0_r_rdy);
+  sc_out<bool> SC_NAMED(r_slave0_r_vld);
+  sc_out<sc_lv<71>> SC_NAMED(r_slave0_r_dat);
+  sc_out<bool> SC_NAMED(w_slave0_aw_rdy);
+  sc_in<bool> SC_NAMED(w_slave0_aw_vld);
+  sc_in<sc_lv<44>> SC_NAMED(w_slave0_aw_dat);
+  sc_out<bool> SC_NAMED(w_slave0_w_rdy);
+  sc_in<bool> SC_NAMED(w_slave0_w_vld);
+  sc_in<sc_lv<73>> SC_NAMED(w_slave0_w_dat);
+  sc_in<bool> SC_NAMED(w_slave0_b_rdy);
+  sc_out<bool> SC_NAMED(w_slave0_b_vld);
+  sc_out<sc_lv<6>> SC_NAMED(w_slave0_b_dat);
+  sc_in<bool> SC_NAMED(dma_done_rdy);
+  sc_out<bool> SC_NAMED(dma_done_vld);
+  sc_out<sc_lv<1>> SC_NAMED(dma_done_dat);
+  sc_in<bool> SC_NAMED(dma_dbg_rdy);
+  sc_out<bool> SC_NAMED(dma_dbg_vld);
+  sc_out<sc_lv<32>> SC_NAMED(dma_dbg_dat);
 
   dma_rtl_proxy_type(sc_module_name nm , const char* hdl_name="dma_wrap_rtl") 
     : sc_foreign_module(nm) {
@@ -58,14 +58,14 @@ class dma_wrap_rtl : public sc_module {
 public:
   dma& dma_inst;
 
-  decltype(dma_inst.clk) CCS_INIT_S1(clk);
-  decltype(dma_inst.rst_bar) CCS_INIT_S1(rst_bar);
-  decltype(dma_inst.r_master0) CCS_INIT_S1(r_master0);
-  decltype(dma_inst.w_master0) CCS_INIT_S1(w_master0);
-  decltype(dma_inst.r_slave0) CCS_INIT_S1(r_slave0);
-  decltype(dma_inst.w_slave0) CCS_INIT_S1(w_slave0);
-  decltype(dma_inst.dma_done) CCS_INIT_S1(dma_done);
-  decltype(dma_inst.dma_dbg) CCS_INIT_S1(dma_dbg);
+  decltype(dma_inst.clk) SC_NAMED(clk);
+  decltype(dma_inst.rst_bar) SC_NAMED(rst_bar);
+  decltype(dma_inst.r_master0) SC_NAMED(r_master0);
+  decltype(dma_inst.w_master0) SC_NAMED(w_master0);
+  decltype(dma_inst.r_slave0) SC_NAMED(r_slave0);
+  decltype(dma_inst.w_slave0) SC_NAMED(w_slave0);
+  decltype(dma_inst.dma_done) SC_NAMED(dma_done);
+  decltype(dma_inst.dma_dbg) SC_NAMED(dma_dbg);
   
 
   template <class T> struct type_info { };
@@ -123,20 +123,20 @@ public:
   typedef type_info<decltype(dma_inst.dma_dbg.vld)> type_info_dma_dbg_vld;
   typedef type_info<decltype(dma_inst.dma_dbg.dat)> type_info_dma_dbg_dat;
 
-  sc_signal<type_info_r_master0_ar_dat::sc_lv_type> CCS_INIT_S1(sig_r_master0_ar_dat);
-  sc_signal<type_info_r_master0_r_dat::sc_lv_type> CCS_INIT_S1(sig_r_master0_r_dat);
-  sc_signal<type_info_w_master0_aw_dat::sc_lv_type> CCS_INIT_S1(sig_w_master0_aw_dat);
-  sc_signal<type_info_w_master0_w_dat::sc_lv_type> CCS_INIT_S1(sig_w_master0_w_dat);
-  sc_signal<type_info_w_master0_b_dat::sc_lv_type> CCS_INIT_S1(sig_w_master0_b_dat);
-  sc_signal<type_info_r_slave0_ar_dat::sc_lv_type> CCS_INIT_S1(sig_r_slave0_ar_dat);
-  sc_signal<type_info_r_slave0_r_dat::sc_lv_type> CCS_INIT_S1(sig_r_slave0_r_dat);
-  sc_signal<type_info_w_slave0_aw_dat::sc_lv_type> CCS_INIT_S1(sig_w_slave0_aw_dat);
-  sc_signal<type_info_w_slave0_w_dat::sc_lv_type> CCS_INIT_S1(sig_w_slave0_w_dat);
-  sc_signal<type_info_w_slave0_b_dat::sc_lv_type> CCS_INIT_S1(sig_w_slave0_b_dat);
-  sc_signal<type_info_dma_done_dat::sc_lv_type> CCS_INIT_S1(sig_dma_done_dat);
-  sc_signal<type_info_dma_dbg_dat::sc_lv_type> CCS_INIT_S1(sig_dma_dbg_dat);
+  sc_signal<type_info_r_master0_ar_dat::sc_lv_type> SC_NAMED(sig_r_master0_ar_dat);
+  sc_signal<type_info_r_master0_r_dat::sc_lv_type> SC_NAMED(sig_r_master0_r_dat);
+  sc_signal<type_info_w_master0_aw_dat::sc_lv_type> SC_NAMED(sig_w_master0_aw_dat);
+  sc_signal<type_info_w_master0_w_dat::sc_lv_type> SC_NAMED(sig_w_master0_w_dat);
+  sc_signal<type_info_w_master0_b_dat::sc_lv_type> SC_NAMED(sig_w_master0_b_dat);
+  sc_signal<type_info_r_slave0_ar_dat::sc_lv_type> SC_NAMED(sig_r_slave0_ar_dat);
+  sc_signal<type_info_r_slave0_r_dat::sc_lv_type> SC_NAMED(sig_r_slave0_r_dat);
+  sc_signal<type_info_w_slave0_aw_dat::sc_lv_type> SC_NAMED(sig_w_slave0_aw_dat);
+  sc_signal<type_info_w_slave0_w_dat::sc_lv_type> SC_NAMED(sig_w_slave0_w_dat);
+  sc_signal<type_info_w_slave0_b_dat::sc_lv_type> SC_NAMED(sig_w_slave0_b_dat);
+  sc_signal<type_info_dma_done_dat::sc_lv_type> SC_NAMED(sig_dma_done_dat);
+  sc_signal<type_info_dma_dbg_dat::sc_lv_type> SC_NAMED(sig_dma_dbg_dat);
 
-  dma_rtl_proxy_type CCS_INIT_S1(dma_rtl_inst);
+  dma_rtl_proxy_type SC_NAMED(dma_rtl_inst);
   SC_HAS_PROCESS(dma_wrap_rtl);
 
   dma_wrap_rtl(sc_module_name nm) : dma_inst(*(dma*)0){

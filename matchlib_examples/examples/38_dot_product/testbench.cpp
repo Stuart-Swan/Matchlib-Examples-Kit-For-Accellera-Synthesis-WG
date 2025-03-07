@@ -24,11 +24,11 @@ class Top : public sc_module {
  public:
   sc_clock clk;
   SC_SIG(bool, rstn);
-  Connections::Combinational<ac_int<8> > CCS_INIT_S1(A);
-  Connections::Combinational<ac_int<8> > CCS_INIT_S1(B);
-  Connections::Combinational<ac_int<8+8+3> > CCS_INIT_S1(C);
+  Connections::Combinational<ac_int<8> > SC_NAMED(A);
+  Connections::Combinational<ac_int<8> > SC_NAMED(B);
+  Connections::Combinational<ac_int<8+8+3> > SC_NAMED(C);
 
-  CCS_DESIGN(matrixMultiply) CCS_INIT_S1(dut);
+  CCS_DESIGN(matrixMultiply) SC_NAMED(dut);
   ac_bank_array_2D<int8, 8, 8> A_ref;
   ac_bank_array_2D<int8, 8, 8> B_ref;
   ac_bank_array_2D<int19, 8, 8> C_ref;

@@ -10,17 +10,17 @@
 class Top : public sc_module, public local_axi
 {
 public:
-  CCS_DESIGN(dut)                         CCS_INIT_S1(dut1);   // the DUT
-  ram                                     CCS_INIT_S1(ram1);
+  CCS_DESIGN(dut)                         SC_NAMED(dut1);   // the DUT
+  ram                                     SC_NAMED(ram1);
   sc_clock                                clk;
   sc_signal<bool>                         rst_bar;
 
-  Connections::Combinational<uint32>      CCS_INIT_S1(in1_chan);
-  Connections::Combinational<uint32>      CCS_INIT_S1(in2_chan);
-  Connections::Combinational<uint32>      CCS_INIT_S1(in3_chan);
-  Connections::Combinational<uint32>      CCS_INIT_S1(out1_chan);
-  w_chan<> CCS_INIT_S1(dut_w_master);
-  r_chan<> CCS_INIT_S1(dut_r_master);
+  Connections::Combinational<uint32>      SC_NAMED(in1_chan);
+  Connections::Combinational<uint32>      SC_NAMED(in2_chan);
+  Connections::Combinational<uint32>      SC_NAMED(in3_chan);
+  Connections::Combinational<uint32>      SC_NAMED(out1_chan);
+  w_chan<> SC_NAMED(dut_w_master);
+  r_chan<> SC_NAMED(dut_r_master);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

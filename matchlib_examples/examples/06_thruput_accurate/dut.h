@@ -8,14 +8,14 @@
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In <sc_uint<32>> CCS_INIT_S1(in1);
-  Connections::In <sc_uint<32>> CCS_INIT_S1(in2);
-  Connections::In <sc_uint<32>> CCS_INIT_S1(in3);
-  Connections::Out<sc_uint<32>> CCS_INIT_S1(out1);
-  Connections::Out<sc_uint<32>> CCS_INIT_S1(out2);
+  Connections::In <sc_uint<32>> SC_NAMED(in1);
+  Connections::In <sc_uint<32>> SC_NAMED(in2);
+  Connections::In <sc_uint<32>> SC_NAMED(in3);
+  Connections::Out<sc_uint<32>> SC_NAMED(out1);
+  Connections::Out<sc_uint<32>> SC_NAMED(out2);
 
   SC_CTOR(dut) {
     SC_THREAD(main);

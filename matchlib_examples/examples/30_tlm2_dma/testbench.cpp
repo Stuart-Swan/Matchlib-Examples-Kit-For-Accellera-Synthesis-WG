@@ -13,14 +13,14 @@ typedef axi::axi4_segment<axi::cfg::standard> local_axi;
 class Top : public sc_module, public local_axi
 {
 public:
-  wrap_ram_tlm2 CCS_INIT_S1(ram1);
-  wrap_dma_tlm2 CCS_INIT_S1(dma1);
+  wrap_ram_tlm2 SC_NAMED(ram1);
+  wrap_dma_tlm2 SC_NAMED(dma1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  Connections::Combinational<bool>        CCS_INIT_S1(dma_done);
-  Connections::Combinational<sc_uint<32>> CCS_INIT_S1(dma_dbg);
+  Connections::Combinational<bool>        SC_NAMED(dma_done);
+  Connections::Combinational<sc_uint<32>> SC_NAMED(dma_dbg);
   tlm_utils::simple_initiator_socket<Top> tb_tlm2_initiator;
 
   SC_CTOR(Top)

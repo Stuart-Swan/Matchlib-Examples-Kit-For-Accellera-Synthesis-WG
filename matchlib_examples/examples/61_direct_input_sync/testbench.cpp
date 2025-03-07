@@ -9,14 +9,14 @@ int retcode = 0;
 class testbench : public sc_module
 {
 public:
-  CCS_DESIGN(dut) CCS_INIT_S1(dut1);
+  CCS_DESIGN(dut) SC_NAMED(dut1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  Connections::Combinational<uint32>        CCS_INIT_S1(out1);
+  Connections::Combinational<uint32>        SC_NAMED(out1);
   Connections::Combinational<uint32>        sample_in[num_samples];
-  Connections::SyncChannel                  CCS_INIT_S1(sync_chan);
+  Connections::SyncChannel                  SC_NAMED(sync_chan);
   sc_signal<uint32_t>                       direct_inputs[num_direct_inputs];
   ofstream log_stream;
 

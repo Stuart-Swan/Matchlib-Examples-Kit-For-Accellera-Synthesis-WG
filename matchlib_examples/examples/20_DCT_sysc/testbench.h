@@ -6,12 +6,12 @@
 
 SC_MODULE(testbench)
 {
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst);
 
-  Connections::Out<ac_int<2, false > > CCS_INIT_S1(blocktype);
-  Connections::Out<rgb_t > CCS_INIT_S1(rgbstream);
-  Connections::In<codes_t> CCS_INIT_S1(hufstream);
+  Connections::Out<ac_int<2, false > > SC_NAMED(blocktype);
+  Connections::Out<rgb_t > SC_NAMED(rgbstream);
+  Connections::In<codes_t> SC_NAMED(hufstream);
 
   SC_HAS_PROCESS(testbench);
   testbench(const sc_module_name& name, const std::string &input_image_bmp) :

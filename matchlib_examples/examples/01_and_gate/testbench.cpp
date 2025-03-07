@@ -9,7 +9,7 @@ using namespace::std;
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(and_gate) CCS_INIT_S1(and_gate1);
+  CCS_DESIGN(and_gate) SC_NAMED(and_gate1);
 
   SC_SIG(bool, in1);
   SC_SIG(bool, in2);

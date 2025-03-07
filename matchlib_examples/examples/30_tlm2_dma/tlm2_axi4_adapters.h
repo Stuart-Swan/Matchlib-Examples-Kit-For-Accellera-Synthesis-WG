@@ -24,10 +24,10 @@ class axi4_slave_to_tlm2_initiator
 {
 public:
   tlm_utils::multi_passthrough_initiator_socket<axi4_slave_to_tlm2_initiator> tlm2_initiator;
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
-  typename axi_cfg::template r_slave<>   CCS_INIT_S1(r_slave0);
-  typename axi_cfg::template w_slave<>   CCS_INIT_S1(w_slave0);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
+  typename axi_cfg::template r_slave<>   SC_NAMED(r_slave0);
+  typename axi_cfg::template w_slave<>   SC_NAMED(w_slave0);
 
   // does not need axi4_segmenter, axi_slave transactions already segmented.
   // need read_buf and write_buf, static size 256 * datawidth as per axi4 protocol.
@@ -162,11 +162,11 @@ class tlm2_target_to_axi4_master
   , public axi_cfg
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
   tlm_utils::multi_passthrough_target_socket<tlm2_target_to_axi4_master> tlm2_target;
-  typename axi_cfg::template r_master<> CCS_INIT_S1(r_master0);
-  typename axi_cfg::template w_master<> CCS_INIT_S1(w_master0);
+  typename axi_cfg::template r_master<> SC_NAMED(r_master0);
+  typename axi_cfg::template w_master<> SC_NAMED(w_master0);
 
   // incoming tlm2 transaction may not be segmented according to axi4 protocol,
   // so we do AXI4 segmentation here so master AXI4 interfaces conform to protocol.

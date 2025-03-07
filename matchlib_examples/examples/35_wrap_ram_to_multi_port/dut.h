@@ -35,17 +35,17 @@ static const int mem_rows{16 * 1024};
 class mem_wrapper : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In <rd_req> CCS_INIT_S1(rd_req1);
-  Connections::In <rd_req> CCS_INIT_S1(rd_req2);
-  Connections::In <wr_req> CCS_INIT_S1(wr_req1);
-  Connections::In <wr_req> CCS_INIT_S1(wr_req2);
-  Connections::Out<rd_rsp> CCS_INIT_S1(rd_rsp1);
-  Connections::Out<rd_rsp> CCS_INIT_S1(rd_rsp2);
-  Connections::Out<wr_rsp> CCS_INIT_S1(wr_rsp1);
-  Connections::Out<wr_rsp> CCS_INIT_S1(wr_rsp2);
+  Connections::In <rd_req> SC_NAMED(rd_req1);
+  Connections::In <rd_req> SC_NAMED(rd_req2);
+  Connections::In <wr_req> SC_NAMED(wr_req1);
+  Connections::In <wr_req> SC_NAMED(wr_req2);
+  Connections::Out<rd_rsp> SC_NAMED(rd_rsp1);
+  Connections::Out<rd_rsp> SC_NAMED(rd_rsp2);
+  Connections::Out<wr_rsp> SC_NAMED(wr_rsp1);
+  Connections::Out<wr_rsp> SC_NAMED(wr_rsp2);
 
   SC_CTOR(mem_wrapper) {
     SC_THREAD(main_thread);
@@ -197,23 +197,23 @@ public:
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
   typedef ac_int<32, false> T;
 
-  Connections::In<T> CCS_INIT_S1(in1);
-  Connections::Out<T> CCS_INIT_S1(out1);
-  Connections::Combinational<rd_req> CCS_INIT_S1(rd_req1);
-  Connections::Combinational<rd_rsp> CCS_INIT_S1(rd_rsp1);
-  Connections::Combinational<rd_req> CCS_INIT_S1(rd_req2);
-  Connections::Combinational<rd_rsp> CCS_INIT_S1(rd_rsp2);
-  Connections::Combinational<wr_req> CCS_INIT_S1(wr_req1);
-  Connections::Combinational<wr_rsp> CCS_INIT_S1(wr_rsp1);
-  Connections::Combinational<wr_req> CCS_INIT_S1(wr_req2);
-  Connections::Combinational<wr_rsp> CCS_INIT_S1(wr_rsp2);
+  Connections::In<T> SC_NAMED(in1);
+  Connections::Out<T> SC_NAMED(out1);
+  Connections::Combinational<rd_req> SC_NAMED(rd_req1);
+  Connections::Combinational<rd_rsp> SC_NAMED(rd_rsp1);
+  Connections::Combinational<rd_req> SC_NAMED(rd_req2);
+  Connections::Combinational<rd_rsp> SC_NAMED(rd_rsp2);
+  Connections::Combinational<wr_req> SC_NAMED(wr_req1);
+  Connections::Combinational<wr_rsp> SC_NAMED(wr_rsp1);
+  Connections::Combinational<wr_req> SC_NAMED(wr_req2);
+  Connections::Combinational<wr_rsp> SC_NAMED(wr_rsp2);
 
-  mem_wrapper CCS_INIT_S1(mem_wrapper1);
+  mem_wrapper SC_NAMED(mem_wrapper1);
 
   SC_CTOR(dut) {
     mem_wrapper1.clk(clk);
@@ -252,9 +252,9 @@ public:
   }
 
   // This fifo is used to insure that mem reads do not occur before corresponding mem write is done.
-  Connections::Fifo<bool, 4> CCS_INIT_S1(fifo1);
-  Connections::Combinational<bool> CCS_INIT_S1(fifo1_in1);
-  Connections::Combinational<bool> CCS_INIT_S1(fifo1_out1);
+  Connections::Fifo<bool, 4> SC_NAMED(fifo1);
+  Connections::Combinational<bool> SC_NAMED(fifo1_in1);
+  Connections::Combinational<bool> SC_NAMED(fifo1_out1);
 
   void read_req_thread() {
     rd_req1.ResetWrite();

@@ -8,12 +8,12 @@ template <class T>
 class copyio : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::Out<T> CCS_INIT_S1(out1);
-  Connections::Out<T> CCS_INIT_S1(out1_nc);
-  Connections::In <T> CCS_INIT_S1(in1);
+  Connections::Out<T> SC_NAMED(out1);
+  Connections::Out<T> SC_NAMED(out1_nc);
+  Connections::In <T> SC_NAMED(in1);
 
   SC_CTOR(copyio) {
     SC_THREAD(main);
@@ -38,23 +38,23 @@ public:
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
   typedef ac_int<32, false> T;
   static const int N = 8;
 
-  Connections::In <T> CCS_INIT_S1(in1);
-  Connections::Out<T> CCS_INIT_S1(out1);
+  Connections::In <T> SC_NAMED(in1);
+  Connections::Out<T> SC_NAMED(out1);
 
-  copyio<T> CCS_INIT_S1(copy1);
-  copyio<T> CCS_INIT_S1(copy2);
+  copyio<T> SC_NAMED(copy1);
+  copyio<T> SC_NAMED(copy2);
 
-  Connections::Fifo<T, N> CCS_INIT_S1(fifo1);
-  Connections::Combinational<T> CCS_INIT_S1(fifo1_in1);
-  Connections::Combinational<T> CCS_INIT_S1(fifo1_out1);
-  Connections::Combinational<T> CCS_INIT_S1(stub1);
-  Connections::Combinational<T> CCS_INIT_S1(stub2);
+  Connections::Fifo<T, N> SC_NAMED(fifo1);
+  Connections::Combinational<T> SC_NAMED(fifo1_in1);
+  Connections::Combinational<T> SC_NAMED(fifo1_out1);
+  Connections::Combinational<T> SC_NAMED(stub1);
+  Connections::Combinational<T> SC_NAMED(stub2);
 
 
   SC_CTOR(dut) {

@@ -8,7 +8,7 @@ using namespace::std;
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(flop) CCS_INIT_S1(flop1);
+  CCS_DESIGN(flop) SC_NAMED(flop1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);

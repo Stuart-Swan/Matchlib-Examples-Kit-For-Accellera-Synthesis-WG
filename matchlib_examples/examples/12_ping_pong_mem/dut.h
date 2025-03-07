@@ -9,11 +9,11 @@
 
 SC_MODULE(dut)
 {
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In<ac_int<16> >  CCS_INIT_S1(in1);
-  Connections::Out<ac_int<16> > CCS_INIT_S1(out1);
+  Connections::In<ac_int<16> >  SC_NAMED(in1);
+  Connections::Out<ac_int<16> > SC_NAMED(out1);
 
   SC_CTOR(dut) {
     SC_THREAD(thread1);
@@ -58,7 +58,7 @@ SC_MODULE(dut)
   }
 
   private:
-  Connections::SyncChannel CCS_INIT_S1(sync1); // memory synchronization between threads
+  Connections::SyncChannel SC_NAMED(sync1); // memory synchronization between threads
 #ifdef USE_EXT_ARRAY
   extended_array<ac_int<16>,128> mem{"mem_prehls"};
 #else

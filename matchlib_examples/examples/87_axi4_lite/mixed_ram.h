@@ -10,10 +10,10 @@
 template <class cfg>
 class ram : public sc_module {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
-  typename cfg::template r_slave<AUTO_PORT>     CCS_INIT_S1(r_slave0);
-  typename cfg::template w_slave<AUTO_PORT>     CCS_INIT_S1(w_slave0);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
+  typename cfg::template r_slave<AUTO_PORT>     SC_NAMED(r_slave0);
+  typename cfg::template w_slave<AUTO_PORT>     SC_NAMED(w_slave0);
 
   static const int sz = 0x10000; // size in cfg::DATA_WIDTH words
 

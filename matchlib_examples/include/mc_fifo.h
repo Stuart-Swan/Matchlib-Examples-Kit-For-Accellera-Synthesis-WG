@@ -10,11 +10,11 @@ namespace Connections
   class FifoModule: public sc_module
   {
   public:
-    sc_in<bool> CCS_INIT_S1(clk);
-    sc_in<bool> CCS_INIT_S1(rst_bar);
+    sc_in<bool> SC_NAMED(clk);
+    sc_in<bool> SC_NAMED(rst_bar);
 
-    Connections::In <T> CCS_INIT_S1(in1);
-    Connections::Out<T> CCS_INIT_S1(out1);
+    Connections::In <T> SC_NAMED(in1);
+    Connections::Out<T> SC_NAMED(out1);
 
     #ifdef CONNECTIONS_FAST_SIM
     tlm::tlm_fifo<T> fifo1;
@@ -39,7 +39,7 @@ namespace Connections
     }
 
     #else
-    Connections::Fifo<T, N> CCS_INIT_S1(fifo1);
+    Connections::Fifo<T, N> SC_NAMED(fifo1);
 
     SC_CTOR(FifoModule) {
       fifo1.clk(clk);

@@ -14,7 +14,7 @@
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(dut) CCS_INIT_S1(dut1);
+  CCS_DESIGN(dut) SC_NAMED(dut1);
 
   sc_clock clk;
   gated_clock gated_clock1;
@@ -22,9 +22,9 @@ public:
   SC_SIG(bool, idle);
   SC_SIG(bool, gated_clock1_clk);
 
-  Connections::Combinational<uint32>        CCS_INIT_S1(out1);
-  Connections::Combinational<uint32>        CCS_INIT_S1(in1);
-  Connections::Combinational<uint32>        CCS_INIT_S1(in2);
+  Connections::Combinational<uint32>        SC_NAMED(out1);
+  Connections::Combinational<uint32>        SC_NAMED(in1);
+  Connections::Combinational<uint32>        SC_NAMED(in2);
 
  virtual void start_of_simulation() {
     Connections::get_sim_clk().add_clock_alias(

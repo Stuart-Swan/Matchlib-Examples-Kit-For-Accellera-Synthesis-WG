@@ -9,11 +9,11 @@
 class EdgeHierarchy : public sc_module
 {
 public: // Interface
-  sc_in<bool>                      CCS_INIT_S1(clk);
-  sc_in<bool>                      CCS_INIT_S1(rst_bar);
-  Connections::In<uint8>           CCS_INIT_S1(dat_in);
-  Connections::Out<uint9>          CCS_INIT_S1(magn);
-  Connections::Out<ac_fixed<8,3> > CCS_INIT_S1(angle);
+  sc_in<bool>                      SC_NAMED(clk);
+  sc_in<bool>                      SC_NAMED(rst_bar);
+  Connections::In<uint8>           SC_NAMED(dat_in);
+  Connections::Out<uint9>          SC_NAMED(magn);
+  Connections::Out<ac_fixed<8,3> > SC_NAMED(angle);
 
   SC_CTOR(EdgeHierarchy) {
     SC_THREAD(VerticalGradient);
@@ -157,9 +157,9 @@ public: // Interface
 
 private:
   // interconnect channels  between blocks
-  Connections::Fifo<int9,3>   CCS_INIT_S1(dy_chan); // need fifo to balance latency
-  Connections::Combinational<int9>  CCS_INIT_S1(dy_chan_in);
-  Connections::Combinational<int9>  CCS_INIT_S1(dy_chan_out);
+  Connections::Fifo<int9,3>   SC_NAMED(dy_chan); // need fifo to balance latency
+  Connections::Combinational<int9>  SC_NAMED(dy_chan_in);
+  Connections::Combinational<int9>  SC_NAMED(dy_chan_out);
   Connections::Combinational<int9>  dx_chan;
   Connections::Combinational<uint8> dat;
 };

@@ -20,24 +20,24 @@ public:
 #endif
   ram               CCS_INIT_S2(ram0, log_nm);
   ram               CCS_INIT_S2(ram1, log_nm);
-  CCS_DESIGN(fabric) CCS_INIT_S1(fabric1);
+  CCS_DESIGN(fabric) SC_NAMED(fabric1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  w_chan<> CCS_INIT_S1(fabric_w_slave0);
-  r_chan<> CCS_INIT_S1(fabric_r_slave0);
-  w_chan<> CCS_INIT_S1(fabric_w_master0);
-  r_chan<> CCS_INIT_S1(fabric_r_master0);
-  w_chan<> CCS_INIT_S1(fabric_w_master1);
-  r_chan<> CCS_INIT_S1(fabric_r_master1);
-  Connections::Combinational<bool>        CCS_INIT_S1(dma0_done);
-  Connections::Combinational<bool>        CCS_INIT_S1(dma1_done);
-  Connections::Combinational<sc_uint<32>> CCS_INIT_S1(dma0_dbg);
-  Connections::Combinational<sc_uint<32>> CCS_INIT_S1(dma1_dbg);
+  w_chan<> SC_NAMED(fabric_w_slave0);
+  r_chan<> SC_NAMED(fabric_r_slave0);
+  w_chan<> SC_NAMED(fabric_w_master0);
+  r_chan<> SC_NAMED(fabric_r_master0);
+  w_chan<> SC_NAMED(fabric_w_master1);
+  r_chan<> SC_NAMED(fabric_r_master1);
+  Connections::Combinational<bool>        SC_NAMED(dma0_done);
+  Connections::Combinational<bool>        SC_NAMED(dma1_done);
+  Connections::Combinational<sc_uint<32>> SC_NAMED(dma0_dbg);
+  Connections::Combinational<sc_uint<32>> SC_NAMED(dma1_dbg);
 
-  w_master<>    CCS_INIT_S1(tb_w_master);
-  r_master<>    CCS_INIT_S1(tb_r_master);
+  w_master<>    SC_NAMED(tb_w_master);
+  r_master<>    SC_NAMED(tb_r_master);
 
   int test_num;
 

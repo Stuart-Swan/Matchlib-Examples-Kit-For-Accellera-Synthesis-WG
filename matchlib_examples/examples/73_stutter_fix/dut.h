@@ -15,15 +15,15 @@ typedef axi::axi4_segment<axi::cfg::standard> local_axi;
 class dut : public sc_module, public local_axi
 {
 public:
-  sc_in<bool>                             CCS_INIT_S1(clk);
-  sc_in<bool>                             CCS_INIT_S1(rst_bar);
-  Connections::Out<uint32>                CCS_INIT_S1(out1);
-  Connections::In<uint32>                 CCS_INIT_S1(in1);
-  Connections::In<uint32>                 CCS_INIT_S1(in2);
-  Connections::In<uint32>                 CCS_INIT_S1(in3);
+  sc_in<bool>                             SC_NAMED(clk);
+  sc_in<bool>                             SC_NAMED(rst_bar);
+  Connections::Out<uint32>                SC_NAMED(out1);
+  Connections::In<uint32>                 SC_NAMED(in1);
+  Connections::In<uint32>                 SC_NAMED(in2);
+  Connections::In<uint32>                 SC_NAMED(in3);
 
-  r_master<> CCS_INIT_S1(r_master0);
-  w_master<> CCS_INIT_S1(w_master0);
+  r_master<> SC_NAMED(r_master0);
+  w_master<> SC_NAMED(w_master0);
 
   uint32 mem[0x1000];
 

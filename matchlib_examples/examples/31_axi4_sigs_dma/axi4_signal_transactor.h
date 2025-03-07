@@ -115,20 +115,20 @@ struct axi4_signal_w_master_ports
    , BRESP (nvhls_concat(name, "_BRESP"))
    {}
 
-  sc_out<bool>     CCS_INIT_S1(AWVALID);
-  sc_in <bool>     CCS_INIT_S1(AWREADY);
-  sc_out<Addr>     CCS_INIT_S1(AWADDR);
-  sc_out<uint8>  CCS_INIT_S1(AWLEN);
+  sc_out<bool>     SC_NAMED(AWVALID);
+  sc_in <bool>     SC_NAMED(AWREADY);
+  sc_out<Addr>     SC_NAMED(AWADDR);
+  sc_out<uint8>  SC_NAMED(AWLEN);
 
-  sc_out<bool>     CCS_INIT_S1(WVALID);
-  sc_in <bool>     CCS_INIT_S1(WREADY);
-  sc_out<Data>     CCS_INIT_S1(WDATA);
-  sc_out<Wstrb>    CCS_INIT_S1(WSTRB);
-  sc_out<bool>     CCS_INIT_S1(WLAST);
+  sc_out<bool>     SC_NAMED(WVALID);
+  sc_in <bool>     SC_NAMED(WREADY);
+  sc_out<Data>     SC_NAMED(WDATA);
+  sc_out<Wstrb>    SC_NAMED(WSTRB);
+  sc_out<bool>     SC_NAMED(WLAST);
 
-  sc_in <bool>     CCS_INIT_S1(BVALID);
-  sc_out<bool>     CCS_INIT_S1(BREADY);
-  sc_in <bool>     CCS_INIT_S1(BRESP);
+  sc_in <bool>     SC_NAMED(BVALID);
+  sc_out<bool>     SC_NAMED(BREADY);
+  sc_in <bool>     SC_NAMED(BRESP);
 
   template <class C>
   void operator()(C &c) {
@@ -169,20 +169,20 @@ struct axi4_signal_w_slave_ports
    , BRESP (nvhls_concat(name, "_BRESP"))
    {}
 
-  sc_in <bool>     CCS_INIT_S1(AWVALID);
-  sc_out<bool>     CCS_INIT_S1(AWREADY);
-  sc_in <Addr>     CCS_INIT_S1(AWADDR);
-  sc_in <uint8>  CCS_INIT_S1(AWLEN);
+  sc_in <bool>     SC_NAMED(AWVALID);
+  sc_out<bool>     SC_NAMED(AWREADY);
+  sc_in <Addr>     SC_NAMED(AWADDR);
+  sc_in <uint8>  SC_NAMED(AWLEN);
 
-  sc_in <bool>     CCS_INIT_S1(WVALID);
-  sc_out<bool>     CCS_INIT_S1(WREADY);
-  sc_in <Data>     CCS_INIT_S1(WDATA);
-  sc_in <Wstrb>    CCS_INIT_S1(WSTRB);
-  sc_in <bool>     CCS_INIT_S1(WLAST);
+  sc_in <bool>     SC_NAMED(WVALID);
+  sc_out<bool>     SC_NAMED(WREADY);
+  sc_in <Data>     SC_NAMED(WDATA);
+  sc_in <Wstrb>    SC_NAMED(WSTRB);
+  sc_in <bool>     SC_NAMED(WLAST);
 
-  sc_out<bool>     CCS_INIT_S1(BVALID);
-  sc_in <bool>     CCS_INIT_S1(BREADY);
-  sc_out<bool>     CCS_INIT_S1(BRESP);
+  sc_out<bool>     SC_NAMED(BVALID);
+  sc_in <bool>     SC_NAMED(BREADY);
+  sc_out<bool>     SC_NAMED(BRESP);
 
   template <class C>
   void operator()(C &c) {
@@ -286,27 +286,27 @@ struct axi4_signal_r_slave_ports
 template <Connections::connections_port_t PortType = AUTO_PORT>
 class axi4_signal_w_master_xactor : public sc_module {
 public:
-  Connections::In<aw_payload, PortType>   CCS_INIT_S1(aw_port);
-  Connections::In<w_payload,  PortType>   CCS_INIT_S1(w_port);
-  Connections::Out<b_payload,  PortType>  CCS_INIT_S1(b_port);
+  Connections::In<aw_payload, PortType>   SC_NAMED(aw_port);
+  Connections::In<w_payload,  PortType>   SC_NAMED(w_port);
+  Connections::Out<b_payload,  PortType>  SC_NAMED(b_port);
 
   // reads aw, w payloads, writes AW and W sigs
   // reads B sigs, writes b payload
 
-  sc_out<bool>     CCS_INIT_S1(AWVALID);
-  sc_in <bool>     CCS_INIT_S1(AWREADY);
-  sc_out<Addr>     CCS_INIT_S1(AWADDR);
-  sc_out<uint8>  CCS_INIT_S1(AWLEN);
+  sc_out<bool>     SC_NAMED(AWVALID);
+  sc_in <bool>     SC_NAMED(AWREADY);
+  sc_out<Addr>     SC_NAMED(AWADDR);
+  sc_out<uint8>  SC_NAMED(AWLEN);
 
-  sc_out<bool>     CCS_INIT_S1(WVALID);
-  sc_in <bool>     CCS_INIT_S1(WREADY);
-  sc_out<Data>     CCS_INIT_S1(WDATA);
-  sc_out<Wstrb>    CCS_INIT_S1(WSTRB);
-  sc_out<bool>     CCS_INIT_S1(WLAST);
+  sc_out<bool>     SC_NAMED(WVALID);
+  sc_in <bool>     SC_NAMED(WREADY);
+  sc_out<Data>     SC_NAMED(WDATA);
+  sc_out<Wstrb>    SC_NAMED(WSTRB);
+  sc_out<bool>     SC_NAMED(WLAST);
 
-  sc_in <bool>     CCS_INIT_S1(BVALID);
-  sc_out<bool>     CCS_INIT_S1(BREADY);
-  sc_in <bool>     CCS_INIT_S1(BRESP);
+  sc_in <bool>     SC_NAMED(BVALID);
+  sc_out<bool>     SC_NAMED(BREADY);
+  sc_in <bool>     SC_NAMED(BRESP);
 
   SC_CTOR(axi4_signal_w_master_xactor)
   {
@@ -391,27 +391,27 @@ public:
 template <Connections::connections_port_t PortType = AUTO_PORT>
 class axi4_signal_w_slave_xactor : public sc_module {
 public:
-  Connections::Out<aw_payload, PortType>   CCS_INIT_S1(aw_port);
-  Connections::Out<w_payload,  PortType>   CCS_INIT_S1(w_port);
-  Connections::In <b_payload,  PortType>   CCS_INIT_S1(b_port);
+  Connections::Out<aw_payload, PortType>   SC_NAMED(aw_port);
+  Connections::Out<w_payload,  PortType>   SC_NAMED(w_port);
+  Connections::In <b_payload,  PortType>   SC_NAMED(b_port);
 
   // reads AW and W sigs, writes aw, w payloads
   // reads b payload, writes B sigs
 
-  sc_in <bool>     CCS_INIT_S1(AWVALID);
-  sc_out<bool>     CCS_INIT_S1(AWREADY);
-  sc_in <Addr>     CCS_INIT_S1(AWADDR);
-  sc_in <uint8>    CCS_INIT_S1(AWLEN);
+  sc_in <bool>     SC_NAMED(AWVALID);
+  sc_out<bool>     SC_NAMED(AWREADY);
+  sc_in <Addr>     SC_NAMED(AWADDR);
+  sc_in <uint8>    SC_NAMED(AWLEN);
 
-  sc_in <bool>     CCS_INIT_S1(WVALID);
-  sc_out<bool>     CCS_INIT_S1(WREADY);
-  sc_in <Data>     CCS_INIT_S1(WDATA);
-  sc_in <Wstrb>    CCS_INIT_S1(WSTRB);
-  sc_in <bool>     CCS_INIT_S1(WLAST);
+  sc_in <bool>     SC_NAMED(WVALID);
+  sc_out<bool>     SC_NAMED(WREADY);
+  sc_in <Data>     SC_NAMED(WDATA);
+  sc_in <Wstrb>    SC_NAMED(WSTRB);
+  sc_in <bool>     SC_NAMED(WLAST);
 
-  sc_out<bool>     CCS_INIT_S1(BVALID);
-  sc_in <bool>     CCS_INIT_S1(BREADY);
-  sc_out<bool>     CCS_INIT_S1(BRESP);
+  sc_out<bool>     SC_NAMED(BVALID);
+  sc_in <bool>     SC_NAMED(BREADY);
+  sc_out<bool>     SC_NAMED(BRESP);
 
   SC_CTOR(axi4_signal_w_slave_xactor)
   {
@@ -497,8 +497,8 @@ public:
 template <Connections::connections_port_t PortType = AUTO_PORT>
 class axi4_signal_r_master_xactor : public sc_module {
 public:
-  Connections::In<ar_payload, PortType>   CCS_INIT_S1(ar_port);
-  Connections::Out<r_payload,  PortType>  CCS_INIT_S1(r_port);
+  Connections::In<ar_payload, PortType>   SC_NAMED(ar_port);
+  Connections::Out<r_payload,  PortType>  SC_NAMED(r_port);
 
   // reads ar payload writes AR sigs
   // reads R sigs, writes r payload
@@ -573,18 +573,18 @@ template <Connections::connections_port_t PortType = AUTO_PORT>
 class axi4_signal_r_slave_xactor : public sc_module {
 public:
 
-  Connections::Out<ar_payload, PortType>   CCS_INIT_S1(ar_port);
-  Connections::In <r_payload,  PortType>   CCS_INIT_S1(r_port);
+  Connections::Out<ar_payload, PortType>   SC_NAMED(ar_port);
+  Connections::In <r_payload,  PortType>   SC_NAMED(r_port);
 
-  sc_in <bool>     CCS_INIT_S1(ARVALID);
-  sc_out<bool>     CCS_INIT_S1(ARREADY);
-  sc_in <Addr>     CCS_INIT_S1(ARADDR);
-  sc_in <uint8>    CCS_INIT_S1(ARLEN);
+  sc_in <bool>     SC_NAMED(ARVALID);
+  sc_out<bool>     SC_NAMED(ARREADY);
+  sc_in <Addr>     SC_NAMED(ARADDR);
+  sc_in <uint8>    SC_NAMED(ARLEN);
 
-  sc_out<bool>     CCS_INIT_S1(RVALID);
-  sc_in <bool>     CCS_INIT_S1(RREADY);
-  sc_out<Data>     CCS_INIT_S1(RDATA);
-  sc_out<bool>     CCS_INIT_S1(RRESP);
+  sc_out<bool>     SC_NAMED(RVALID);
+  sc_in <bool>     SC_NAMED(RREADY);
+  sc_out<Data>     SC_NAMED(RDATA);
+  sc_out<bool>     SC_NAMED(RRESP);
 
 
   // reads AR sigs writes ar payload

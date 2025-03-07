@@ -8,16 +8,16 @@
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  sc_out<bool> CCS_INIT_S1(in1_rdy);
-  sc_in<bool>  CCS_INIT_S1(in1_vld);
-  sc_in<sc_uint<32>>  CCS_INIT_S1(in1_data);
+  sc_out<bool> SC_NAMED(in1_rdy);
+  sc_in<bool>  SC_NAMED(in1_vld);
+  sc_in<sc_uint<32>>  SC_NAMED(in1_data);
 
-  sc_in<bool>  CCS_INIT_S1(out1_rdy);
-  sc_out<bool> CCS_INIT_S1(out1_vld);
-  sc_out<sc_uint<32>> CCS_INIT_S1(out1_data);
+  sc_in<bool>  SC_NAMED(out1_rdy);
+  sc_out<bool> SC_NAMED(out1_vld);
+  sc_out<sc_uint<32>> SC_NAMED(out1_data);
 
   SC_CTOR(dut) {
     SC_THREAD(main);

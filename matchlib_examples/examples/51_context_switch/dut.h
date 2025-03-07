@@ -24,16 +24,16 @@ struct context {
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  sc_in<context> CCS_INIT_S1(context_in);  // incoming context state
-  sc_out<context> CCS_INIT_S1(context_out); // outgoing context state
+  sc_in<context> SC_NAMED(context_in);  // incoming context state
+  sc_out<context> SC_NAMED(context_out); // outgoing context state
 
-  Connections::In <bool> CCS_INIT_S1(req_context_switch); // request a context switch to occur if true
-  Connections::In <packet> CCS_INIT_S1(in1);   // input packet
-  Connections::Out<uint32> CCS_INIT_S1(out1);  // output MAC sum
-  Connections::SyncOut CCS_INIT_S1(sync_out);  // sync port used during context switches
+  Connections::In <bool> SC_NAMED(req_context_switch); // request a context switch to occur if true
+  Connections::In <packet> SC_NAMED(in1);   // input packet
+  Connections::Out<uint32> SC_NAMED(out1);  // output MAC sum
+  Connections::SyncOut SC_NAMED(sync_out);  // sync port used during context switches
 
   SC_CTOR(dut) {
     SC_THREAD(main);

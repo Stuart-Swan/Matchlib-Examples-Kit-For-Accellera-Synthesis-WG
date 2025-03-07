@@ -26,13 +26,13 @@ struct out_t {
 #pragma hls_design top
 class merge_comb : public sc_module {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In <type1_t> CCS_INIT_S1(in1);
-  Connections::In <type2_t> CCS_INIT_S1(in2);
-  Connections::In <type2_t> CCS_INIT_S1(in3);
-  Connections::Out<out_t> CCS_INIT_S1(out1);
+  Connections::In <type1_t> SC_NAMED(in1);
+  Connections::In <type2_t> SC_NAMED(in2);
+  Connections::In <type2_t> SC_NAMED(in3);
+  Connections::Out<out_t> SC_NAMED(out1);
 
   // Merge 3 In<> inputs into 1 Out<> output.
   // This module is entirely combinational logic (no sequential logic).

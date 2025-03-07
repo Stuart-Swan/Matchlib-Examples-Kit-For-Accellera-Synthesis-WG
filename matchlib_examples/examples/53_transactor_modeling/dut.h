@@ -18,9 +18,9 @@ public:
   sc_in<bool> SC_NAMED(clk);
   sc_in<bool> SC_NAMED(rst_bar);
 
-  hilo_in in1;
-  hilo_in in2;
-  hilo_out out1;
+  hilo_in SC_NAMED(in1);
+  hilo_in SC_NAMED(in2);
+  hilo_out SC_NAMED(out1);
 
 #ifdef USE_THREAD
   hilo_in_xact<sc_uint<16>> SC_NAMED(in1_xact);

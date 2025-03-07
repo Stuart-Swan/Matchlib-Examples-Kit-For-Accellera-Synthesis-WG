@@ -17,10 +17,10 @@ class BufferStatus : public sc_module {
   // Interface
   sc_in_clk clk;
   sc_in<bool> rst;
-  sc_out<bool>        CCS_INIT_S1(is_full);
-  sc_out<bool>        CCS_INIT_S1(is_empty);
-  sc_out<STATUS_TYPE> CCS_INIT_S1(num_filled);
-  sc_out<STATUS_TYPE> CCS_INIT_S1(num_free);
+  sc_out<bool>        SC_NAMED(is_full);
+  sc_out<bool>        SC_NAMED(is_empty);
+  sc_out<STATUS_TYPE> SC_NAMED(num_filled);
+  sc_out<STATUS_TYPE> SC_NAMED(num_free);
   In<Message> enq;
   Out<Message> deq;
 
@@ -250,16 +250,16 @@ typedef ac_int<16,true> STATUS_TYPE;
 template <class T, unsigned N, class STATUS_TYPE = ac_int<16,false>>
 class FifoChannelStatus : public sc_module {
 public:
-  sc_in<bool>         CCS_INIT_S1(clk);
-  sc_in<bool>         CCS_INIT_S1(rst_bar);
-  sc_out<bool>        CCS_INIT_S1(is_full);
-  sc_out<bool>        CCS_INIT_S1(is_empty);
-  sc_out<STATUS_TYPE> CCS_INIT_S1(num_filled);
-  sc_out<STATUS_TYPE> CCS_INIT_S1(num_free);
-  Connections::Out<T, AUTO_PORT> CCS_INIT_S1(out1);
-  Connections::In <T, AUTO_PORT> CCS_INIT_S1(in1);
+  sc_in<bool>         SC_NAMED(clk);
+  sc_in<bool>         SC_NAMED(rst_bar);
+  sc_out<bool>        SC_NAMED(is_full);
+  sc_out<bool>        SC_NAMED(is_empty);
+  sc_out<STATUS_TYPE> SC_NAMED(num_filled);
+  sc_out<STATUS_TYPE> SC_NAMED(num_free);
+  Connections::Out<T, AUTO_PORT> SC_NAMED(out1);
+  Connections::In <T, AUTO_PORT> SC_NAMED(in1);
 
-  Connections::BufferStatus<T, N, STATUS_TYPE> CCS_INIT_S1(fifo1);
+  Connections::BufferStatus<T, N, STATUS_TYPE> SC_NAMED(fifo1);
 
   SC_CTOR(FifoChannelStatus) {
     fifo1.clk(clk);
@@ -277,17 +277,17 @@ public:
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
-  sc_out<bool>        CCS_INIT_S1(is_full);
-  sc_out<bool>        CCS_INIT_S1(is_empty);
-  sc_out<STATUS_TYPE> CCS_INIT_S1(num_filled);
-  sc_out<STATUS_TYPE> CCS_INIT_S1(num_free);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
+  sc_out<bool>        SC_NAMED(is_full);
+  sc_out<bool>        SC_NAMED(is_empty);
+  sc_out<STATUS_TYPE> SC_NAMED(num_filled);
+  sc_out<STATUS_TYPE> SC_NAMED(num_free);
 
-  Connections::Out<uint32> CCS_INIT_S1(out1);
-  Connections::In <uint32> CCS_INIT_S1(in1);
+  Connections::Out<uint32> SC_NAMED(out1);
+  Connections::In <uint32> SC_NAMED(in1);
  
-  FifoChannelStatus<uint32, 4, STATUS_TYPE> CCS_INIT_S1(fifo_status);
+  FifoChannelStatus<uint32, 4, STATUS_TYPE> SC_NAMED(fifo_status);
 
   SC_CTOR(dut) {
     fifo_status.in1(in1);

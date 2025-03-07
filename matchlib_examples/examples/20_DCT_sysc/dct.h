@@ -10,12 +10,12 @@
 SC_MODULE(dct)
 {
   public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rstn);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rstn);
 
-  Connections::In<ac_int<8> > CCS_INIT_S1(input);
-  RAM_1R1W_model<>::wr1_port<ac_int<16>,128> CCS_INIT_S1(output); // Ping-pong output memory
-  Connections::SyncOut CCS_INIT_S1(sync_out);
+  Connections::In<ac_int<8> > SC_NAMED(input);
+  RAM_1R1W_model<>::wr1_port<ac_int<16>,128> SC_NAMED(output); // Ping-pong output memory
+  Connections::SyncOut SC_NAMED(sync_out);
 
   SC_CTOR(dct) {
     SC_THREAD(dct_h);
@@ -33,7 +33,7 @@ SC_MODULE(dct)
   void dct_v();
 
   private:
-  Connections::SyncChannel CCS_INIT_S1(valid); // memory synchronization between threads
-  RAM_1R1W_model<>::mem<ac_int<16>,128> CCS_INIT_S1(mem); // Ping-pong shared memory
+  Connections::SyncChannel SC_NAMED(valid); // memory synchronization between threads
+  RAM_1R1W_model<>::mem<ac_int<16>,128> SC_NAMED(mem); // Ping-pong shared memory
 };
 

@@ -9,13 +9,13 @@ typedef apb::apb_transactor<axi::cfg::lite> local_apb;
 class ram : public sc_module, public local_apb
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  apb_slave_xactor<>   CCS_INIT_S1(slave0_xactor);
-  apb_slave_ports<> CCS_INIT_S1(slave0_ports);
-  apb_req_chan CCS_INIT_S1(req_chan);
-  apb_rsp_chan CCS_INIT_S1(rsp_chan);
+  apb_slave_xactor<>   SC_NAMED(slave0_xactor);
+  apb_slave_ports<> SC_NAMED(slave0_ports);
+  apb_req_chan SC_NAMED(req_chan);
+  apb_rsp_chan SC_NAMED(rsp_chan);
 
   static const int sz = 0x10000; // size in axi_cfg::dataWidth words
 

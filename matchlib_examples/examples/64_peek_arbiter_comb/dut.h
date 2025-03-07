@@ -20,13 +20,13 @@ static const int SIZE = 64;
 
 class arbiter_comb : public sc_module {
 public:
-  Connections::In <packet> CCS_INIT_S1(in1);
-  Connections::In <packet> CCS_INIT_S1(in2);
-  Connections::Out<packet> CCS_INIT_S1(out1);
+  Connections::In <packet> SC_NAMED(in1);
+  Connections::In <packet> SC_NAMED(in2);
+  Connections::Out<packet> SC_NAMED(out1);
 
   // This module is entirely combinational logic (no sequential logic).
 
-  sc_signal<ac_int<2, false>> CCS_INIT_S1(winner);
+  sc_signal<ac_int<2, false>> SC_NAMED(winner);
 
   SC_CTOR(arbiter_comb) {
     SC_METHOD(out1_vld_method);
@@ -99,15 +99,15 @@ public:
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In <packet> CCS_INIT_S1(in1);
-  Connections::In <packet> CCS_INIT_S1(in2);
-  Connections::Out<packet> CCS_INIT_S1(out1);
-  Connections::Combinational<packet> CCS_INIT_S1(arb_comb_out1);
+  Connections::In <packet> SC_NAMED(in1);
+  Connections::In <packet> SC_NAMED(in2);
+  Connections::Out<packet> SC_NAMED(out1);
+  Connections::Combinational<packet> SC_NAMED(arb_comb_out1);
 
-  arbiter_comb CCS_INIT_S1(arbiter_comb1);
+  arbiter_comb SC_NAMED(arbiter_comb1);
 
   SC_CTOR(dut) {
     SC_THREAD(main);

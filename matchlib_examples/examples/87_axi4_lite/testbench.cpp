@@ -8,19 +8,19 @@
 class Top : public sc_module
 {
 public:
-  ram<local_axi_64>   CCS_INIT_S1(ram1);
-  CCS_DESIGN(dma) CCS_INIT_S1(dma1);
+  ram<local_axi_64>   SC_NAMED(ram1);
+  CCS_DESIGN(dma) SC_NAMED(dma1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  local_axi_lite::w_chan<> CCS_INIT_S1(dma_w_slave);
-  local_axi_lite::r_chan<> CCS_INIT_S1(dma_r_slave);
-  local_axi_64::w_chan<> CCS_INIT_S1(dma_w_master);
-  local_axi_64::r_chan<> CCS_INIT_S1(dma_r_master);
-  Connections::Combinational<bool>        CCS_INIT_S1(dma_done);
-  local_axi_lite::w_master<>    CCS_INIT_S1(tb_w_master);
-  local_axi_lite::r_master<>    CCS_INIT_S1(tb_r_master);
+  local_axi_lite::w_chan<> SC_NAMED(dma_w_slave);
+  local_axi_lite::r_chan<> SC_NAMED(dma_r_slave);
+  local_axi_64::w_chan<> SC_NAMED(dma_w_master);
+  local_axi_64::r_chan<> SC_NAMED(dma_r_master);
+  Connections::Combinational<bool>        SC_NAMED(dma_done);
+  local_axi_lite::w_master<>    SC_NAMED(tb_w_master);
+  local_axi_lite::r_master<>    SC_NAMED(tb_r_master);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

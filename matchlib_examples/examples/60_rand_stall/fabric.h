@@ -15,51 +15,51 @@ typedef axi::axi4_segment<axi::cfg::standard> local_axi;
 class fabric : public sc_module, public local_axi
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  r_master<> CCS_INIT_S1(r_master0);
-  w_master<> CCS_INIT_S1(w_master0);
-  r_master<> CCS_INIT_S1(r_master1);
-  w_master<> CCS_INIT_S1(w_master1);
-  r_slave<>  CCS_INIT_S1(r_slave0);
-  w_slave<>  CCS_INIT_S1(w_slave0);
-  Connections::Out<bool> CCS_INIT_S1(dma0_done);
-  Connections::Out<bool> CCS_INIT_S1(dma1_done);
-  Connections::Out<sc_uint<32>> CCS_INIT_S1(dma0_dbg);
-  Connections::Out<sc_uint<32>> CCS_INIT_S1(dma1_dbg);
+  r_master<> SC_NAMED(r_master0);
+  w_master<> SC_NAMED(w_master0);
+  r_master<> SC_NAMED(r_master1);
+  w_master<> SC_NAMED(w_master1);
+  r_slave<>  SC_NAMED(r_slave0);
+  w_slave<>  SC_NAMED(w_slave0);
+  Connections::Out<bool> SC_NAMED(dma0_done);
+  Connections::Out<bool> SC_NAMED(dma1_done);
+  Connections::Out<sc_uint<32>> SC_NAMED(dma0_dbg);
+  Connections::Out<sc_uint<32>> SC_NAMED(dma1_dbg);
 
   static const int numAddrBitsToInspect = 20;
   static const int numSlaves = 2;
   sc_signal<ac_int<numAddrBitsToInspect, false>> addrBound[numSlaves][2];
-  AxiSplitter<axi::cfg::standard, numSlaves, numAddrBitsToInspect, false, true> CCS_INIT_S1(input_router);
-  AxiSplitter<axi::cfg::standard, numSlaves, numAddrBitsToInspect, false, true> CCS_INIT_S1(dma0_router);
-  AxiSplitter<axi::cfg::standard, numSlaves, numAddrBitsToInspect, false, true> CCS_INIT_S1(dma1_router);
-  AxiArbiter<axi::cfg::standard, 2, 4> CCS_INIT_S1(axi_arbiter0);
-  AxiArbiter<axi::cfg::standard, 2, 4> CCS_INIT_S1(axi_arbiter1);
+  AxiSplitter<axi::cfg::standard, numSlaves, numAddrBitsToInspect, false, true> SC_NAMED(input_router);
+  AxiSplitter<axi::cfg::standard, numSlaves, numAddrBitsToInspect, false, true> SC_NAMED(dma0_router);
+  AxiSplitter<axi::cfg::standard, numSlaves, numAddrBitsToInspect, false, true> SC_NAMED(dma1_router);
+  AxiArbiter<axi::cfg::standard, 2, 4> SC_NAMED(axi_arbiter0);
+  AxiArbiter<axi::cfg::standard, 2, 4> SC_NAMED(axi_arbiter1);
 
-  typename axi::axi4<axi::cfg::standard>::read::template chan<>  CCS_INIT_S1(dma0_r_master0_out);
-  typename axi::axi4<axi::cfg::standard>::write::template chan<> CCS_INIT_S1(dma0_w_master0_out);
-  typename axi::axi4<axi::cfg::standard>::read::template chan<>  CCS_INIT_S1(dma0_r_slave0_in);
-  typename axi::axi4<axi::cfg::standard>::write::template chan<> CCS_INIT_S1(dma0_w_slave0_in);
+  typename axi::axi4<axi::cfg::standard>::read::template chan<>  SC_NAMED(dma0_r_master0_out);
+  typename axi::axi4<axi::cfg::standard>::write::template chan<> SC_NAMED(dma0_w_master0_out);
+  typename axi::axi4<axi::cfg::standard>::read::template chan<>  SC_NAMED(dma0_r_slave0_in);
+  typename axi::axi4<axi::cfg::standard>::write::template chan<> SC_NAMED(dma0_w_slave0_in);
 
-  typename axi::axi4<axi::cfg::standard>::read::template chan<>  CCS_INIT_S1(dma1_r_master0_out);
-  typename axi::axi4<axi::cfg::standard>::write::template chan<> CCS_INIT_S1(dma1_w_master0_out);
-  typename axi::axi4<axi::cfg::standard>::read::template chan<>  CCS_INIT_S1(dma1_r_slave0_in);
-  typename axi::axi4<axi::cfg::standard>::write::template chan<> CCS_INIT_S1(dma1_w_slave0_in);
+  typename axi::axi4<axi::cfg::standard>::read::template chan<>  SC_NAMED(dma1_r_master0_out);
+  typename axi::axi4<axi::cfg::standard>::write::template chan<> SC_NAMED(dma1_w_master0_out);
+  typename axi::axi4<axi::cfg::standard>::read::template chan<>  SC_NAMED(dma1_r_slave0_in);
+  typename axi::axi4<axi::cfg::standard>::write::template chan<> SC_NAMED(dma1_w_slave0_in);
 
-  typename axi::axi4<axi::cfg::standard>::read::template chan<>  CCS_INIT_S1(d0_a0_r);
-  typename axi::axi4<axi::cfg::standard>::write::template chan<> CCS_INIT_S1(d0_a0_w);
-  typename axi::axi4<axi::cfg::standard>::read::template chan<>  CCS_INIT_S1(d0_a1_r);
-  typename axi::axi4<axi::cfg::standard>::write::template chan<> CCS_INIT_S1(d0_a1_w);
+  typename axi::axi4<axi::cfg::standard>::read::template chan<>  SC_NAMED(d0_a0_r);
+  typename axi::axi4<axi::cfg::standard>::write::template chan<> SC_NAMED(d0_a0_w);
+  typename axi::axi4<axi::cfg::standard>::read::template chan<>  SC_NAMED(d0_a1_r);
+  typename axi::axi4<axi::cfg::standard>::write::template chan<> SC_NAMED(d0_a1_w);
 
-  typename axi::axi4<axi::cfg::standard>::read::template chan<>  CCS_INIT_S1(d1_a0_r);
-  typename axi::axi4<axi::cfg::standard>::write::template chan<> CCS_INIT_S1(d1_a0_w);
-  typename axi::axi4<axi::cfg::standard>::read::template chan<>  CCS_INIT_S1(d1_a1_r);
-  typename axi::axi4<axi::cfg::standard>::write::template chan<> CCS_INIT_S1(d1_a1_w);
+  typename axi::axi4<axi::cfg::standard>::read::template chan<>  SC_NAMED(d1_a0_r);
+  typename axi::axi4<axi::cfg::standard>::write::template chan<> SC_NAMED(d1_a0_w);
+  typename axi::axi4<axi::cfg::standard>::read::template chan<>  SC_NAMED(d1_a1_r);
+  typename axi::axi4<axi::cfg::standard>::write::template chan<> SC_NAMED(d1_a1_w);
 
-  dma CCS_INIT_S1(dma0);
-  dma CCS_INIT_S1(dma1);
+  dma SC_NAMED(dma0);
+  dma SC_NAMED(dma1);
 
   SC_CTOR(fabric) {
     addrBound[0][0] = 0;

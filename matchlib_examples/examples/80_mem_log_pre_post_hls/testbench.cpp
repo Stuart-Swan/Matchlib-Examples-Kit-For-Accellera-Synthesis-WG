@@ -17,7 +17,7 @@ ofstream log_stream;
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(dut) CCS_INIT_S1(dut1);
+  CCS_DESIGN(dut) SC_NAMED(dut1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
@@ -25,10 +25,10 @@ public:
   block_data_proxy<dut::elem_type, dut::mem_size> block_data_proxy1{"mem_posthls"};
 #endif
 
-  Connections::Combinational<dut::elem_type>        CCS_INIT_S1(data_out);
-  Connections::Combinational<dut::elem_type>        CCS_INIT_S1(raddr_in);
-  Connections::Combinational<dut::elem_type>        CCS_INIT_S1(waddr_in);
-  Connections::Combinational<dut::elem_type>        CCS_INIT_S1(data_in);
+  Connections::Combinational<dut::elem_type>        SC_NAMED(data_out);
+  Connections::Combinational<dut::elem_type>        SC_NAMED(raddr_in);
+  Connections::Combinational<dut::elem_type>        SC_NAMED(waddr_in);
+  Connections::Combinational<dut::elem_type>        SC_NAMED(data_in);
   sc_signal<bool> zero;
 
 

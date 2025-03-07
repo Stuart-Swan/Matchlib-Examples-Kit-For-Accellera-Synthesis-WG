@@ -14,26 +14,26 @@
 class Top : public sc_module, public local_axi_sig_cfg
 {
 public:
-  wrap_ram_axi4_sigs             CCS_INIT_S1(ram1);
-  CCS_DESIGN(wrap_dma_axi4_sigs) CCS_INIT_S1(dma1);
+  wrap_ram_axi4_sigs             SC_NAMED(ram1);
+  CCS_DESIGN(wrap_dma_axi4_sigs) SC_NAMED(dma1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  w_master<>    CCS_INIT_S1(tb_w_master);
-  r_master<>    CCS_INIT_S1(tb_r_master);
-  w_chan<> CCS_INIT_S1(dma_w_chan_slave);
-  r_chan<> CCS_INIT_S1(dma_r_chan_slave);
-  axi4_signal_w_master_xactor<>    CCS_INIT_S1(tb_signal_w_master_xactor);
-  axi4_signal_r_master_xactor<>    CCS_INIT_S1(tb_signal_r_master_xactor);
+  w_master<>    SC_NAMED(tb_w_master);
+  r_master<>    SC_NAMED(tb_r_master);
+  w_chan<> SC_NAMED(dma_w_chan_slave);
+  r_chan<> SC_NAMED(dma_r_chan_slave);
+  axi4_signal_w_master_xactor<>    SC_NAMED(tb_signal_w_master_xactor);
+  axi4_signal_r_master_xactor<>    SC_NAMED(tb_signal_r_master_xactor);
 
-  axi4_signal_w_chan CCS_INIT_S1(dma_w_slave);
-  axi4_signal_r_chan CCS_INIT_S1(dma_r_slave);
-  axi4_signal_w_chan CCS_INIT_S1(dma_w_master);
-  axi4_signal_r_chan CCS_INIT_S1(dma_r_master);
+  axi4_signal_w_chan SC_NAMED(dma_w_slave);
+  axi4_signal_r_chan SC_NAMED(dma_r_slave);
+  axi4_signal_w_chan SC_NAMED(dma_w_master);
+  axi4_signal_r_chan SC_NAMED(dma_r_master);
 
-  Connections::Combinational<bool>        CCS_INIT_S1(dma_done);
-  Connections::Combinational<sc_uint<32>> CCS_INIT_S1(dma_dbg);
+  Connections::Combinational<bool>        SC_NAMED(dma_done);
+  Connections::Combinational<sc_uint<32>> SC_NAMED(dma_dbg);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

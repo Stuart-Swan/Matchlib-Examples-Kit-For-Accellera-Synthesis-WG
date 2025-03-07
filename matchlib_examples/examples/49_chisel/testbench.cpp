@@ -12,7 +12,7 @@ class Top : public sc_module
 {
   static const int N = 6;
 public:
-  CCS_DESIGN(dut) CCS_INIT_S1(dut1);
+  CCS_DESIGN(dut) SC_NAMED(dut1);
 
   sc_clock clk{"clk"};
   SC_SIG(bool, rst_bar);

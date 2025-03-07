@@ -3,8 +3,10 @@ APB_DMA and General Guidelines for Transactor Modeling
 Stuart Swan
 Platform Architect
 Siemens EDA
-1 June 2023
+6 March 2025
 
+
+Note, also see ../53_transactor_modeling for additional transactor modeling guidelines.
 
 The APB DMA has an apb_slave interface (for the testbench to program the DMA) and an apb_master
 interface (for performing the DMA copy operations to the RAM).
@@ -56,7 +58,7 @@ In apb_slave_xactor we see the single wait() statement within a while() loop tha
 modeling the state of the transactor FSM. This is known as the "explicit FSM" modeling style.
 
 2. When choosing a transactor modeling style,
-you should pick the first approach that works for your case from this list:
+you can pick an approach that works for your case from this list:
 
   1. Inline  (case 1 above)
       - does not allow pipelining of the caller
@@ -69,10 +71,16 @@ you should pick the first approach that works for your case from this list:
       - allows pipelining of the caller
       - enables parallel execution of more than one transactor call in the RTL
       - does support thruput accurate pre-HLS simulation
-      - likely has area + thruput + latency cost compared to other two approaches
+      - may have small area + latency cost compared to other two approaches in certain cases like this particular example
 
-If you want to use the modulario approach for QOR benefits, but also want
-throughput accurate modeling in your pre-HLS simulation, you can implement
+It should be noted that this apb_dma example likely exagerates the area and latency differences
+between the 3 approaches, since the actual core design does not consume any area or latency.
+A more balanced assessment of the 3 different approachs is provided in ../53_transactor_modeling,
+and in particular that example highlights key issues related to throughput accurate modeling
+and potential simulation hangs with approaches #1 and #2.
+
+If you want to use the modulario approach since it might provid a small QOR benefit in 
+some cases, but also want throughput accurate modeling in your pre-HLS simulation, you can implement
 transactors for both the modulario and SC_THREAD approaches and use 
   #ifdef __SYNTHESIS__
   #else

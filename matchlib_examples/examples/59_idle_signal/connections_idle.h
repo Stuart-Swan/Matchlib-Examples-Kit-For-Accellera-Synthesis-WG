@@ -22,8 +22,8 @@
 
 class gated_clock : public sc_module {
 public:
-   sc_in<bool> CCS_INIT_S1(idle);
-   sc_out<bool> CCS_INIT_S1(clk_out);
+   sc_in<bool> SC_NAMED(idle);
+   sc_out<bool> SC_NAMED(clk_out);
 
    sc_time period;
    sc_time period_div_2;
@@ -55,8 +55,8 @@ class clock_gate
   , public sc_module
 {
  public:
-   sc_in<bool> CCS_INIT_S1(clk_in);
-   sc_in<bool> CCS_INIT_S1(idle);
+   sc_in<bool> SC_NAMED(clk_in);
+   sc_in<bool> SC_NAMED(idle);
 
    // this works for pre-HLS dut but for some reason Questa RTL does not work with it..
 

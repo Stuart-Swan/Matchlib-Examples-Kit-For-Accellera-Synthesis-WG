@@ -14,11 +14,11 @@ template <class T>
 class block1 : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::Out<T> CCS_INIT_S1(out1);
-  Connections::In <T> CCS_INIT_S1(in1);
+  Connections::Out<T> SC_NAMED(out1);
+  Connections::In <T> SC_NAMED(in1);
 
   SC_CTOR(block1) {
     SC_THREAD(main);
@@ -43,11 +43,11 @@ template <class T>
 class block2 : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::Out<T> CCS_INIT_S1(out1);
-  Connections::In <T> CCS_INIT_S1(in1);
+  Connections::Out<T> SC_NAMED(out1);
+  Connections::In <T> SC_NAMED(in1);
 
   SC_CTOR(block2) {
     SC_THREAD(main);
@@ -72,16 +72,16 @@ template <class T>
 class cdc_fifo : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk1);
-  sc_in<bool> CCS_INIT_S1(clk2);
-  sc_in<bool> CCS_INIT_S1(rst_bar1);
-  sc_in<bool> CCS_INIT_S1(rst_bar2);
+  sc_in<bool> SC_NAMED(clk1);
+  sc_in<bool> SC_NAMED(clk2);
+  sc_in<bool> SC_NAMED(rst_bar1);
+  sc_in<bool> SC_NAMED(rst_bar2);
 
-  Connections::Out<T> CCS_INIT_S1(out1);
-  Connections::In <T> CCS_INIT_S1(in1);
+  Connections::Out<T> SC_NAMED(out1);
+  Connections::In <T> SC_NAMED(in1);
 
 #ifdef CONNECTIONS_SIM_ONLY
-  tlm::tlm_fifo<T>    CCS_INIT_S1(fifo1);
+  tlm::tlm_fifo<T>    SC_NAMED(fifo1);
 #endif
 
   SC_CTOR(cdc_fifo) {
@@ -144,18 +144,18 @@ public:
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk1);
-  sc_in<bool> CCS_INIT_S1(clk2);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk1);
+  sc_in<bool> SC_NAMED(clk2);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::Out<uint32_t> CCS_INIT_S1(out1);
-  Connections::In <uint32_t> CCS_INIT_S1(in1);
-  Connections::Combinational<uint32_t> CCS_INIT_S1(chan1);
-  Connections::Combinational<uint32_t> CCS_INIT_S1(chan2);
+  Connections::Out<uint32_t> SC_NAMED(out1);
+  Connections::In <uint32_t> SC_NAMED(in1);
+  Connections::Combinational<uint32_t> SC_NAMED(chan1);
+  Connections::Combinational<uint32_t> SC_NAMED(chan2);
 
-  block1<uint32_t>    CCS_INIT_S1(b1);
-  block2<uint32_t>    CCS_INIT_S1(b2);
-  cdc_fifo<uint32_t>  CCS_INIT_S1(cdc_fifo1);
+  block1<uint32_t>    SC_NAMED(b1);
+  block2<uint32_t>    SC_NAMED(b2);
+  cdc_fifo<uint32_t>  SC_NAMED(cdc_fifo1);
 
   SC_CTOR(dut) {
     b1.clk(clk1);

@@ -7,7 +7,7 @@
 class ram_wrap : public sc_module {
   #include "mc_toolkit_utils.h"
 public:
-  ram CCS_INIT_S1(ram_inst);
+  ram SC_NAMED(ram_inst);
 
   template <class T> struct type_info { };
 
@@ -43,29 +43,29 @@ public:
   typedef type_info<decltype(ram_inst.w_slave0.b.vld)> type_info_w_slave0_b_vld;
   typedef type_info<decltype(ram_inst.w_slave0.b.dat)> type_info_w_slave0_b_dat;
 
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
-  sc_out<bool> CCS_INIT_S1(r_slave0_ar_rdy);
-  sc_in<bool> CCS_INIT_S1(r_slave0_ar_vld);
-  sc_in<sc_lv<type_info_r_slave0_ar_dat::width>> CCS_INIT_S1(r_slave0_ar_dat);
-  sc_in<bool> CCS_INIT_S1(r_slave0_r_rdy);
-  sc_out<bool> CCS_INIT_S1(r_slave0_r_vld);
-  sc_out<sc_lv<type_info_r_slave0_r_dat::width>> CCS_INIT_S1(r_slave0_r_dat);
-  sc_out<bool> CCS_INIT_S1(w_slave0_aw_rdy);
-  sc_in<bool> CCS_INIT_S1(w_slave0_aw_vld);
-  sc_in<sc_lv<type_info_w_slave0_aw_dat::width>> CCS_INIT_S1(w_slave0_aw_dat);
-  sc_out<bool> CCS_INIT_S1(w_slave0_w_rdy);
-  sc_in<bool> CCS_INIT_S1(w_slave0_w_vld);
-  sc_in<sc_lv<type_info_w_slave0_w_dat::width>> CCS_INIT_S1(w_slave0_w_dat);
-  sc_in<bool> CCS_INIT_S1(w_slave0_b_rdy);
-  sc_out<bool> CCS_INIT_S1(w_slave0_b_vld);
-  sc_out<sc_lv<type_info_w_slave0_b_dat::width>> CCS_INIT_S1(w_slave0_b_dat);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
+  sc_out<bool> SC_NAMED(r_slave0_ar_rdy);
+  sc_in<bool> SC_NAMED(r_slave0_ar_vld);
+  sc_in<sc_lv<type_info_r_slave0_ar_dat::width>> SC_NAMED(r_slave0_ar_dat);
+  sc_in<bool> SC_NAMED(r_slave0_r_rdy);
+  sc_out<bool> SC_NAMED(r_slave0_r_vld);
+  sc_out<sc_lv<type_info_r_slave0_r_dat::width>> SC_NAMED(r_slave0_r_dat);
+  sc_out<bool> SC_NAMED(w_slave0_aw_rdy);
+  sc_in<bool> SC_NAMED(w_slave0_aw_vld);
+  sc_in<sc_lv<type_info_w_slave0_aw_dat::width>> SC_NAMED(w_slave0_aw_dat);
+  sc_out<bool> SC_NAMED(w_slave0_w_rdy);
+  sc_in<bool> SC_NAMED(w_slave0_w_vld);
+  sc_in<sc_lv<type_info_w_slave0_w_dat::width>> SC_NAMED(w_slave0_w_dat);
+  sc_in<bool> SC_NAMED(w_slave0_b_rdy);
+  sc_out<bool> SC_NAMED(w_slave0_b_vld);
+  sc_out<sc_lv<type_info_w_slave0_b_dat::width>> SC_NAMED(w_slave0_b_dat);
 
-  sc_signal<type_info_r_slave0_ar_dat::data_type> CCS_INIT_S1(sig_r_slave0_ar_dat);
-  sc_signal<type_info_r_slave0_r_dat::data_type> CCS_INIT_S1(sig_r_slave0_r_dat);
-  sc_signal<type_info_w_slave0_aw_dat::data_type> CCS_INIT_S1(sig_w_slave0_aw_dat);
-  sc_signal<type_info_w_slave0_w_dat::data_type> CCS_INIT_S1(sig_w_slave0_w_dat);
-  sc_signal<type_info_w_slave0_b_dat::data_type> CCS_INIT_S1(sig_w_slave0_b_dat);
+  sc_signal<type_info_r_slave0_ar_dat::data_type> SC_NAMED(sig_r_slave0_ar_dat);
+  sc_signal<type_info_r_slave0_r_dat::data_type> SC_NAMED(sig_r_slave0_r_dat);
+  sc_signal<type_info_w_slave0_aw_dat::data_type> SC_NAMED(sig_w_slave0_aw_dat);
+  sc_signal<type_info_w_slave0_w_dat::data_type> SC_NAMED(sig_w_slave0_w_dat);
+  sc_signal<type_info_w_slave0_b_dat::data_type> SC_NAMED(sig_w_slave0_b_dat);
 
   sc_clock connections_clk;
   sc_event check_event;

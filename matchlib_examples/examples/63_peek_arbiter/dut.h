@@ -20,14 +20,14 @@ static const int SIZE = 64;
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In <DTYPE> CCS_INIT_S1(in1_peek);
-  Connections::In <DTYPE> CCS_INIT_S1(in2_peek);
-  Connections::In <packet> CCS_INIT_S1(in1_dat);
-  Connections::In <packet> CCS_INIT_S1(in2_dat);
-  Connections::Out<packet> CCS_INIT_S1(out1);
+  Connections::In <DTYPE> SC_NAMED(in1_peek);
+  Connections::In <DTYPE> SC_NAMED(in2_peek);
+  Connections::In <packet> SC_NAMED(in1_dat);
+  Connections::In <packet> SC_NAMED(in2_dat);
+  Connections::Out<packet> SC_NAMED(out1);
 
   SC_CTOR(dut) {
     SC_THREAD(main);

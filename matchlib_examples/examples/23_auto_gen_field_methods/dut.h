@@ -59,14 +59,14 @@ template <class T>
 class copyio : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::Out<T> CCS_INIT_S1(out1);
-  Connections::In <T> CCS_INIT_S1(in1);
-  sc_out<T> CCS_INIT_S1(sig1);
-  sc_out<Color_t> CCS_INIT_S1(sig2);
-  sc_out<Size_t> CCS_INIT_S1(sig3);
+  Connections::Out<T> SC_NAMED(out1);
+  Connections::In <T> SC_NAMED(in1);
+  sc_out<T> SC_NAMED(sig1);
+  sc_out<Color_t> SC_NAMED(sig2);
+  sc_out<Size_t> SC_NAMED(sig3);
 
   SC_CTOR(copyio) {
     SC_THREAD(main);
@@ -95,17 +95,17 @@ public:
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
   static const int N = 8;
 
-  Connections::In <transaction_t> CCS_INIT_S1(in1);
-  Connections::Out<transaction_t> CCS_INIT_S1(out1);
-  sc_out<transaction_t> CCS_INIT_S1(sig1);
-  sc_out<Color_t> CCS_INIT_S1(sig2);
-  sc_out<Size_t> CCS_INIT_S1(sig3);
-  sc_out<uint16> CCS_INIT_S1(sig4);
+  Connections::In <transaction_t> SC_NAMED(in1);
+  Connections::Out<transaction_t> SC_NAMED(out1);
+  sc_out<transaction_t> SC_NAMED(sig1);
+  sc_out<Color_t> SC_NAMED(sig2);
+  sc_out<Size_t> SC_NAMED(sig3);
+  sc_out<uint16> SC_NAMED(sig4);
 
   AUTO_GEN_PORT_INFO(dut, ( \
     clk \
@@ -120,16 +120,16 @@ public:
   //
 
 
-  copyio<transaction_t> CCS_INIT_S1(copy1);
-  copyio<transaction_t> CCS_INIT_S1(copy2);
+  copyio<transaction_t> SC_NAMED(copy1);
+  copyio<transaction_t> SC_NAMED(copy2);
 
-  Connections::Fifo<transaction_t, N> CCS_INIT_S1(fifo1);
-  Connections::Combinational<transaction_t> CCS_INIT_S1(fifo1_in1);
-  Connections::Combinational<transaction_t> CCS_INIT_S1(fifo1_out1);
+  Connections::Fifo<transaction_t, N> SC_NAMED(fifo1);
+  Connections::Combinational<transaction_t> SC_NAMED(fifo1_in1);
+  Connections::Combinational<transaction_t> SC_NAMED(fifo1_out1);
 
-  sc_signal<transaction_t> CCS_INIT_S1(tie_off1);
-  sc_signal<Color_t> CCS_INIT_S1(tie_off2);
-  sc_signal<Size_t> CCS_INIT_S1(tie_off3);
+  sc_signal<transaction_t> SC_NAMED(tie_off1);
+  sc_signal<Color_t> SC_NAMED(tie_off2);
+  sc_signal<Size_t> SC_NAMED(tie_off3);
 
 
   SC_CTOR(dut) {

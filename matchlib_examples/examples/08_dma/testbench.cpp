@@ -11,20 +11,20 @@ typedef axi::axi4_segment<axi::cfg::standard> local_axi;
 class Top : public sc_module, public local_axi
 {
 public:
-  ram             CCS_INIT_S1(ram1);
-  CCS_DESIGN(dma) CCS_INIT_S1(dma1);
+  ram             SC_NAMED(ram1);
+  CCS_DESIGN(dma) SC_NAMED(dma1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  w_chan<> CCS_INIT_S1(dma_w_slave);
-  r_chan<> CCS_INIT_S1(dma_r_slave);
-  w_chan<> CCS_INIT_S1(dma_w_master);
-  r_chan<> CCS_INIT_S1(dma_r_master);
-  Connections::Combinational<bool>        CCS_INIT_S1(dma_done);
-  Connections::Combinational<sc_uint<32>> CCS_INIT_S1(dma_dbg);
-  w_master<>    CCS_INIT_S1(tb_w_master);
-  r_master<>    CCS_INIT_S1(tb_r_master);
+  w_chan<> SC_NAMED(dma_w_slave);
+  r_chan<> SC_NAMED(dma_r_slave);
+  w_chan<> SC_NAMED(dma_w_master);
+  r_chan<> SC_NAMED(dma_r_master);
+  Connections::Combinational<bool>        SC_NAMED(dma_done);
+  Connections::Combinational<sc_uint<32>> SC_NAMED(dma_dbg);
+  w_master<>    SC_NAMED(tb_w_master);
+  r_master<>    SC_NAMED(tb_r_master);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

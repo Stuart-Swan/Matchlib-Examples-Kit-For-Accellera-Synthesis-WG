@@ -10,16 +10,16 @@
 SC_MODULE(pixelpipe_mod)
 {
   public:
-  sc_in <bool>                        CCS_INIT_S1(clk);
-  sc_in <bool>                        CCS_INIT_S1(rstn);
-  Connections::In<ac_int<2, false > > CCS_INIT_S1(blocktype);
-  Connections::In<rgb_t >             CCS_INIT_S1(rgb);
-  Connections::Out<codes_t>           CCS_INIT_S1(codes);
+  sc_in <bool>                        SC_NAMED(clk);
+  sc_in <bool>                        SC_NAMED(rstn);
+  Connections::In<ac_int<2, false > > SC_NAMED(blocktype);
+  Connections::In<rgb_t >             SC_NAMED(rgb);
+  Connections::Out<codes_t>           SC_NAMED(codes);
 
 #ifdef TOP_PIXELPIPE_MOD
-  dct CCS_INIT_S1(dct_inst);
+  dct SC_NAMED(dct_inst);
 #else
-  CCS_DESIGN(dct) CCS_INIT_S1(dct_inst);
+  CCS_DESIGN(dct) SC_NAMED(dct_inst);
 #endif
 
   SC_CTOR(pixelpipe_mod) {
@@ -118,26 +118,26 @@ SC_MODULE(pixelpipe_mod)
     while (1) { encode(); }
   }
 
-  Connections::Combinational<ac_int<8>> CCS_INIT_S1(converted);
-  RAM_1R1W_model<>::mem<ac_int<16>,128>  CCS_INIT_S1(transformed);
-  Connections::SyncChannel CCS_INIT_S1(sync_out);
-  Connections::Combinational<uint6> CCS_INIT_S1(last_non_zero_index);
+  Connections::Combinational<ac_int<8>> SC_NAMED(converted);
+  RAM_1R1W_model<>::mem<ac_int<16>,128>  SC_NAMED(transformed);
+  Connections::SyncChannel SC_NAMED(sync_out);
+  Connections::Combinational<uint6> SC_NAMED(last_non_zero_index);
 
-  Connections::FifoModule<ac_int<16, true>, 65> CCS_INIT_S1(quantized);
-  Connections::Combinational<ac_int<16, true>> CCS_INIT_S1(quantized_in);
-  Connections::Combinational<ac_int<16, true>> CCS_INIT_S1(quantized_out);
+  Connections::FifoModule<ac_int<16, true>, 65> SC_NAMED(quantized);
+  Connections::Combinational<ac_int<16, true>> SC_NAMED(quantized_in);
+  Connections::Combinational<ac_int<16, true>> SC_NAMED(quantized_out);
 
-  Connections::FifoModule<uint2, 8>  CCS_INIT_S1(param1);
-  Connections::Combinational<uint2>  CCS_INIT_S1(param1_in);
-  Connections::Combinational<uint2>  CCS_INIT_S1(param1_out);
+  Connections::FifoModule<uint2, 8>  SC_NAMED(param1);
+  Connections::Combinational<uint2>  SC_NAMED(param1_in);
+  Connections::Combinational<uint2>  SC_NAMED(param1_out);
 
-  Connections::FifoModule<uint2, 8>  CCS_INIT_S1(param2);
-  Connections::Combinational<uint2>  CCS_INIT_S1(param2_in);
-  Connections::Combinational<uint2>  CCS_INIT_S1(param2_out);
+  Connections::FifoModule<uint2, 8>  SC_NAMED(param2);
+  Connections::Combinational<uint2>  SC_NAMED(param2_in);
+  Connections::Combinational<uint2>  SC_NAMED(param2_out);
 
-  Connections::FifoModule<uint2, 8>  CCS_INIT_S1(param3);
-  Connections::Combinational<uint2>  CCS_INIT_S1(param3_in);
-  Connections::Combinational<uint2>  CCS_INIT_S1(param3_out);
+  Connections::FifoModule<uint2, 8>  SC_NAMED(param3);
+  Connections::Combinational<uint2>  SC_NAMED(param3_in);
+  Connections::Combinational<uint2>  SC_NAMED(param3_out);
 
 };
 

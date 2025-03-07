@@ -12,12 +12,12 @@ static const int num_samples = 3;
 class dut : public sc_module
 {
 public:
-  sc_in<bool>               CCS_INIT_S1(clk);
-  sc_in<bool>               CCS_INIT_S1(rst_bar);
+  sc_in<bool>               SC_NAMED(clk);
+  sc_in<bool>               SC_NAMED(rst_bar);
 
-  Connections::Out<uint32>  CCS_INIT_S1(out1);
+  Connections::Out<uint32>  SC_NAMED(out1);
   Connections::In <uint32>  sample_in[num_samples];
-  Connections::SyncIn       CCS_INIT_S1(sync_in);
+  Connections::SyncIn       SC_NAMED(sync_in);
 
   #ifdef HLS_DIRECT_INPUT
   #pragma hls_direct_input

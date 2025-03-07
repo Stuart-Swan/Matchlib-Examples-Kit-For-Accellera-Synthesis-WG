@@ -55,14 +55,14 @@ typedef axi::axi4_segment<axi::cfg::standard> local_axi;
 class scatter_gather_dma : public sc_module, public local_axi
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  r_master<> CCS_INIT_S1(r_master0);
-  w_master<> CCS_INIT_S1(w_master0);
-  r_slave<>  CCS_INIT_S1(r_slave0);
-  w_slave<>  CCS_INIT_S1(w_slave0);
-  Connections::Out<bool> CCS_INIT_S1(dma_done);
+  r_master<> SC_NAMED(r_master0);
+  w_master<> SC_NAMED(w_master0);
+  r_slave<>  SC_NAMED(r_slave0);
+  w_slave<>  SC_NAMED(w_slave0);
+  Connections::Out<bool> SC_NAMED(dma_done);
 
   SC_CTOR(scatter_gather_dma) {
     SC_THREAD(slave_process);
@@ -79,7 +79,7 @@ public:
 
 private:
 
-  Connections::Combinational<dma_cmd> CCS_INIT_S1(dma_cmd_chan);
+  Connections::Combinational<dma_cmd> SC_NAMED(dma_cmd_chan);
 
   // write and read segmenters segment long bursts to conform to AXI4 protocol (which allows 256 beats maximum).
   AXI4_W_SEGMENT_CFG(local_axi, w_segment0)

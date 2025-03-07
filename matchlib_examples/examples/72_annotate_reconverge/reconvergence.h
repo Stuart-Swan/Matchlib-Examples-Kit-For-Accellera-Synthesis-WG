@@ -9,12 +9,12 @@
 class divergence : public sc_module
 {
 public:
-  sc_in<bool>                        CCS_INIT_S1(clk);
-  sc_in<bool>                        CCS_INIT_S1(rstn);
+  sc_in<bool>                        SC_NAMED(clk);
+  sc_in<bool>                        SC_NAMED(rstn);
 
-  Connections::In <ac_int<16,false>> CCS_INIT_S1(din);
-  Connections::Out<ac_int<16,false>> CCS_INIT_S1(dout0);
-  Connections::Out<ac_int<16,false>> CCS_INIT_S1(dout1);
+  Connections::In <ac_int<16,false>> SC_NAMED(din);
+  Connections::Out<ac_int<16,false>> SC_NAMED(dout0);
+  Connections::Out<ac_int<16,false>> SC_NAMED(dout1);
 
   SC_CTOR(divergence) {
     SC_THREAD(run);
@@ -41,11 +41,11 @@ private:
 class block0 : public sc_module
 {
 public:
-  sc_in<bool>                        CCS_INIT_S1(clk);
-  sc_in<bool>                        CCS_INIT_S1(rstn);
+  sc_in<bool>                        SC_NAMED(clk);
+  sc_in<bool>                        SC_NAMED(rstn);
 
-  Connections::In <ac_int<16,false>> CCS_INIT_S1(din);
-  Connections::Out<ac_int<16,false>> CCS_INIT_S1(dout);
+  Connections::In <ac_int<16,false>> SC_NAMED(din);
+  Connections::Out<ac_int<16,false>> SC_NAMED(dout);
 
   SC_CTOR(block0) {
     SC_THREAD(run);
@@ -70,11 +70,11 @@ private:
 class block1 : public sc_module
 {
 public:
-  sc_in<bool>                        CCS_INIT_S1(clk);
-  sc_in<bool>                        CCS_INIT_S1(rstn);
+  sc_in<bool>                        SC_NAMED(clk);
+  sc_in<bool>                        SC_NAMED(rstn);
 
-  Connections::In <ac_int<16,false>> CCS_INIT_S1(din);
-  Connections::Out<ac_int<16,false>> CCS_INIT_S1(dout);
+  Connections::In <ac_int<16,false>> SC_NAMED(din);
+  Connections::Out<ac_int<16,false>> SC_NAMED(dout);
 
   SC_CTOR(block1) {
     SC_THREAD(run);
@@ -99,12 +99,12 @@ private:
 class reconvergence : public sc_module
 {
 public:
-  sc_in<bool>                        CCS_INIT_S1(clk);
-  sc_in<bool>                        CCS_INIT_S1(rstn);
+  sc_in<bool>                        SC_NAMED(clk);
+  sc_in<bool>                        SC_NAMED(rstn);
 
-  Connections::In <ac_int<16,false>> CCS_INIT_S1(din0);
-  Connections::In<ac_int<16,false>>  CCS_INIT_S1(din1);
-  Connections::Out<ac_int<16,false>> CCS_INIT_S1(dout);
+  Connections::In <ac_int<16,false>> SC_NAMED(din0);
+  Connections::In<ac_int<16,false>>  SC_NAMED(din1);
+  Connections::Out<ac_int<16,false>> SC_NAMED(dout);
 
   SC_CTOR(reconvergence) {
     SC_THREAD(run);
@@ -132,10 +132,10 @@ private:
 class top : public sc_module
 {
 public:
-  sc_in<bool>                        CCS_INIT_S1(clk);
-  sc_in<bool>                        CCS_INIT_S1(rstn);
-  Connections::In <ac_int<16,false>> CCS_INIT_S1(din);
-  Connections::Out<ac_int<16,false>> CCS_INIT_S1(dout);
+  sc_in<bool>                        SC_NAMED(clk);
+  sc_in<bool>                        SC_NAMED(rstn);
+  Connections::In <ac_int<16,false>> SC_NAMED(din);
+  Connections::Out<ac_int<16,false>> SC_NAMED(dout);
 
   SC_CTOR(top) {
 
@@ -163,14 +163,14 @@ public:
   }
 
 private: // Instances and interconnect
-  divergence                                   CCS_INIT_S1(divergence_inst);
-  block0                                       CCS_INIT_S1(block0_inst);
-  block1                                       CCS_INIT_S1(block1_inst);
-  reconvergence                                CCS_INIT_S1(reconvergence_inst);
-  Connections::Combinational<ac_int<16,false>> CCS_INIT_S1(dout0);
-  Connections::Combinational<ac_int<16,false>> CCS_INIT_S1(dout1);
-  Connections::Combinational<ac_int<16,false>> CCS_INIT_S1(bout0);
-  Connections::Combinational<ac_int<16,false>> CCS_INIT_S1(bout1);
+  divergence                                   SC_NAMED(divergence_inst);
+  block0                                       SC_NAMED(block0_inst);
+  block1                                       SC_NAMED(block1_inst);
+  reconvergence                                SC_NAMED(reconvergence_inst);
+  Connections::Combinational<ac_int<16,false>> SC_NAMED(dout0);
+  Connections::Combinational<ac_int<16,false>> SC_NAMED(dout1);
+  Connections::Combinational<ac_int<16,false>> SC_NAMED(bout0);
+  Connections::Combinational<ac_int<16,false>> SC_NAMED(bout1);
 };
 #endif
 

@@ -6,10 +6,10 @@
 template <class T, int N>
 class mm_fifo: public sc_module {
 public:
-    sc_in<bool> CCS_INIT_S1(clk);
-    sc_in<bool> CCS_INIT_S1(rst_n);
-    Connections::In <T> CCS_INIT_S1(i_dat);
-    Connections::Out<T> CCS_INIT_S1(o_dat);
+    sc_in<bool> SC_NAMED(clk);
+    sc_in<bool> SC_NAMED(rst_n);
+    Connections::In <T> SC_NAMED(i_dat);
+    Connections::Out<T> SC_NAMED(o_dat);
 
     sc_fifo<T> fifo0;
     
@@ -52,13 +52,13 @@ public:
 #pragma hls_design top
 class dut: public sc_module {
  public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
   typedef sc_uint<32> T;
   static const int N = 4096;
-  Connections::In <T> CCS_INIT_S1(in1);
-  Connections::Out<T> CCS_INIT_S1(out1);
-  mm_fifo<T, N>   CCS_INIT_S1(fifo1);
+  Connections::In <T> SC_NAMED(in1);
+  Connections::Out<T> SC_NAMED(out1);
+  mm_fifo<T, N>   SC_NAMED(fifo1);
   SC_CTOR(dut)
   {
     fifo1.clk(clk);

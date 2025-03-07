@@ -8,9 +8,9 @@
 class and_gate : public sc_module
 {
 public:
-  sc_in<bool>  CCS_INIT_S1(in1);
-  sc_in<bool>  CCS_INIT_S1(in2);
-  sc_out<bool> CCS_INIT_S1(out1);
+  sc_in<bool>  SC_NAMED(in1);
+  sc_in<bool>  SC_NAMED(in2);
+  sc_out<bool> SC_NAMED(out1);
 
   SC_CTOR(and_gate) {
     SC_METHOD(run);

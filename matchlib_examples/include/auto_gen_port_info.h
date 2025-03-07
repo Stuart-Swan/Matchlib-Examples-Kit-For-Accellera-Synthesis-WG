@@ -630,7 +630,7 @@ public:
     sc_h << "class " << module_name + "_wrap" << " : public sc_module {\n";
     sc_h << "  #include \"" << "mc_toolkit_utils.h" << "\"" << "\n" ;
     sc_h << "public:\n";
-    sc_h << "  " << module_name << " CCS_INIT_S1(" << inst << ");\n\n";
+    sc_h << "  " << module_name << " SC_NAMED(" << inst << ");\n\n";
     sc_h << "  template <class T> struct type_info { };\n\n";
     sc_h << "  template <class T> struct type_info<sc_in<T>> {\n";
     sc_h << "    typedef T data_type;\n";
@@ -678,11 +678,11 @@ public:
     for (unsigned i=0; i<port_name_vec.size(); ++i) {
      port_name& n = port_name_vec[i];
      if (n.is_sc_in_bool)
-      sc_h << "  sc_in<bool> CCS_INIT_S1(" << n.flat_name << ");\n";
+      sc_h << "  sc_in<bool> SC_NAMED(" << n.flat_name << ");\n";
      else if (n.is_sc_out_bool)
-      sc_h << "  sc_out<bool> CCS_INIT_S1(" << n.flat_name << ");\n";
+      sc_h << "  sc_out<bool> SC_NAMED(" << n.flat_name << ");\n";
      else
-      sc_h << "  " << n.io << "<sc_lv<" << n.type_info_name << "::width>> CCS_INIT_S1(" 
+      sc_h << "  " << n.io << "<sc_lv<" << n.type_info_name << "::width>> SC_NAMED(" 
 	<< n.flat_name << ");\n";
 
     }
@@ -692,7 +692,7 @@ public:
     for (unsigned i=0; i<port_name_vec.size(); ++i) {
      port_name& n = port_name_vec[i];
      if (!n.is_sc_in_bool && !n.is_sc_out_bool)
-      sc_h << "  sc_signal<" << n.type_info_name << "::data_type> CCS_INIT_S1(" << n.sig_name << ");\n";
+      sc_h << "  sc_signal<" << n.type_info_name << "::data_type> SC_NAMED(" << n.sig_name << ");\n";
     }
 
     sc_h << "\n  sc_clock connections_clk;\n";
@@ -1106,16 +1106,16 @@ public:
      port_name& n = port_name_vec[i];
      if (!n.is_sc_in_bool && !n.is_sc_out_bool) {
       if (n.io == "sc_out") {
-        sc_h << "  sc_out<sc_lv<" << n.width << ">> " << "CCS_INIT_S1(" << n.flat_name << ");\n";
+        sc_h << "  sc_out<sc_lv<" << n.width << ">> " << "SC_NAMED(" << n.flat_name << ");\n";
       } else {
-        sc_h << "  sc_in<sc_lv<" << n.width << ">> " << "CCS_INIT_S1(" << n.flat_name << ");\n";
+        sc_h << "  sc_in<sc_lv<" << n.width << ">> " << "SC_NAMED(" << n.flat_name << ");\n";
       }
      }
      else {
       if (n.io == "sc_out") {
-        sc_h << "  sc_out<bool> " << "CCS_INIT_S1(" << n.flat_name << ");\n";
+        sc_h << "  sc_out<bool> " << "SC_NAMED(" << n.flat_name << ");\n";
       } else {
-        sc_h << "  sc_in<bool> " << "CCS_INIT_S1(" << n.flat_name << ");\n";
+        sc_h << "  sc_in<bool> " << "SC_NAMED(" << n.flat_name << ");\n";
       }
      }
     }
@@ -1134,7 +1134,7 @@ public:
 
     for (unsigned i=0; i<port_info_vec.size(); ++i) {
       sc_h << "  decltype(" << inst << "." << port_info_vec[i].name 
-           << ") CCS_INIT_S1(" << port_info_vec[i].name << ");\n";
+           << ") SC_NAMED(" << port_info_vec[i].name << ");\n";
     }
 
     sc_h << "  \n\n";
@@ -1164,12 +1164,12 @@ public:
     for (unsigned i=0; i<port_name_vec.size(); ++i) {
      port_name& n = port_name_vec[i];
      if (!n.is_sc_in_bool && !n.is_sc_out_bool)
-      sc_h << "  sc_signal<" << n.type_info_name << "::sc_lv_type> CCS_INIT_S1(" << n.sig_name << ");\n";
+      sc_h << "  sc_signal<" << n.type_info_name << "::sc_lv_type> SC_NAMED(" << n.sig_name << ");\n";
     }
 
     sc_h << "\n";
 
-    sc_h << "  " << rtl_proxy << " " << "CCS_INIT_S1(" << rtl_inst << ");\n";
+    sc_h << "  " << rtl_proxy << " " << "SC_NAMED(" << rtl_inst << ");\n";
 
     sc_h << "  SC_HAS_PROCESS(" << module_name << "_wrap_rtl);\n\n";
     sc_h << "  " << module_name << "_wrap_rtl(sc_module_name nm) : " << inst << "(*(" << module_name << "*)0){\n\n";

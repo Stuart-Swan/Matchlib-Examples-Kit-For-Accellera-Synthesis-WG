@@ -12,28 +12,28 @@ typedef axi::axi4_signal_transactor<axi::cfg::standard> local_axi_sig_cfg;
 
 class wrap_dma_axi4_sigs : public sc_module , public local_axi_sig_cfg {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
-  Connections::Out<bool> CCS_INIT_S1(dma_done);
-  Connections::Out<sc_uint<32>> CCS_INIT_S1(dma_dbg);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
+  Connections::Out<bool> SC_NAMED(dma_done);
+  Connections::Out<sc_uint<32>> SC_NAMED(dma_dbg);
 
-  axi4_signal_r_slave_ports<> CCS_INIT_S1(r_slave0_ports);
-  axi4_signal_w_slave_ports<> CCS_INIT_S1(w_slave0_ports);
-  axi4_signal_r_slave_xactor<> CCS_INIT_S1(r_slave0_xactor);
-  axi4_signal_w_slave_xactor<> CCS_INIT_S1(w_slave0_xactor);
+  axi4_signal_r_slave_ports<> SC_NAMED(r_slave0_ports);
+  axi4_signal_w_slave_ports<> SC_NAMED(w_slave0_ports);
+  axi4_signal_r_slave_xactor<> SC_NAMED(r_slave0_xactor);
+  axi4_signal_w_slave_xactor<> SC_NAMED(w_slave0_xactor);
 
-  axi4_signal_r_master_ports<> CCS_INIT_S1(r_master0_ports);
-  axi4_signal_w_master_ports<> CCS_INIT_S1(w_master0_ports);
-  axi4_signal_r_master_xactor<> CCS_INIT_S1(r_master0_xactor);
-  axi4_signal_w_master_xactor<> CCS_INIT_S1(w_master0_xactor);
+  axi4_signal_r_master_ports<> SC_NAMED(r_master0_ports);
+  axi4_signal_w_master_ports<> SC_NAMED(w_master0_ports);
+  axi4_signal_r_master_xactor<> SC_NAMED(r_master0_xactor);
+  axi4_signal_w_master_xactor<> SC_NAMED(w_master0_xactor);
 
-  dma CCS_INIT_S1(dma1);
+  dma SC_NAMED(dma1);
 
-  local_axi_sig_cfg::r_chan<> CCS_INIT_S1(dma_slave_r_chan);
-  local_axi_sig_cfg::w_chan<> CCS_INIT_S1(dma_slave_w_chan);
+  local_axi_sig_cfg::r_chan<> SC_NAMED(dma_slave_r_chan);
+  local_axi_sig_cfg::w_chan<> SC_NAMED(dma_slave_w_chan);
 
-  local_axi_sig_cfg::r_chan<> CCS_INIT_S1(dma_master_r_chan);
-  local_axi_sig_cfg::w_chan<> CCS_INIT_S1(dma_master_w_chan);
+  local_axi_sig_cfg::r_chan<> SC_NAMED(dma_master_r_chan);
+  local_axi_sig_cfg::w_chan<> SC_NAMED(dma_master_w_chan);
   
   SC_CTOR(wrap_dma_axi4_sigs) {
     dma1.clk(clk);

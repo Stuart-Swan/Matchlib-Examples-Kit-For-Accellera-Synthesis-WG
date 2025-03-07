@@ -12,16 +12,16 @@
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::Out<uint32> CCS_INIT_S1(out1);
-  Connections::In <uint32> CCS_INIT_S1(in1);
-  Connections::In <uint32> CCS_INIT_S1(in2);
+  Connections::Out<uint32> SC_NAMED(out1);
+  Connections::In <uint32> SC_NAMED(in1);
+  Connections::In <uint32> SC_NAMED(in2);
 #ifdef AUTOMATIC_IDLE
 #pragma hls_idle
 #endif
-  sc_out<bool>  CCS_INIT_S1(idle);
+  sc_out<bool>  SC_NAMED(idle);
 
 #ifndef AUTOMATIC_IDLE
   static const int MAX_PIPE_STAGES = 15;

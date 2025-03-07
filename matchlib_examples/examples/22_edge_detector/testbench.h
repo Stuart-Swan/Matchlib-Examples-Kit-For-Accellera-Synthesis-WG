@@ -24,9 +24,9 @@ SC_MODULE(testbench)
 {
   sc_in_clk clk;
   sc_out<bool> rst_bar;
-  Connections::Out<uint8>   CCS_INIT_S1(dat_in);
-  Connections::In<uint9> CCS_INIT_S1(magn);
-  Connections::In<ac_fixed<8,3> > CCS_INIT_S1(angle);
+  Connections::Out<uint8>   SC_NAMED(dat_in);
+  Connections::In<uint9> SC_NAMED(magn);
+  Connections::In<ac_fixed<8,3> > SC_NAMED(angle);
 
   SC_HAS_PROCESS(testbench);
   testbench(const sc_module_name& name, const std::string &input_image_bmp) :

@@ -8,18 +8,18 @@
 
 class wrap_ram_axi4_sigs : public sc_module , public local_axi_sig_cfg {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
 
-  axi4_signal_r_slave_ports<> CCS_INIT_S1(r_slave0_ports);
-  axi4_signal_w_slave_ports<> CCS_INIT_S1(w_slave0_ports);
-  axi4_signal_r_slave_xactor<> CCS_INIT_S1(r_slave0_xactor);
-  axi4_signal_w_slave_xactor<> CCS_INIT_S1(w_slave0_xactor);
+  axi4_signal_r_slave_ports<> SC_NAMED(r_slave0_ports);
+  axi4_signal_w_slave_ports<> SC_NAMED(w_slave0_ports);
+  axi4_signal_r_slave_xactor<> SC_NAMED(r_slave0_xactor);
+  axi4_signal_w_slave_xactor<> SC_NAMED(w_slave0_xactor);
 
-  ram CCS_INIT_S1(ram1);
+  ram SC_NAMED(ram1);
 
-  local_axi_sig_cfg::r_chan<> CCS_INIT_S1(ram_slave_r_chan);
-  local_axi_sig_cfg::w_chan<> CCS_INIT_S1(ram_slave_w_chan);
+  local_axi_sig_cfg::r_chan<> SC_NAMED(ram_slave_r_chan);
+  local_axi_sig_cfg::w_chan<> SC_NAMED(ram_slave_w_chan);
   
   SC_CTOR(wrap_ram_axi4_sigs) {
     ram1.clk(clk);

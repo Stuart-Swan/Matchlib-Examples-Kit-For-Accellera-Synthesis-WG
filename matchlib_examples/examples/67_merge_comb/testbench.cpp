@@ -9,15 +9,15 @@
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(merge_comb) CCS_INIT_S1(merge_comb1);
+  CCS_DESIGN(merge_comb) SC_NAMED(merge_comb1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  Connections::Combinational<type1_t>       CCS_INIT_S1(in1);
-  Connections::Combinational<type2_t>       CCS_INIT_S1(in2);
-  Connections::Combinational<type3_t>       CCS_INIT_S1(in3);
-  Connections::Combinational<out_t>       CCS_INIT_S1(out1);
+  Connections::Combinational<type1_t>       SC_NAMED(in1);
+  Connections::Combinational<type2_t>       SC_NAMED(in2);
+  Connections::Combinational<type3_t>       SC_NAMED(in3);
+  Connections::Combinational<out_t>       SC_NAMED(out1);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

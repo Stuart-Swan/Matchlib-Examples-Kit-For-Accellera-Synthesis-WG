@@ -9,18 +9,18 @@
 SC_MODULE(top)
 {
   sc_clock        clk;
-  sc_signal<bool> CCS_INIT_S1(rst);
+  sc_signal<bool> SC_NAMED(rst);
 
-  Connections::Combinational<ac_int<2, false>> CCS_INIT_S1(blocktype);
-  Connections::Combinational<rgb_t> CCS_INIT_S1(rgbstream);
-  Connections::Combinational<codes_t> CCS_INIT_S1(hufstream);
+  Connections::Combinational<ac_int<2, false>> SC_NAMED(blocktype);
+  Connections::Combinational<rgb_t> SC_NAMED(rgbstream);
+  Connections::Combinational<codes_t> SC_NAMED(hufstream);
 
   testbench testbench_INST; // Instance of testbench
 
 #ifdef TOP_PIXELPIPE_MOD
-  CCS_DESIGN(pixelpipe_mod) CCS_INIT_S1(p_inst);
+  CCS_DESIGN(pixelpipe_mod) SC_NAMED(p_inst);
 #else
-  pixelpipe_mod CCS_INIT_S1(p_inst);
+  pixelpipe_mod SC_NAMED(p_inst);
 #endif
 
   SC_HAS_PROCESS(top);

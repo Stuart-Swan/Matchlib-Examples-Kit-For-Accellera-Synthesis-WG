@@ -5,15 +5,15 @@
 
 class wrap_ram_tlm2 : public sc_module , public local_axi {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
   tlm_utils::multi_passthrough_target_socket<wrap_ram_tlm2> tlm2_target;
 
-  ram CCS_INIT_S1(ram1);
+  ram SC_NAMED(ram1);
 
-  tlm2_target_to_axi4_master<local_axi> CCS_INIT_S1(target_to_master);
-  r_chan<> CCS_INIT_S1(ram_slave_r_chan);
-  w_chan<> CCS_INIT_S1(ram_slave_w_chan);
+  tlm2_target_to_axi4_master<local_axi> SC_NAMED(target_to_master);
+  r_chan<> SC_NAMED(ram_slave_r_chan);
+  w_chan<> SC_NAMED(ram_slave_w_chan);
   
   SC_CTOR(wrap_ram_tlm2) {
     ram1.clk(clk);

@@ -11,18 +11,18 @@
 class dut : public sc_module
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
-  sc_in<bool> CCS_INIT_S1(zero);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
+  sc_in<bool> SC_NAMED(zero);
 
   typedef ac_int<32, false> elem_type;
   static const int mem_size = 128;
 
 
-  Connections::In <elem_type> CCS_INIT_S1(raddr_in);
-  Connections::In <elem_type> CCS_INIT_S1(waddr_in);
-  Connections::In <elem_type> CCS_INIT_S1(data_in);
-  Connections::Out<elem_type> CCS_INIT_S1(data_out);
+  Connections::In <elem_type> SC_NAMED(raddr_in);
+  Connections::In <elem_type> SC_NAMED(waddr_in);
+  Connections::In <elem_type> SC_NAMED(data_in);
+  Connections::Out<elem_type> SC_NAMED(data_out);
 
   SC_CTOR(dut) {
     SC_THREAD(main);

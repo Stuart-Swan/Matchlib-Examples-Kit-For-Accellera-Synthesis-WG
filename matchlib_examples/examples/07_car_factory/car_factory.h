@@ -53,11 +53,11 @@ struct car_t {
 class spark_plug_robot : public sc_module
 {
 public:
-  sc_in<bool>                     CCS_INIT_S1(clk);
-  sc_in<bool>                     CCS_INIT_S1(rst_bar);
-  Connections::In<spark_plug_t>   CCS_INIT_S1(spark_plugs);
-  Connections::In<engine_t>       CCS_INIT_S1(engines_in);
-  Connections::Out<engine_t>      CCS_INIT_S1(engines_out);
+  sc_in<bool>                     SC_NAMED(clk);
+  sc_in<bool>                     SC_NAMED(rst_bar);
+  Connections::In<spark_plug_t>   SC_NAMED(spark_plugs);
+  Connections::In<engine_t>       SC_NAMED(engines_in);
+  Connections::Out<engine_t>      SC_NAMED(engines_out);
   SC_SIG(bool, busy);
   SC_SIG(bool, maintenance);
 
@@ -98,11 +98,11 @@ public:
 class engine_install_robot : public sc_module
 {
 public:
-  sc_in<bool>                  CCS_INIT_S1(clk);
-  sc_in<bool>                  CCS_INIT_S1(rst_bar);
-  Connections::In<chassis_t>   CCS_INIT_S1(chassis);
-  Connections::In<engine_t>    CCS_INIT_S1(engines);
-  Connections::Out<car_t>      CCS_INIT_S1(cars);
+  sc_in<bool>                  SC_NAMED(clk);
+  sc_in<bool>                  SC_NAMED(rst_bar);
+  Connections::In<chassis_t>   SC_NAMED(chassis);
+  Connections::In<engine_t>    SC_NAMED(engines);
+  Connections::Out<car_t>      SC_NAMED(cars);
   SC_SIG(bool, busy);
 
   SC_CTOR(engine_install_robot) {
@@ -139,17 +139,17 @@ public:
 class car_factory : public sc_module
 {
 public:
-  sc_in<bool>                   CCS_INIT_S1(clk);
-  sc_in<bool>                   CCS_INIT_S1(rst_bar);
-  Connections::In<spark_plug_t> CCS_INIT_S1(spark_plugs);
-  Connections::In<engine_t>     CCS_INIT_S1(engines);
-  Connections::In<chassis_t>    CCS_INIT_S1(chassis);
-  Connections::Out<car_t>       CCS_INIT_S1(cars);
+  sc_in<bool>                   SC_NAMED(clk);
+  sc_in<bool>                   SC_NAMED(rst_bar);
+  Connections::In<spark_plug_t> SC_NAMED(spark_plugs);
+  Connections::In<engine_t>     SC_NAMED(engines);
+  Connections::In<chassis_t>    SC_NAMED(chassis);
+  Connections::Out<car_t>       SC_NAMED(cars);
 
-  Connections::Combinational<engine_t> CCS_INIT_S1(finished_engines);
+  Connections::Combinational<engine_t> SC_NAMED(finished_engines);
 
-  spark_plug_robot      CCS_INIT_S1(spark_plug_robot1);
-  engine_install_robot  CCS_INIT_S1(engine_install_robot1);
+  spark_plug_robot      SC_NAMED(spark_plug_robot1);
+  engine_install_robot  SC_NAMED(engine_install_robot1);
 
   SC_CTOR(car_factory) {
     spark_plug_robot1.clk(clk);
@@ -171,12 +171,12 @@ public:
 class car_factory : public sc_module
 {
 public:
-  sc_in<bool>                   CCS_INIT_S1(clk);
-  sc_in<bool>                   CCS_INIT_S1(rst_bar);
-  Connections::In<spark_plug_t> CCS_INIT_S1(spark_plugs);
-  Connections::In<engine_t>     CCS_INIT_S1(engines);
-  Connections::In<chassis_t>    CCS_INIT_S1(chassis);
-  Connections::Out<car_t>       CCS_INIT_S1(cars);
+  sc_in<bool>                   SC_NAMED(clk);
+  sc_in<bool>                   SC_NAMED(rst_bar);
+  Connections::In<spark_plug_t> SC_NAMED(spark_plugs);
+  Connections::In<engine_t>     SC_NAMED(engines);
+  Connections::In<chassis_t>    SC_NAMED(chassis);
+  Connections::Out<car_t>       SC_NAMED(cars);
 
   SC_CTOR(car_factory) {
     SC_THREAD(main);
@@ -259,11 +259,11 @@ public:
 class spark_plugs_split : public sc_module
 {
 public:
-  sc_in<bool>                        CCS_INIT_S1(clk);
-  sc_in<bool>                        CCS_INIT_S1(rst_bar);
-  Connections::In<spark_plug_t>      CCS_INIT_S1(spark_plugs_in);
-  Connections::Out<spark_plug_t>     CCS_INIT_S1(spark_plugs_out1);
-  Connections::Out<spark_plug_t>     CCS_INIT_S1(spark_plugs_out2);
+  sc_in<bool>                        SC_NAMED(clk);
+  sc_in<bool>                        SC_NAMED(rst_bar);
+  Connections::In<spark_plug_t>      SC_NAMED(spark_plugs_in);
+  Connections::Out<spark_plug_t>     SC_NAMED(spark_plugs_out1);
+  Connections::Out<spark_plug_t>     SC_NAMED(spark_plugs_out2);
 
   SC_CTOR(spark_plugs_split) {
     SC_THREAD(main);
@@ -290,11 +290,11 @@ public:
 class engines_split : public sc_module
 {
 public:
-  sc_in<bool>                    CCS_INIT_S1(clk);
-  sc_in<bool>                    CCS_INIT_S1(rst_bar);
-  Connections::In<engine_t>      CCS_INIT_S1(engines_in);
-  Connections::Out<engine_t>     CCS_INIT_S1(engines_out1);
-  Connections::Out<engine_t>     CCS_INIT_S1(engines_out2);
+  sc_in<bool>                    SC_NAMED(clk);
+  sc_in<bool>                    SC_NAMED(rst_bar);
+  Connections::In<engine_t>      SC_NAMED(engines_in);
+  Connections::Out<engine_t>     SC_NAMED(engines_out1);
+  Connections::Out<engine_t>     SC_NAMED(engines_out2);
 
   SC_CTOR(engines_split) {
     SC_THREAD(main);
@@ -321,11 +321,11 @@ public:
 class engines_merge : public sc_module
 {
 public:
-  sc_in<bool>                    CCS_INIT_S1(clk);
-  sc_in<bool>                    CCS_INIT_S1(rst_bar);
-  Connections::In<engine_t>      CCS_INIT_S1(engines_in1);
-  Connections::In<engine_t>      CCS_INIT_S1(engines_in2);
-  Connections::Out<engine_t>     CCS_INIT_S1(engines_out);
+  sc_in<bool>                    SC_NAMED(clk);
+  sc_in<bool>                    SC_NAMED(rst_bar);
+  Connections::In<engine_t>      SC_NAMED(engines_in1);
+  Connections::In<engine_t>      SC_NAMED(engines_in2);
+  Connections::Out<engine_t>     SC_NAMED(engines_out);
 
   SC_CTOR(engines_merge) {
     SC_THREAD(main);
@@ -353,27 +353,27 @@ public:
 class car_factory : public sc_module
 {
 public:
-  sc_in<bool>                   CCS_INIT_S1(clk);
-  sc_in<bool>                   CCS_INIT_S1(rst_bar);
-  Connections::In<spark_plug_t> CCS_INIT_S1(spark_plugs);
-  Connections::In<engine_t>     CCS_INIT_S1(engines);
-  Connections::In<chassis_t>    CCS_INIT_S1(chassis);
-  Connections::Out<car_t>       CCS_INIT_S1(cars);
+  sc_in<bool>                   SC_NAMED(clk);
+  sc_in<bool>                   SC_NAMED(rst_bar);
+  Connections::In<spark_plug_t> SC_NAMED(spark_plugs);
+  Connections::In<engine_t>     SC_NAMED(engines);
+  Connections::In<chassis_t>    SC_NAMED(chassis);
+  Connections::Out<car_t>       SC_NAMED(cars);
 
-  Connections::Combinational<spark_plug_t> CCS_INIT_S1(spark_plugs_stream1);
-  Connections::Combinational<spark_plug_t> CCS_INIT_S1(spark_plugs_stream2);
-  Connections::Combinational<engine_t> CCS_INIT_S1(unfinished_engines_stream1);
-  Connections::Combinational<engine_t> CCS_INIT_S1(unfinished_engines_stream2);
-  Connections::Combinational<engine_t> CCS_INIT_S1(finished_engines_stream1);
-  Connections::Combinational<engine_t> CCS_INIT_S1(finished_engines_stream2);
-  Connections::Combinational<engine_t> CCS_INIT_S1(finished_engines_merged);
+  Connections::Combinational<spark_plug_t> SC_NAMED(spark_plugs_stream1);
+  Connections::Combinational<spark_plug_t> SC_NAMED(spark_plugs_stream2);
+  Connections::Combinational<engine_t> SC_NAMED(unfinished_engines_stream1);
+  Connections::Combinational<engine_t> SC_NAMED(unfinished_engines_stream2);
+  Connections::Combinational<engine_t> SC_NAMED(finished_engines_stream1);
+  Connections::Combinational<engine_t> SC_NAMED(finished_engines_stream2);
+  Connections::Combinational<engine_t> SC_NAMED(finished_engines_merged);
 
-  engines_split         CCS_INIT_S1(engines_split1);
-  spark_plugs_split     CCS_INIT_S1(spark_plugs_split1);
-  spark_plug_robot      CCS_INIT_S1(spark_plug_robot1);
-  spark_plug_robot      CCS_INIT_S1(spark_plug_robot2);
-  engines_merge         CCS_INIT_S1(engines_merge1);
-  engine_install_robot  CCS_INIT_S1(engine_install_robot1);
+  engines_split         SC_NAMED(engines_split1);
+  spark_plugs_split     SC_NAMED(spark_plugs_split1);
+  spark_plug_robot      SC_NAMED(spark_plug_robot1);
+  spark_plug_robot      SC_NAMED(spark_plug_robot2);
+  engines_merge         SC_NAMED(engines_merge1);
+  engine_install_robot  SC_NAMED(engine_install_robot1);
 
   SC_CTOR(car_factory) {
     engines_split1.clk(clk);

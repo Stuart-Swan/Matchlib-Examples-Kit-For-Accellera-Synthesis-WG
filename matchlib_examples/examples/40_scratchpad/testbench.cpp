@@ -8,7 +8,7 @@
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(dut) CCS_INIT_S1(dut1);
+  CCS_DESIGN(dut) SC_NAMED(dut1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
@@ -18,8 +18,8 @@ public:
   unsigned match_count{0};
   unsigned mismatch_count{0};
 
-  Connections::Combinational<local_mem::base_rsp_t>        CCS_INIT_S1(out1);
-  Connections::Combinational<local_mem::base_req_t>        CCS_INIT_S1(in1);
+  Connections::Combinational<local_mem::base_rsp_t>        SC_NAMED(out1);
+  Connections::Combinational<local_mem::base_req_t>        SC_NAMED(in1);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

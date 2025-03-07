@@ -42,23 +42,23 @@ struct dma_configuration_regs {
 class dma : public sc_module, public local_apb
 {
 public:
-  sc_in<bool>                             CCS_INIT_S1(clk);
-  sc_in<bool>                             CCS_INIT_S1(rst_bar);
-  Connections::Out<bool>                  CCS_INIT_S1(dma_done);
-  Connections::Out<uint32_t>              CCS_INIT_S1(dma_dbg);
+  sc_in<bool>                             SC_NAMED(clk);
+  sc_in<bool>                             SC_NAMED(rst_bar);
+  Connections::Out<bool>                  SC_NAMED(dma_done);
+  Connections::Out<uint32_t>              SC_NAMED(dma_dbg);
 
-  apb_master_ports<>                      CCS_INIT_S1(master0_ports);
+  apb_master_ports<>                      SC_NAMED(master0_ports);
 #define MASTER_XACTOR 1
 #ifdef MASTER_XACTOR
-  apb_master_xactor<>                     CCS_INIT_S1(master0_xactor);
-  Connections::Combinational<apb_req>     CCS_INIT_S1(master0_req_chan);
-  Connections::Combinational<apb_rsp>     CCS_INIT_S1(master0_rsp_chan);
+  apb_master_xactor<>                     SC_NAMED(master0_xactor);
+  Connections::Combinational<apb_req>     SC_NAMED(master0_req_chan);
+  Connections::Combinational<apb_rsp>     SC_NAMED(master0_rsp_chan);
 #endif
 
-  apb_slave_xactor<>                      CCS_INIT_S1(slave0_xactor);
-  apb_slave_ports<>                       CCS_INIT_S1(slave0_ports);
-  Connections::Combinational<apb_req>     CCS_INIT_S1(slave0_req_chan); // Connections channel for the apb_req message to RAM
-  Connections::Combinational<apb_rsp>     CCS_INIT_S1(slave0_rsp_chan); // Connections channel for the apb_rsp message from RAM
+  apb_slave_xactor<>                      SC_NAMED(slave0_xactor);
+  apb_slave_ports<>                       SC_NAMED(slave0_ports);
+  Connections::Combinational<apb_req>     SC_NAMED(slave0_req_chan); // Connections channel for the apb_req message to RAM
+  Connections::Combinational<apb_rsp>     SC_NAMED(slave0_rsp_chan); // Connections channel for the apb_rsp message from RAM
 
   SC_CTOR(dma) {
     SC_THREAD(slave_process);
@@ -86,7 +86,7 @@ public:
 
 private:
 
-  Connections::Combinational<dma_cmd> CCS_INIT_S1(dma_cmd_chan);
+  Connections::Combinational<dma_cmd> SC_NAMED(dma_cmd_chan);
 
   // master_process recieves dma_cmd transactions from the slave_process.
   // the master_process performs the dma operations via the master0_xactor,

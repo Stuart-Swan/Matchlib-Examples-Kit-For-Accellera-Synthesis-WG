@@ -8,10 +8,10 @@
 class flop : public sc_module
 {
 public:
-  sc_in<bool>      CCS_INIT_S1(clk);
-  sc_in<bool>      CCS_INIT_S1(rst_bar);
-  sc_in<uint32_t>  CCS_INIT_S1(in1);
-  sc_out<uint32_t> CCS_INIT_S1(out1);
+  sc_in<bool>      SC_NAMED(clk);
+  sc_in<bool>      SC_NAMED(rst_bar);
+  sc_in<uint32_t>  SC_NAMED(in1);
+  sc_out<uint32_t> SC_NAMED(out1);
 
   SC_CTOR(flop) {
     SC_THREAD(process);
@@ -35,10 +35,10 @@ public:
 class dut : public sc_module
 {
 public:
-  sc_in<bool>      CCS_INIT_S1(clk);
-  sc_in<bool>      CCS_INIT_S1(rst_bar);
-  sc_in<uint32_t>  CCS_INIT_S1(in1);
-  sc_out<uint32_t> CCS_INIT_S1(out1);
+  sc_in<bool>      SC_NAMED(clk);
+  sc_in<bool>      SC_NAMED(rst_bar);
+  sc_in<uint32_t>  SC_NAMED(in1);
+  sc_out<uint32_t> SC_NAMED(out1);
 
   SC_CTOR(dut) {
     const int len = 5;

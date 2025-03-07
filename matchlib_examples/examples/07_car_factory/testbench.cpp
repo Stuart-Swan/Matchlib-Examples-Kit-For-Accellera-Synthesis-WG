@@ -8,9 +8,9 @@
 class spark_plug_producer : public sc_module
 {
 public:
-  sc_in<bool>                    CCS_INIT_S1(clk);
-  sc_in<bool>                    CCS_INIT_S1(rst_bar);
-  Connections::Out<spark_plug_t> CCS_INIT_S1(spark_plugs);
+  sc_in<bool>                    SC_NAMED(clk);
+  sc_in<bool>                    SC_NAMED(rst_bar);
+  Connections::Out<spark_plug_t> SC_NAMED(spark_plugs);
 
   SC_CTOR(spark_plug_producer) {
     SC_THREAD(main);
@@ -40,9 +40,9 @@ public:
 class engine_producer : public sc_module
 {
 public:
-  sc_in<bool>                CCS_INIT_S1(clk);
-  sc_in<bool>                    CCS_INIT_S1(rst_bar);
-  Connections::Out<engine_t> CCS_INIT_S1(engines);
+  sc_in<bool>                SC_NAMED(clk);
+  sc_in<bool>                    SC_NAMED(rst_bar);
+  Connections::Out<engine_t> SC_NAMED(engines);
 
   SC_CTOR(engine_producer) {
     SC_THREAD(main);
@@ -67,9 +67,9 @@ public:
 class chassis_producer : public sc_module
 {
 public:
-  sc_in<bool>                   CCS_INIT_S1(clk);
-  sc_in<bool>                   CCS_INIT_S1(rst_bar);
-  Connections::Out<chassis_t>   CCS_INIT_S1(chassis_out);
+  sc_in<bool>                   SC_NAMED(clk);
+  sc_in<bool>                   SC_NAMED(rst_bar);
+  Connections::Out<chassis_t>   SC_NAMED(chassis_out);
 
   SC_CTOR(chassis_producer) {
     SC_THREAD(main);
@@ -94,9 +94,9 @@ public:
 class car_consumer : public sc_module
 {
 public:
-  sc_in<bool>             CCS_INIT_S1(clk);
-  sc_in<bool>             CCS_INIT_S1(rst_bar);
-  Connections::In<car_t>  CCS_INIT_S1(cars);
+  sc_in<bool>             SC_NAMED(clk);
+  sc_in<bool>             SC_NAMED(rst_bar);
+  Connections::In<car_t>  SC_NAMED(cars);
 
   SC_CTOR(car_consumer) {
     SC_THREAD(main);
@@ -124,20 +124,20 @@ public:
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(car_factory) CCS_INIT_S1(car_factory1);
+  CCS_DESIGN(car_factory) SC_NAMED(car_factory1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  Connections::Combinational<spark_plug_t> CCS_INIT_S1(spark_plugs);
-  Connections::Combinational<engine_t>     CCS_INIT_S1(engines);
-  Connections::Combinational<chassis_t>    CCS_INIT_S1(chassis);
-  Connections::Combinational<car_t>        CCS_INIT_S1(cars);
+  Connections::Combinational<spark_plug_t> SC_NAMED(spark_plugs);
+  Connections::Combinational<engine_t>     SC_NAMED(engines);
+  Connections::Combinational<chassis_t>    SC_NAMED(chassis);
+  Connections::Combinational<car_t>        SC_NAMED(cars);
 
-  engine_producer     CCS_INIT_S1(engine_producer1);
-  chassis_producer    CCS_INIT_S1(chassis_producer1);
-  spark_plug_producer CCS_INIT_S1(spark_plug_producer1);
-  car_consumer        CCS_INIT_S1(car_consumer1);
+  engine_producer     SC_NAMED(engine_producer1);
+  chassis_producer    SC_NAMED(chassis_producer1);
+  spark_plug_producer SC_NAMED(spark_plug_producer1);
+  car_consumer        SC_NAMED(car_consumer1);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_SEC, 0.5,0,SC_SEC,true) {

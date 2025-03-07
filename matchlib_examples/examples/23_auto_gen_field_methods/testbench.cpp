@@ -7,13 +7,13 @@
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(dut) CCS_INIT_S1(dut1);
+  CCS_DESIGN(dut) SC_NAMED(dut1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
 
-  Connections::Combinational<transaction_t>        CCS_INIT_S1(out1);
-  Connections::Combinational<transaction_t>        CCS_INIT_S1(in1);
+  Connections::Combinational<transaction_t>        SC_NAMED(out1);
+  Connections::Combinational<transaction_t>        SC_NAMED(in1);
   SC_SIG(transaction_t, sig1);
   SC_SIG(Color_t, sig2);
   SC_SIG(Size_t,  sig3);

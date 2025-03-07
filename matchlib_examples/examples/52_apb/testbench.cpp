@@ -15,24 +15,24 @@ class Top : public sc_module, public local_apb
 public:
 
   // Hierarchy Instances
-  CCS_DESIGN(dma)                         CCS_INIT_S1(dma_inst);   // the DUT
-  ram                                     CCS_INIT_S1(ram_inst);   // slave RAM to talk to
-  apb_master_xactor<>                     CCS_INIT_S1(cpu_inst);   // simple "CPU"
+  CCS_DESIGN(dma)                         SC_NAMED(dma_inst);   // the DUT
+  ram                                     SC_NAMED(ram_inst);   // slave RAM to talk to
+  apb_master_xactor<>                     SC_NAMED(cpu_inst);   // simple "CPU"
 
   // Local signal/Connections Declarations
   sc_clock                                clk;
   sc_signal<bool>                         rst_bar;
 
-  Connections::Combinational<bool>        CCS_INIT_S1(dma_done);
-  Connections::Combinational<uint32_t>    CCS_INIT_S1(dma_dbg);
+  Connections::Combinational<bool>        SC_NAMED(dma_done);
+  Connections::Combinational<uint32_t>    SC_NAMED(dma_dbg);
 
-  apb_signals_chan                        CCS_INIT_S1(dma_master0_apb_signals);
-  apb_signals_chan                        CCS_INIT_S1(dma_slave0_apb_signals);
+  apb_signals_chan                        SC_NAMED(dma_master0_apb_signals);
+  apb_signals_chan                        SC_NAMED(dma_slave0_apb_signals);
 
-  apb_master_ports<>                      CCS_INIT_S1(cpu_master_ports);
+  apb_master_ports<>                      SC_NAMED(cpu_master_ports);
 
-  Connections::Combinational<apb_req>     CCS_INIT_S1(cpu_master_req);  // Connections channel for the apb_req message
-  Connections::Combinational<apb_rsp>     CCS_INIT_S1(cpu_master_rsp);  // Connections channel for the apb_rsp message
+  Connections::Combinational<apb_req>     SC_NAMED(cpu_master_req);  // Connections channel for the apb_req message
+  Connections::Combinational<apb_rsp>     SC_NAMED(cpu_master_rsp);  // Connections channel for the apb_rsp message
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

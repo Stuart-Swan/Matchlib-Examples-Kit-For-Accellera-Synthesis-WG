@@ -7,12 +7,12 @@
 #pragma hls_design top
 class matrixMultiply  : public sc_module {
  public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rstn);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rstn);
 
-  Connections::In <ac_int<8>> CCS_INIT_S1(A);
-  Connections::In <ac_int<8>> CCS_INIT_S1(B);
-  Connections::Out<ac_int<8+8+3>> CCS_INIT_S1(C);
+  Connections::In <ac_int<8>> SC_NAMED(A);
+  Connections::In <ac_int<8>> SC_NAMED(B);
+  Connections::Out<ac_int<8+8+3>> SC_NAMED(C);
 
   SC_CTOR(matrixMultiply) {
     SC_THREAD(run);

@@ -66,9 +66,9 @@ namespace apb
 
     // External typedefs - to simplify usage of these message types
     //  These let you declare the communication channel in the model that uses this APB as
-    //   apb_req_chan                         CCS_INIT_S1(apb_msg_req_chan);  // Connections channel for the apb_req message
+    //   apb_req_chan                         SC_NAMED(apb_msg_req_chan);  // Connections channel for the apb_req message
     //  Instead of the direct form
-    //   Connections::Combinational<apb_req>  CCS_INIT_S1(apb_msg_req_chan);  // Connections channel for the apb_req message
+    //   Connections::Combinational<apb_req>  SC_NAMED(apb_msg_req_chan);  // Connections channel for the apb_req message
     //
     typedef Connections::Combinational<apb_req> apb_req_chan;
     typedef Connections::Combinational<apb_rsp> apb_rsp_chan;
@@ -194,21 +194,21 @@ namespace apb
     class apb_master_xactor : public sc_module
     {
     public:
-      sc_in<bool> CCS_INIT_S1(clk);
-      sc_in<bool> CCS_INIT_S1(rst_bar);
+      sc_in<bool> SC_NAMED(clk);
+      sc_in<bool> SC_NAMED(rst_bar);
 
-      Connections::In<apb_req, PortType>   CCS_INIT_S1(req_port);
-      Connections::Out<apb_rsp, PortType>  CCS_INIT_S1(rsp_port);
-      sc_out<Addr>     CCS_INIT_S1(PADDR);
-      sc_out<bool>     CCS_INIT_S1(PWRITE);
-      sc_out<bool>     CCS_INIT_S1(PENABLE);
-      sc_out<bool>     CCS_INIT_S1(PSEL);
-      sc_out<Data>     CCS_INIT_S1(PWDATA);
-      sc_out<Wstrb>    CCS_INIT_S1(PSTRB);
-      sc_out<Prot_t>   CCS_INIT_S1(PPROT);
-      sc_in<Data>      CCS_INIT_S1(PRDATA);
-      sc_in<bool>      CCS_INIT_S1(PSLVERR);
-      sc_in<bool>      CCS_INIT_S1(PREADY);
+      Connections::In<apb_req, PortType>   SC_NAMED(req_port);
+      Connections::Out<apb_rsp, PortType>  SC_NAMED(rsp_port);
+      sc_out<Addr>     SC_NAMED(PADDR);
+      sc_out<bool>     SC_NAMED(PWRITE);
+      sc_out<bool>     SC_NAMED(PENABLE);
+      sc_out<bool>     SC_NAMED(PSEL);
+      sc_out<Data>     SC_NAMED(PWDATA);
+      sc_out<Wstrb>    SC_NAMED(PSTRB);
+      sc_out<Prot_t>   SC_NAMED(PPROT);
+      sc_in<Data>      SC_NAMED(PRDATA);
+      sc_in<bool>      SC_NAMED(PSLVERR);
+      sc_in<bool>      SC_NAMED(PREADY);
 
       SC_CTOR(apb_master_xactor) {
         SC_THREAD(main);
@@ -313,21 +313,21 @@ namespace apb
     class apb_slave_xactor : public sc_module
     {
     public:
-      sc_in<bool> CCS_INIT_S1(clk);
-      sc_in<bool> CCS_INIT_S1(rst_bar);
+      sc_in<bool> SC_NAMED(clk);
+      sc_in<bool> SC_NAMED(rst_bar);
 
-      Connections::Out<apb_req, PortType> CCS_INIT_S1(req_port);
-      Connections::In<apb_rsp, PortType>  CCS_INIT_S1(rsp_port);
-      sc_in<Addr>       CCS_INIT_S1(PADDR);
-      sc_in<bool>       CCS_INIT_S1(PWRITE);
-      sc_in<bool>       CCS_INIT_S1(PENABLE);
-      sc_in<bool>       CCS_INIT_S1(PSEL);
-      sc_in<Data>       CCS_INIT_S1(PWDATA);
-      sc_in<Wstrb >     CCS_INIT_S1(PSTRB);
-      sc_in<Prot_t >    CCS_INIT_S1(PPROT);
-      sc_out<Data>      CCS_INIT_S1(PRDATA);
-      sc_out<bool>      CCS_INIT_S1(PSLVERR);
-      sc_out<bool>      CCS_INIT_S1(PREADY);
+      Connections::Out<apb_req, PortType> SC_NAMED(req_port);
+      Connections::In<apb_rsp, PortType>  SC_NAMED(rsp_port);
+      sc_in<Addr>       SC_NAMED(PADDR);
+      sc_in<bool>       SC_NAMED(PWRITE);
+      sc_in<bool>       SC_NAMED(PENABLE);
+      sc_in<bool>       SC_NAMED(PSEL);
+      sc_in<Data>       SC_NAMED(PWDATA);
+      sc_in<Wstrb >     SC_NAMED(PSTRB);
+      sc_in<Prot_t >    SC_NAMED(PPROT);
+      sc_out<Data>      SC_NAMED(PRDATA);
+      sc_out<bool>      SC_NAMED(PSLVERR);
+      sc_out<bool>      SC_NAMED(PREADY);
 
       template <class C>
       void operator()(C &c) {
@@ -441,6 +441,9 @@ namespace apb
     template <class C>
     void apb_master_rw(C& chan, const apb_req& req, apb_rsp& rsp) {
       apb_master_rw_reset(chan);
+
+      rsp.r.data = 0;
+      rsp.r.resp = 0;
 
       // SETUP state
       chan.PSEL = 1; 

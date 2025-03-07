@@ -8,7 +8,7 @@
 class Top : public sc_module
 {
 public:
-  CCS_DESIGN(dut) CCS_INIT_S1(dut1);
+  CCS_DESIGN(dut) SC_NAMED(dut1);
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
@@ -25,10 +25,10 @@ public:
 
     dut1.clk(clk);
     dut1.rst_bar(rst_bar);
-    dut1.in1_vld(in_vld);
-    dut1.in1_dat(in_dat);
-    dut1.out1_vld(out_vld);
-    dut1.out1_dat(out_dat);
+    dut1.in1.vld(in_vld);
+    dut1.in1.dat(in_dat);
+    dut1.out1.vld(out_vld);
+    dut1.out1.dat(out_dat);
 
     SC_CTHREAD(reset, clk);
 

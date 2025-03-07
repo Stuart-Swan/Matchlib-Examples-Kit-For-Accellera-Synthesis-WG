@@ -17,13 +17,13 @@ class Testbench : public sc_module
 {
 public:
 
-  CCS_DESIGN(top) CCS_INIT_S1(dut1);
+  CCS_DESIGN(top) SC_NAMED(dut1);
 
   sc_clock clk;
   SC_SIG(bool, rstn);
 
-  Connections::Combinational<ac_int<16,false>>        CCS_INIT_S1(din);
-  Connections::Combinational<ac_int<16,false>>        CCS_INIT_S1(dout);
+  Connections::Combinational<ac_int<16,false>>        SC_NAMED(din);
+  Connections::Combinational<ac_int<16,false>>        SC_NAMED(dout);
 
   SC_CTOR(Testbench)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

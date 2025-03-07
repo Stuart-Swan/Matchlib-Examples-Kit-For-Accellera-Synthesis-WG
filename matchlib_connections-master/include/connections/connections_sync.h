@@ -4,7 +4,7 @@
  *                                                                        *
  *  Software Version: 2.2                                                 *
  *                                                                        *
- *  Release Date    : Fri Dec 27 08:26:59 PST 2024                        *
+ *  Release Date    : Tue Feb 11 10:07:11 PST 2025                        *
  *  Release Type    : Production Release                                  *
  *  Release Build   : 2.2.2                                               *
  *                                                                        *
@@ -175,7 +175,7 @@ namespace Connections
         rd_chk.ok();
       }
 
-     #pragma builtin_modulario
+      #pragma builtin_modulario
       #pragma design modulario<sync>
       bool nb_sync_in() {
         rd_chk.test();
@@ -185,9 +185,10 @@ namespace Connections
         return vld.read();
       }
 
-     #pragma builtin_modulario
+      #pragma builtin_modulario
       #pragma design modulario<sync>
-      void sync_in() {
+      template <typename ...T>
+      void sync_in(T &...t) {
         rd_chk.test();
         do {
           rdy.write(true);
@@ -230,7 +231,8 @@ namespace Connections
 
       #pragma builtin_modulario
       #pragma design modulario<sync>
-      void sync_out() {
+      template <typename ...T>
+      void sync_out(T &...t) {
         wr_chk.test();
         do {
           vld.write(true);
@@ -385,7 +387,10 @@ namespace Connections
     ~SyncOut() {}
 
     void SyncPush() { Base::sync_out(); }
-    void sync_out() { Base::sync_out(); }
+    #pragma builtin_modulario
+    #pragma design modulario<sync>
+    template <typename ...T> 
+    void sync_out(T &...t) { Base::sync_out(); }
     void Reset() { Base::reset_sync_out(); }
     void reset_sync_out() { Base::reset_sync_out(); }
 
@@ -423,7 +428,10 @@ namespace Connections
     }
     ~SyncIn() {}
     void SyncPop() { Base::sync_in(); }
-    void sync_in() { Base::sync_in(); }
+    #pragma builtin_modulario
+    #pragma design modulario<sync>
+    template <typename ...T> 
+    void sync_in(T &...t) { Base::sync_in(); }
     bool SyncPopNB() { return (Base::nb_sync_in());}
     bool nb_sync_in() { return (Base::nb_sync_in()); }
     void Reset() { Base::reset_sync_in(); }

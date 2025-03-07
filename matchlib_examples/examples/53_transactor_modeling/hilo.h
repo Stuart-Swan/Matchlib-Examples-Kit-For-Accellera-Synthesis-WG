@@ -19,6 +19,12 @@ The "hilo" protocol is the same as the basic rdy/vld/dat protcol with the follow
 
 #include "sc_named.h"
 
+#ifdef __SYNTHESIS__
+#define SYNTH_NAME(prefix, nm) ""
+#else
+#define SYNTH_NAME(prefix, nm) (std::string(prefix) + nm ).c_str()
+#endif
+
 ////////////////////////////////////////////
 //
 // The hilo protocol channel. This channel is the same for all transactor styles
@@ -34,11 +40,15 @@ struct hilo_chan : public sc_channel {
 // The hilo protocol input port. This port is the same for all transactor styles
 
 struct hilo_in {
-  hilo_in(const char* nm = "") {}
+  hilo_in(const char* nm = "") :
+    vld(SYNTH_NAME(nm, "_vld"))
+  , dat(SYNTH_NAME(nm, "_dat"))
+  , rdy(SYNTH_NAME(nm, "_rdy"))
+  {}
 
   sc_in<bool> vld;
-  sc_out<bool> rdy;
   sc_in<sc_uint<8>> dat;
+  sc_out<bool> rdy;
 
   template <class C>
   void operator()(C& c) {
@@ -51,11 +61,15 @@ struct hilo_in {
 // The hilo protocol output port. This port is the same for all transactor styles
 
 struct hilo_out {
-  hilo_out(const char* nm = "") {}
+  hilo_out(const char* nm = "") :
+    vld(SYNTH_NAME(nm, "_vld"))
+  , dat(SYNTH_NAME(nm, "_dat"))
+  , rdy(SYNTH_NAME(nm, "_rdy"))
+  {}
 
   sc_out<bool> vld;
-  sc_in<bool> rdy;
   sc_out<sc_uint<8>> dat;
+  sc_in<bool> rdy;
 
   template <class C>
   void operator()(C& c) {
@@ -184,6 +198,7 @@ struct hilo_in_xactor : public sc_module {
 #endif
   }
 
+#pragma implicit_fsm true
   void main() {
     chan.vld = 0;
     chan.dat = 0;
@@ -251,6 +266,7 @@ struct hilo_out_xactor : public sc_module {
 #endif
   }
 
+#pragma implicit_fsm true
   void main() {
     chan.rdy = 0;
     hilo_out1.vld = 0;
@@ -286,12 +302,6 @@ struct hilo_out_xactor : public sc_module {
 
 ////////////////
 // Convenience classes for instantiating transactor modules in user designs
-
-#ifdef __SYNTHESIS__
-#define SYNTH_NAME(prefix, nm) ""
-#else
-#define SYNTH_NAME(prefix, nm) (std::string(prefix) + nm ).c_str()
-#endif
 
 template <class T>
 struct hilo_in_xact {

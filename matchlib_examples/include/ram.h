@@ -20,10 +20,10 @@ typedef axi::axi4_segment<axi::cfg::standard> local_axi;
 class ram : public sc_module, public local_axi
 {
 public:
-  sc_in<bool> CCS_INIT_S1(clk);
-  sc_in<bool> CCS_INIT_S1(rst_bar);
-  r_slave<AUTO_PORT>     CCS_INIT_S1(r_slave0);
-  w_slave<AUTO_PORT>     CCS_INIT_S1(w_slave0);
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
+  r_slave<AUTO_PORT>     SC_NAMED(r_slave0);
+  w_slave<AUTO_PORT>     SC_NAMED(w_slave0);
 
   AUTO_GEN_PORT_INFO(ram, ( \
     clk \
