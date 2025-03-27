@@ -69,7 +69,7 @@ public:
       i_dat.Reset();
       wr_sync.reset_sync_out();
       wait();
-      ac_int<AddrWidth+1, false> adr=0;
+      ac_int<AddrWidth, false> adr=0;
       #pragma hls_pipeline_init_interval 1
       #pragma pipeline_stall_mode flush
       while (1) {     
@@ -78,8 +78,6 @@ public:
         wr_ptr = adr;
         wr_ptr_vld = 1;
         ++adr;
-        if (adr == N)
-          adr = 0;
         wr_sync.sync_out(mem);
       }
     }
@@ -89,7 +87,7 @@ public:
         o_dat.Reset();        
         rd_sync.reset_sync_in();
         wait();
-        ac_int<AddrWidth+1, false> adr=0;
+        ac_int<AddrWidth, false> adr=0;
     #pragma hls_pipeline_init_interval 1
     #pragma pipeline_stall_mode flush    
         while (1) {
@@ -97,8 +95,6 @@ public:
             rd_sync.sync_in(mem);
             rd_dat = mem[adr];
             ++adr;
-            if (adr == N)
-              adr = 0;
             o_dat.Push(rd_dat);
         }
     }
