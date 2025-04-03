@@ -11,13 +11,13 @@ This example is a good illustration of the ability to explicitly model arbitrary
 HW logic and protocols in SystemC that differs from typical HLS models. It also
 shows how to explicitly model RAM types that differ from those natively supported by HLS tools.
 
-Note that a "cycle set" directive is used in go_hls.tcl to separate the memory read operation (Pop)
-from the memory write operation (Push). 
+Note that a "cycle set" directive is used in go_hls.tcl to separate the memory data read operation (Pop)
+from the memory read address write operation (Push). 
 This is needed to enable the pipeline to achieve full throughput.
 To see the full throughput of the design, disable the "do_stall" flag within the testbench.
 When this is done, the post-HLS RTL model will support both read and write operations 
 on every clock cycle (II=1). However, the pre-HLS model will not show full throughput for the
-read operations (would require additional buffering for read ops in pre-HLS model to account
+read operations (would require additional buffering for read data ops in pre-HLS model to account
 for the HLS pipeline).
 
 

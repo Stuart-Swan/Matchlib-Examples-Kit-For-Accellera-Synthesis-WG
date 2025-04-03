@@ -20,6 +20,7 @@
 // connections.h
 //
 // Revision History:
+//   2.2.3   - CAT-39436 - Add signal debug for custom types in simulation
 //   2.2.2   - CAT-38997 - Add simulation support for In/Out/Combinational::PeekNB()
 //           - CAT-39113 - Enforce Reset() is called for simulation
 //   2.2.1   - CAT-38188 - Updates to support SystemC 3.0 and fixes
@@ -384,56 +385,54 @@ SpecialWrapperIfc(Connections::Out);
 namespace Connections
 {
 
-
-// primary template
-template <typename T, typename = void>
-class dbg_signal : public sc_signal<T>
-{
-public:
-  dbg_signal() {}
-  dbg_signal(const char* s) : sc_signal<T>(s) {}
-};
-
-#ifndef __SYNTHESIS__
-
-// Helper trait to detect .Marshall() method
-template <typename T, typename = void>
-struct has_Marshall_method : std::false_type {};
-
-template <typename T>
-struct has_Marshall_method<T,
-  decltype(std::declval<T>().Marshall(std::declval<Marshaller<Wrapped<T>::width>&>()), void())>
-  : std::true_type {};
-
-// specialization for types that have a marshall method (needs custom debug callback in vsim)
-template <typename T>
-class dbg_signal<T,  typename std::enable_if<has_Marshall_method<T>::value>::type>
-  : public sc_signal<T>
-{
-public:
-  dbg_signal() { do_reg(); }
-  dbg_signal(const char* s) : sc_signal<T>(s) { do_reg();}
-
-  static const int maxlen = 100;
-
-  static void debug_cb(void* var, char* mti_value, char format_str)
+  // Enable debug for custom types in simulation
+  // primary template
+  template <typename T, typename = void>
+  class dbg_signal : public sc_signal<T>
   {
-    T* p = reinterpret_cast<T*>(var);
-    std::ostringstream ss;
-    ss << std::hex << *p;
-    strncpy(mti_value, ss.str().c_str(), maxlen - 2);
-    mti_value[maxlen-1] = 0;
-  }
+  public:
+    dbg_signal() {}
+    dbg_signal(const char* s) : sc_signal<T>(s) {}
+  };
 
-  void do_reg() {
+#if defined(CONNECTIONS_CUSTOM_DEBUG) && !defined(__SYNTHESIS__)
+  // Helper trait to detect .Marshall() method
+  template <typename T, typename = void>
+  struct has_Marshall_method : std::false_type {};
+
+  template <typename T>
+  struct has_Marshall_method<T,
+    decltype(std::declval<T>().Marshall(std::declval<Marshaller<Wrapped<T>::width>&>()), void())>
+    : std::true_type {};
+
+  // specialization for types that have a marshall method (needs custom debug callback in vsim)
+  template <typename T>
+  class dbg_signal<T,  typename std::enable_if<has_Marshall_method<T>::value>::type>
+    : public sc_signal<T>
+  {
+  public:
+    dbg_signal() { do_reg(); }
+    dbg_signal(const char* s) : sc_signal<T>(s) { do_reg(); }
+
+    static const int maxlen = 100;
+
+    static void debug_cb(void* var, char* mti_value, char format_str)
+    {
+      T* p = reinterpret_cast<T*>(var);
+      std::ostringstream ss;
+      ss << std::hex << *p;
+      strncpy(mti_value, ss.str().c_str(), maxlen - 2);
+      mti_value[maxlen-1] = 0;
+    }
+
+    void do_reg() {
 #ifdef SC_MTI_REGISTER_CUSTOM_DEBUG
-   sc_signal<T>* sig = this;
-   SC_MTI_REGISTER_CUSTOM_DEBUG(sig, maxlen, debug_cb);
+     sc_signal<T>* sig = this;
+     SC_MTI_REGISTER_CUSTOM_DEBUG(sig, maxlen, debug_cb);
 #endif
-  }
-};
-
-#endif
+    }
+  };
+#endif // CONNECTIONS_CUSTOM_DEBUG
 
   template <class T>
   T
@@ -5438,7 +5437,11 @@ public:
     dbg_signal<Message> _DATNAMEOUT_;
     OutBlocking<Message, DIRECT_PORT> *driver{0};  // DGB
 #else
+#ifdef __SYNTHESIS__
+    sc_signal<Message> _DATNAME_;
+#else
     dbg_signal<Message> _DATNAME_;
+#endif
 #endif
 
     Combinational() : Combinational_SimPorts_abs<Message, DIRECT_PORT>()

@@ -6,9 +6,9 @@ set sfd [file dir [info script]]
 options defaults
 
 if {$enable_preserve_fields} {
-  options set /Input/CompilerFlags { "-DFORCE_AUTO_PORT=Connections::DIRECT_PORT" -DSEGMENT_BURST_SIZE=16}
+  options set /Input/CompilerFlags { "-DFORCE_AUTO_PORT=Connections::DIRECT_PORT" -DSEGMENT_BURST_SIZE=16 -DCONNECTIONS_CUSTOM_DEBUG=1}
 } else {
-  options set /Input/CompilerFlags { -DSEGMENT_BURST_SIZE=16}
+  options set /Input/CompilerFlags { -DSEGMENT_BURST_SIZE=16 -DCONNECTIONS_CUSTOM_DEBUG=1}
 }
 options set /Input/SearchPath $sfd/../../include -append
 options set /Input/SearchPath {$MGC_HOME/shared/pkgs/matchlib/cmod/include} -append
