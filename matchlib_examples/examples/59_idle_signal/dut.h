@@ -6,6 +6,7 @@
 #include <ac_math.h>
 
 #include "connections_idle.h"
+#include "sc_named.h"
 
 
 #pragma hls_design top

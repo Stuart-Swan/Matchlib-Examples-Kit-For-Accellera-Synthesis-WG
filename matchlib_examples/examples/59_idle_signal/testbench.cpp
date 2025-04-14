@@ -1,6 +1,5 @@
 // INSERT_EULA_COPYRIGHT: 2020
 
-#include "dut.h"
 #include <mc_scverify.h>
 #include <stable_random.h>
 #include <memory.h>
@@ -8,7 +7,10 @@
 #define USE_GATED_CLOCK 1
 #define SAMPLE_COUNT  300
 #define USE_RANDOM 1
-#define AUTOMATIC_IDLE 1
+//#define AUTOMATIC_IDLE 1
+
+#include "dut.h"
+#include "clock_gate_module.h"
 
 
 class Top : public sc_module
@@ -17,31 +19,26 @@ public:
   CCS_DESIGN(dut) SC_NAMED(dut1);
 
   sc_clock clk;
-  gated_clock gated_clock1;
   SC_SIG(bool, rst_bar);
   SC_SIG(bool, idle);
-  SC_SIG(bool, gated_clock1_clk);
+  SC_SIG(bool, gated_clk);
+  clock_gate_module SC_NAMED(clock_gate_module1);
 
   Connections::Combinational<uint32>        SC_NAMED(out1);
   Connections::Combinational<uint32>        SC_NAMED(in1);
   Connections::Combinational<uint32>        SC_NAMED(in2);
 
- virtual void start_of_simulation() {
-    Connections::get_sim_clk().add_clock_alias(
-      clk.posedge_event(), gated_clock1_clk.posedge_event());
-  }
-
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true)
-    ,   gated_clock1("gated_clock1", clk.period())
   {
     sc_object_tracer<sc_clock> trace_clk(clk);
 
-    gated_clock1.idle(idle);
-    gated_clock1.clk_out(gated_clock1_clk);
+    clock_gate_module1.idle(idle);
+    clock_gate_module1.clk_in(clk);
+    clock_gate_module1.clk_out(gated_clk);
 
 #ifdef USE_GATED_CLOCK
-    dut1.clk(gated_clock1_clk);
+    dut1.clk(gated_clk);
 #else
     dut1.clk(clk);
 #endif
@@ -97,7 +94,8 @@ public:
     stable_random gen;
 
     while (1) {
-      CCS_LOG("TB resp sees: " << std::hex << out1.Pop());
+      auto t = out1.Pop();
+      CCS_LOG("TB resp sees: " << std::hex << t);
 #ifdef USE_RANDOM
       if ((gen.get() & 0xf) == 0)
         wait();
