@@ -7,6 +7,8 @@
 #include <ac_shared_array_1D.h>
 #include <extended_array.h>
 
+#include <sc_named.h>
+
 SC_MODULE(dut)
 {
   sc_in<bool> SC_NAMED(clk);
