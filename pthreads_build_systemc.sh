@@ -8,10 +8,16 @@ cd ..
 
 export CXX="g++ -std=c++11"
 cd $SYSTEMC_HOME
-find . -name 'configure.ac' -exec touch aclocal.m4 configure Makefile.in {} +
+
+touch configure.ac
+sleep 2
+touch aclocal.m4 configure Makefile.cin
+find . -name 'Makefile.in' -exec touch {} \;
+find . -name 'config.h.in' -exec touch {} \;
+
 rm -rf objdir
 mkdir objdir
 cd objdir
-../configure --enable-pthreads --disable-maintainer-mode
+../configure --enable-pthreads 
 make
 make install

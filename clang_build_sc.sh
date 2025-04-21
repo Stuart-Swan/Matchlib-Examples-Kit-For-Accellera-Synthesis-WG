@@ -9,9 +9,16 @@ cd ..
 
 export CXX=`pwd`/clang_fix.sh
 cd $SYSTEMC_HOME
+
+touch configure.ac
+sleep 2
+touch aclocal.m4 configure Makefile.cin
+find . -name 'Makefile.in' -exec touch {} \;
+find . -name 'config.h.in' -exec touch {} \;
+
 rm -rf objdir
 mkdir objdir
 cd objdir
-../configure
+../configure 
 make
 make install
