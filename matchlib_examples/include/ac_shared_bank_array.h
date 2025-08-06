@@ -65,12 +65,12 @@ class ac_shared_bank_array_base
   ac_shared_bank_array_base<B, C-W> a1;
 public:
   B &operator[](size_t idx) { 
-    assert(idx < C);
+    HLS_ASSERTION(idx < C);
     size_t aidx = idx & (W-1); return idx&W ? a1[aidx] : a0[aidx]; 
   }
 
   const B &operator[](size_t idx) const {
-    assert(idx < C);
+    HLS_ASSERTION(idx < C);
     size_t aidx = idx & (W-1); return idx&W ? a1[aidx] : a0[aidx]; 
   }
 };
@@ -86,12 +86,12 @@ class ac_shared_bank_array_base<E [D], C>
   ac_shared_bank_array_base<B, C-W> a1;
 public:
   AC &operator[](size_t idx) { 
-    assert(idx < C);
+    HLS_ASSERTION(idx < C);
     size_t aidx = idx & (W-1); return idx&W ? a1[aidx] : a0[aidx]; 
   }
 
   const AC &operator[](size_t idx) const {
-    assert(idx < C);
+    HLS_ASSERTION(idx < C);
     size_t aidx = idx & (W-1); return idx&W ? a1[aidx] : a0[aidx]; 
   }
 };

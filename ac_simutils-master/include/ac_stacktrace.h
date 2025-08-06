@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Simulation Utilities                               *
  *                                                                        *
- *  Software Version: 1.5                                                 *
+ *  Software Version: 1.8                                                 *
  *                                                                        *
- *  Release Date    : Sun Feb  4 15:24:00 PST 2024                        *
+ *  Release Date    : Thu Jul 24 13:23:36 PDT 2025                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 1.5.0                                               *
+ *  Release Build   : 1.8.0                                               *
  *                                                                        *
  *  Copyright 2022 Siemens                                                *
  *                                                                        *
@@ -75,6 +75,7 @@
 #error C++ is required to include this header file
 #endif
 
+#include <cstdint>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -136,6 +137,37 @@ namespace ac_debug
     if (nptrs > 0) {
       for (int j=starting_frame;j<nptrs;j++) { sprintf(ptrstr,"%p",(void*)buffer[j]); key << std::string(ptrstr); if (j<nptrs-1) key << ",";}
     }
+  }
+
+  inline void build_stack_key(std::vector<std::uintptr_t> &key, const int starting_frame = 0) {
+    key.clear();
+    void *buffer[100]; // max stack size
+    #if defined(_WIN32)
+    unsigned short nptrs = CaptureStackBackTrace(0,62,buffer,NULL);
+    #else
+    int nptrs = backtrace(buffer,100)-2; // drop 2 outermost frames (i.e. above main) for linux CRT
+    #endif
+
+    key.reserve(nptrs - starting_frame);
+    for (int j = starting_frame; j < nptrs; j++) {
+      key.push_back(reinterpret_cast<std::uintptr_t>(buffer[j]));
+    }
+  }
+
+  inline std::string conv_vtrace_to_str(const std::vector<std::uintptr_t> &key_vec) {
+    std::stringstream key_ss;
+    const int key_vec_size = key_vec.size();
+    
+    auto ff = key_ss.flags();
+    key_ss << std::hex;
+
+    for (int j = 0; j < key_vec_size; j++) {
+      key_ss << "0x" << key_vec[j];
+      if (j != key_vec_size - 1) { key_ss << ","; }
+    }
+
+    key_ss.flags(ff);
+    return key_ss.str();
   }
 
 #if !defined(_WIN32)
@@ -232,6 +264,17 @@ namespace ac_debug
     return trace.str();
   }
 
+  // Function: format_stack_trace
+  // Accepts a vector of pointers (converted to std::uintptr_t), converts it to a string,
+  // then uses the format_stack_trace function above to do the rest of the formatting.
+  inline std::string format_stack_trace(
+    const std::vector<std::uintptr_t> &key,
+    bool flat=false, bool optFormat=false, bool csvFormat=false, bool ignoreNoDebugInfo = false
+  ) {
+    std::string vtrace_as_str = conv_vtrace_to_str(key);
+    std::string formatted_str = format_stack_trace(vtrace_as_str, flat, optFormat, csvFormat, ignoreNoDebugInfo);
+    return formatted_str;
+  }
 }
 
 #undef ARCH_PC_OFFSET

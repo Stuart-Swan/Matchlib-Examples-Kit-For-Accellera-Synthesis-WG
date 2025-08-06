@@ -46,7 +46,7 @@ class ac_wr_mask_array_1D {
 
   // use this function when HLS cannot handle elem_proxy functions
   void write(unsigned idx, T val, WriteMask mask_val=~0) {
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       Data_t write_data = TypeToBits<T>(val);
       #pragma hls_unroll yes
       for (unsigned i = 0; i < ac_wr_mask_array_1D::num_slices; i++) {
@@ -57,7 +57,7 @@ class ac_wr_mask_array_1D {
 
   template <typename slice_t>
   void write(idx_t idx, const slice_t val[num_slices], WriteMask mask_val=~0) {
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       const ac_int<32, false> slice_w = SliceWidth;
       #pragma hls_unroll yes
       for (ac_int<32, false> i=0; i < num_slices; ++i) {
@@ -68,7 +68,7 @@ class ac_wr_mask_array_1D {
 
   // use this function when HLS cannot handle elem_proxy functions
   T read(unsigned idx) {
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       Data_t read_data = TypeToBits<NVUINTW(ac_wr_mask_array_1D::WordWidth)>(0);
       #pragma hls_unroll yes
       for (unsigned i = 0; i < ac_wr_mask_array_1D::num_slices; i++) {
@@ -81,7 +81,7 @@ class ac_wr_mask_array_1D {
 
   template <typename slice_t>
   void read(slice_t val[num_slices], unsigned idx) {
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       #pragma hls_unroll yes
       for (unsigned i = 0; i < ac_wr_mask_array_1D::num_slices; i++) {
         auto read_data = mem[i][idx];
@@ -100,7 +100,7 @@ class ac_wr_mask_array_1D {
      : array(_array), idx(_idx), mask_val(_mask) {} 
 
     operator T () { 
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       Data_t read_data = TypeToBits<NVUINTW(ac_wr_mask_array_1D::WordWidth)>(0);
       #pragma hls_unroll yes
       for (unsigned i = 0; i < ac_wr_mask_array_1D::num_slices; i++) {
@@ -112,7 +112,7 @@ class ac_wr_mask_array_1D {
     }
 
     void operator=(const T& val) { 
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       Data_t write_data = TypeToBits<T>(val);
       #pragma hls_unroll yes
       for (unsigned i = 0; i < ac_wr_mask_array_1D::num_slices; i++) {
@@ -162,7 +162,7 @@ class ac_wr_mask_array_1D<T, Dim1, SliceWidth, true> {
 
   // use this function when HLS cannot handle elem_proxy functions
   void write(idx_t idx, data_t val, WriteMask mask_val=~0) {
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       const ac_int<32, false> slice_w = SliceWidth;
       #pragma hls_unroll yes
       for (ac_int<32, false> i=0; i < num_slices; ++i) {
@@ -173,7 +173,7 @@ class ac_wr_mask_array_1D<T, Dim1, SliceWidth, true> {
 
   template <typename slice_t>
   void write(idx_t idx, const slice_t val[num_slices], WriteMask mask_val=~0) {
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       const ac_int<32, false> slice_w = SliceWidth;
       #pragma hls_unroll yes
       for (ac_int<32, false> i=0; i < num_slices; ++i) {
@@ -184,13 +184,13 @@ class ac_wr_mask_array_1D<T, Dim1, SliceWidth, true> {
 
   // use this function when HLS cannot handle elem_proxy functions
   T read(idx_t idx) {
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       return mem[idx];
   }
 
   template <typename slice_t>
   void read(slice_t val[num_slices], unsigned idx) {
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       #pragma hls_unroll yes
       for (unsigned i = 0; i < ac_wr_mask_array_1D::num_slices; i++) {
         auto read_data = mem[idx];
@@ -207,12 +207,12 @@ class ac_wr_mask_array_1D<T, Dim1, SliceWidth, true> {
      : array(_array), idx(_idx), mask_val(_mask) {} 
 
     operator T () { 
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       return array.mem[idx];
     }
 
     void operator=(const ac_wr_mask_array_1D::data_t& val) { 
-      assert(idx < ac_wr_mask_array_1D::dim1);
+      HLS_ASSERTION(idx < ac_wr_mask_array_1D::dim1);
       const ac_int<32, false> slice_w = SliceWidth;
       #pragma hls_unroll yes
       for (ac_int<32, false> i=0; i < num_slices; ++i) {

@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Simulation Utilities                               *
  *                                                                        *
- *  Software Version: 1.5                                                 *
+ *  Software Version: 1.8                                                 *
  *                                                                        *
- *  Release Date    : Sun Feb  4 15:24:00 PST 2024                        *
+ *  Release Date    : Thu Jul 24 13:23:36 PDT 2025                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 1.5.0                                               *
+ *  Release Build   : 1.8.0                                               *
  *                                                                        *
  *  Copyright 2020 Siemens                                                *
  *                                                                        *
@@ -34,6 +34,54 @@
 // Description: Provides synthesizable "assert" and "cover" functions.
 //      When run with standalone C++ execution, at the end of execution a primative
 //      coverage report is dumped to the console.
+//
+// Assertion macros/behavior
+// 
+// Macro           | Msg at | Total | Abort   | Synth  | Msg at | Total | Abort   | Fail |
+//                 | fire   | msgs? | or Cont | to RTL | fire   | msgs  | or Cont |      |
+// ---------------------------------------------------------------------------------------
+// AC_ASSERTION(X) | 1 msg  | n/a   | abort   | SVA    | 1 msg  | yes   | cont    | yes  |
+// HLS_ASSERTION(x)|        |       |         |        |        |       |         |      |
+// ---------------------------------------------------------------------------------------
+// RTL_ASSERTION(X)| no     | no    | cont    | SVA    | 1 msg  | yes   | cont    | yes  |
+// ---------------------------------------------------------------------------------------
+// softassert(X)   | 1 msg  | yes   | cont    | SVA    | 1 msg  | yes   | cont    | yes  |
+// ---------------------------------------------------------------------------------------
+// assert(X)       | 1 msg  | n/a   | abort   | no     | 1 msg  | n/a   | abort   | n/a  |
+//  after 2025.3   |        |       |         |        |        |       |         |      |
+// ---------------------------------------------------------------------------------------
+// assert(X) when  | 1 msg  | n/a   | abort   | SVA    | 1 msg  | yes   | cont    | yes  |
+// AC_ASSERT_REDEF |        |       |         |        |        |       |         |      |
+// defined         |        |       |         |        |        |       |         |      |
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// ovl_assert(X)   | 1 msg  | yes   | cont    | OVL    | 1 msg  | yes   | cont    | yes  |
+// ---------------------------------------------------------------------------------------
+// AC_OVL_ASSERT(X)| 1 msg  | yes   | cont    | OVL    | 1 msg  | yes   | cont    | yes  |
+// ---------------------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------------------
+// sc_assert(X)    | 1 msg  | n/a   | abort   | SVA    | 1 msg  | yes   | cont    | yes  |
+// ---------------------------------------------------------------------------------------
+// ovl_sc_assert(X)| all    | yes   | cont    | OVL    | all    | yes   | cont    | yes  |
+// ---------------------------------------------------------------------------------------
+// AC_OVL_SC_      | all    | yes   | cont    | OVL    | all    | yes   | cont    | yes  |
+//     ASSERT(X)   |                                                                     |
+// ---------------------------------------------------------------------------------------
+
+
+// Cover macros/behavior
+//
+// cover(X) not defined
+//  after 2025.3
+// ovl_cover(X)
+// AC_COVER(X)
+// HLS_COVER(X)
+// AC_OVL_COVER(X)
+// HLS_OVL_COVER(X)
+
+
 //
 // Revision History:
 //    1.2.0 - Initial version on github
@@ -92,13 +140,23 @@
 #include <stdarg.h>
 #endif
 
+#if defined(CCS_SCVERIFY)
+extern void mc_testbench_ac_assert_fail();
+#endif
+
+// Define a version macro for backward compatibility if required
+#define AC_ASSERT_VER 2
+
+// For backward compatibility with pre-2025.3 releases:
+// (this will be removed in a future release but can be manually supplied by the end user at that time)
+#define AC_COVER_REDEF 1
 
 #ifdef __AC_NAMESPACE
 namespace __AC_NAMESPACE {
 #endif
 
 namespace ac {
-  #if !defined(CCS_SCVERIFY) && !defined(__SYNTHESIS__)
+  #if !defined(__SYNTHESIS__)
 
   // Function: build_stack_key
   // Returns a string built from the concatenation of the call stack addresses
@@ -119,6 +177,51 @@ namespace ac {
       }
       #endif
   }
+
+  // Manage assertion triggers
+  class assert_manager : public std::map<std::string,int>
+  {
+  public:
+    assert_manager() {}
+    ~assert_manager() {
+      if (!empty()) {
+        for (std::map<std::string,int>::iterator pos=begin(); pos!=end(); ++pos) {
+          if ( (*pos).second > 0) {
+            std::string key((*pos).first);
+            std::size_t endstack = 0;
+            endstack = key.find_first_of(":")+1;
+            bool quiet = (key[endstack] == 'T');
+#if defined(CCS_SCVERIFY)
+            (void)quiet;
+            printf("Warning: ac_assert: %s: ASSERT TRIGGERED %d TIME(S)\n", key.substr(endstack+1).c_str(), (*pos).second);
+#else
+            // RTL_ASSERTION will not print summary counts during C++ execution
+            if (!quiet) {
+              printf("%s: ASSERT TRIGGERED %d TIME(S)\n", key.substr(endstack+1).c_str(), (*pos).second);
+            }
+#endif
+
+          }
+        }
+      }
+    }
+    // returns true if message should be reported
+    bool check_assert(const char *filename, int lineno, const char *expr_str, bool expr, bool quiet=false) {
+      if (!expr) {
+        std::stringstream key;
+        build_stack_key(key,0);
+        key << (quiet?"T":"F") << filename << ": " << lineno << " {" << expr_str << "}";
+        std::map<std::string,int>::iterator pos = find(key.str());
+        if (pos == end()) {
+          insert(std::pair<std::string,int>(key.str(),0));
+          pos = find(key.str());
+        }
+        (*pos).second++; // increment count in entry
+        if ( (*pos).second <= 1) return true;
+      }
+      return false;
+    }
+  };
 
   // Manage cover directives "ac_cover"
   class cover_manager : public std::map<std::string,int>
@@ -163,43 +266,51 @@ namespace ac {
 #endif
 
   // Synthesizable assert "ac_assert"
-  inline void ac_assert(const char *filename, int lineno, const char *expr_str, bool expr) {
-    #if !defined(CCS_SCVERIFY) && !defined(__SYNTHESIS__)
-    static std::map<std::string,int> s_hit_count;
-    if ( ! expr ) {
-      std::stringstream key;
-      key << filename << ":" << lineno << "{" << expr_str << "}";
-      std::map<std::string,int>::iterator pos = s_hit_count.find(key.str());
-      if (pos == s_hit_count.end()) {
-        s_hit_count.insert(std::pair<std::string,int>(key.str(),0));
-      }
-      pos = s_hit_count.find(key.str());
-      (*pos).second++; // increment count in entry
-      if ( (*pos).second <= 1 ) {
-        printf("%s: %d: %s: ASSERTION VIOLATION\n", filename, lineno, expr_str);
-      }
+  inline void ac_assert(const char *filename, int lineno, const char *expr_str, bool expr
+#if !defined(__SYNTHESIS__)
+  , bool quiet=false
+#endif
+  ) {
+#if defined(__SYNTHESIS__)
+    // builtin function
+#else
+    static assert_manager s_am;
+    if (s_am.check_assert(filename,lineno,expr_str,expr,quiet)) {
+#if defined(CCS_SCVERIFY)
+        // print message a message then set failure flag for end of SCVerify
+        printf("Warning: ac_assert: %s: %d: %s: ASSERTION VIOLATION\n", filename, lineno, expr_str);
+        mc_testbench_ac_assert_fail();
+#else
+        if (!quiet) {
+          printf("%s: %d: %s: ASSERTION VIOLATION\n", filename, lineno, expr_str);
+        }
+#endif
     }
-    #endif // endif __SYNTHESIS__
+#endif // endif __SYNTHESIS__
   }
 
   // Synthesizable assert "ac_ovl_assert"
-  inline void ac_ovl_assert(const char *filename, int lineno, const char *expr_str, bool expr) {
-    #if !defined(CCS_SCVERIFY) && !defined(__SYNTHESIS__)
-    static std::map<std::string,int> s_hit_count;
-    if ( ! expr ) {
-      std::stringstream key;
-      key << filename << ":" << lineno << "{" << expr_str << "}";
-      std::map<std::string,int>::iterator pos = s_hit_count.find(key.str());
-      if (pos == s_hit_count.end()) {
-        s_hit_count.insert(std::pair<std::string,int>(key.str(),0));
-      }
-      pos = s_hit_count.find(key.str());
-      (*pos).second++; // increment count in entry
-      if ( (*pos).second <= 1 ) {
-        printf("%s: %d: %s: ASSERTION VIOLATION\n", filename, lineno, expr_str);
-      }
+  inline void ac_ovl_assert(const char *filename, int lineno, const char *expr_str, bool expr
+#ifndef CALYPTO_SC
+  , bool quiet=false
+#endif
+  ) {
+#if defined(__SYNTHESIS__)
+    // builtin function
+#else
+    static assert_manager s_am;
+    if (s_am.check_assert(filename,lineno,expr_str,expr)) {
+#if defined(CCS_SCVERIFY)
+        // print message a message then set failure flag for end of SCVerify
+        printf("Warning: ac_assert: %s: %d: %s: ASSERTION VIOLATION\n", filename, lineno, expr_str);
+        mc_testbench_ac_assert_fail();
+#else
+        if (!quiet) {
+          printf("%s: %d: %s: ASSERTION VIOLATION\n", filename, lineno, expr_str);
+        }
+#endif
     }
-    #endif // endif __SYNTHESIS__
+#endif // endif __SYNTHESIS__
   }
 
   // Synthesizable cover directive "ac_cover"
@@ -242,17 +353,42 @@ namespace ac {
   #endif // CALYPTO_SC
 #endif // CCS_SCVERIFY || __SYNTHESIS__
 
+// Convenience macros
+#if defined(CCS_SCVERIFY) || defined(__SYNTHESIS__)
+#define AC_ASSERTION(expr) ac::ac_assert(__FILE__, __LINE__, #expr, expr)
+#define HLS_ASSERTION(expr) ac::ac_assert(__FILE__, __LINE__, #expr, expr)
+#else
+#define AC_ASSERTION(expr) assert(expr)
+#define HLS_ASSERTION(expr) assert(expr)
+#endif
+
 // assert synthesized to OVL instance
 #define ovl_assert(expr) ac::ac_ovl_assert(__FILE__, __LINE__, #expr, expr)
 #define ovl_sc_assert(expr) ac::ac_ovl_assert(__FILE__, __LINE__, #expr, expr)
+#define AC_OVL_ASSERT(expr) ac::ac_ovl_assert(__FILE__, __LINE__, #expr, expr)
+#define AC_OVL_SC_ASSERT(expr) ac::ac_ovl_assert(__FILE__, __LINE__, #expr, expr)
+
 // Use softassert() instead of assert() if you do not want your C++ program to abort
 #define softassert(expr) ac::ac_assert(__FILE__, __LINE__, #expr, expr)
+#if defined(__SYNTHESIS__)
+#define RTL_ASSERTION(expr) ac::ac_assert(__FILE__, __LINE__, #expr, expr)
+#else
+#define RTL_ASSERTION(expr) ac::ac_assert(__FILE__, __LINE__, #expr, expr, true)
+#endif
 
 // COVER DIRECTIVE SYNTHESIS
+#if defined(AC_COVER_REDEF)
 // cover synthesized to PSL property
 #define cover(expr) ac::ac_cover(__FILE__, __LINE__, #expr, expr)
 // cover synthesized to OVL instance
 #define ovl_cover(expr) ac::ac_ovl_cover(__FILE__, __LINE__, #expr, expr)
+#endif
+// cover synthesized to PSL property
+#define AC_COVER(expr) ac::ac_cover(__FILE__, __LINE__, #expr, expr)
+#define HLS_COVER(expr) ac::ac_cover(__FILE__, __LINE__, #expr, expr)
+// cover synthesized to OVL instance
+#define AC_OVL_COVER(expr) ac::ac_ovl_cover(__FILE__, __LINE__, #expr, expr)
+#define HLS_OVL_COVER(expr) ac::ac_ovl_cover(__FILE__, __LINE__, #expr, expr)
 
 // This marks the end of the portion of this header that is guarded by
 // include-fencing. The remainder of this file is to (re)define the
@@ -267,9 +403,14 @@ namespace ac {
 #if defined(CCS_SCVERIFY) || defined(__SYNTHESIS__)
   // If not SLEC
   #ifndef CALYPTO_SC
+    #if defined(AC_ASSERT_REDEF)
     // assert synthesized to PSL property
     #undef assert
     #define assert(expr) ac::ac_assert(__FILE__, __LINE__, #expr, expr)
+    #else
+    #undef assert
+    #define assert(expr)
+    #endif
   #endif // CALYPTO_SC
 #endif // CCS_SCVERIFY || __SYNTHESIS__
 

@@ -36,12 +36,12 @@ public:
   {}
 
   T& operator[](size_t idx) {
-    assert(idx < size);
+    HLS_ASSERTION(idx < size);
     return array[idx + offset];
   }
 
   const T& operator[](size_t idx) const {
-    assert(idx < size);
+    HLS_ASSERTION(idx < size);
     return array[idx + offset];
   }
 };
@@ -60,12 +60,12 @@ public:
   {}
 
   void write(unsigned idx, T val, mask_t mask_val=~0) {
-    assert(idx < size);
+    HLS_ASSERTION(idx < size);
     array.write(idx + offset, val, mask_val);
   }
 
   T read(unsigned idx) {
-    assert(idx < size);
+    HLS_ASSERTION(idx < size);
     return array.read(idx + offset);
   }
 };

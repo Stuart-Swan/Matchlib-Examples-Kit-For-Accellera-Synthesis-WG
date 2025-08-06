@@ -3,6 +3,8 @@
 #pragma once
 
 #include <mc_connections.h>
+#include <sc_named.h>
+
 
 #pragma hls_design top
 class flop : public sc_module

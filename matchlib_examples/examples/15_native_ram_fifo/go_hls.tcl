@@ -14,8 +14,6 @@ flow package require /SCVerify
 solution file add "$sfd/dut.h" -type CHEADER
 solution file add "$sfd/testbench.cpp" -type C++ -exclude true
 
-directive set -SYSC_CHANOPER_FLOW true
-
 go analyze
 solution design set dut -top
 go compile

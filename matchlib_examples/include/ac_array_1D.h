@@ -24,12 +24,12 @@ class ac_array_1D
   T data[D1];
 public:
   T &operator[](size_t idx) { 
-    assert(idx < D1);
+    HLS_ASSERTION(idx < D1);
     return data[idx];
   }
 
   const T &operator[](size_t idx) const {
-    assert(idx < D1);
+    HLS_ASSERTION(idx < D1);
     return data[idx];
   }
 };

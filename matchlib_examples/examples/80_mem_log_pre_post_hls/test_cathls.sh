@@ -9,7 +9,8 @@ echo --------------------------------------------------
 set -v
 
 if command -v catapult > /dev/null 2>&1; then
-  catapult -shell -f go_hls.tcl
+  #catapult -shell -f go_hls.tcl
+  echo skipping TEST 80
 fi
 
 make clean

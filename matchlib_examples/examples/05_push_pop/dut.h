@@ -3,6 +3,8 @@
 #pragma once
 
 #include <mc_connections.h>
+#include "ac_assert.h"
+#include "sc_named.h"
 
 #pragma hls_design top
 class dut : public sc_module

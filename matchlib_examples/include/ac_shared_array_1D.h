@@ -26,12 +26,12 @@ class ac_shared_array_1D
   ac_shared<T [D1]> data;
 public:
   T &operator[](size_t idx) { 
-    assert(idx < D1);
+    HLS_ASSERTION(idx < D1);
     return data[idx];
   }
 
   const T &operator[](size_t idx) const {
-    assert(idx < D1);
+    HLS_ASSERTION(idx < D1);
     return data[idx];
   }
 };

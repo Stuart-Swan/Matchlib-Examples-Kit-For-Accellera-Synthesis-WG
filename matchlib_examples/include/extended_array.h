@@ -64,9 +64,9 @@ public:
       else
         os << "";
       sc_lv_base val(elem_width);
-      assert(idx < N);
+      HLS_ASSERTION(idx < N);
       if (ext_array.umr_assert)
-        assert(ext_array.write_cnt[idx] > 0); // assert on uninitialized memory read (UMR)
+        HLS_ASSERTION(ext_array.write_cnt[idx] > 0); // assert on uninitialized memory read (UMR)
       val = array[idx];
       ext_array.mem_read_log << std::setfill('0') << std::setw(8) << std::hex << idx 
            << " " << ext_array.write_cnt[idx] << " " << val << " " << os.str() << "\n";
@@ -80,7 +80,7 @@ public:
       else
         os << "";
       sc_lv_base val(elem_width);
-      assert(idx < N);
+      HLS_ASSERTION(idx < N);
       ++ext_array.write_cnt[idx];
       val = array[idx] = v; 
       ext_array.mem_write_log << std::setfill('0') << std::setw(8) << std::hex << idx 

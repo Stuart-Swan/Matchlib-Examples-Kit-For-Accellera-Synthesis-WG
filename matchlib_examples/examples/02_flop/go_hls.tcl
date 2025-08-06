@@ -18,6 +18,7 @@ flow package option set /QuestaSIM/ENABLE_CODE_COVERAGE true
 
 solution file add "$sfd/flop.h" -type CHEADER
 solution file add "$sfd/testbench.cpp" -type C++ -exclude true
+options set /Input/SearchPath {../../include} -append
 
 go analyze
 solution design set flop -top

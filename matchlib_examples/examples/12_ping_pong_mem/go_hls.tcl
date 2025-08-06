@@ -27,8 +27,6 @@ flow package option set /QuestaSIM/ENABLE_CODE_COVERAGE true
 solution file add "$sfd/dut.h" -type CHEADER
 solution file add "$sfd/testbench.cpp" -type C++ -exclude true
 
-directive set -SYSC_CHANOPER_FLOW true
-
 go analyze
 solution design set dut -top
 

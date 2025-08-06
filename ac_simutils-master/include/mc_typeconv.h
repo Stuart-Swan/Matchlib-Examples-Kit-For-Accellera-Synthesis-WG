@@ -2,11 +2,11 @@
  *                                                                        *
  *  Algorithmic C (tm) Simulation Utilities                               *
  *                                                                        *
- *  Software Version: 1.5                                                 *
+ *  Software Version: 1.8                                                 *
  *                                                                        *
- *  Release Date    : Sun Feb  4 15:24:00 PST 2024                        *
+ *  Release Date    : Thu Jul 24 13:23:36 PDT 2025                        *
  *  Release Type    : Production Release                                  *
- *  Release Build   : 1.5.0                                               *
+ *  Release Build   : 1.8.0                                               *
  *                                                                        *
  *  Copyright 2020 Siemens                                                *
  *                                                                        *
@@ -86,14 +86,14 @@
 // built-in types and sc_types:
 
 template < int Twidth>
-void type_to_vector(const sc_int<Twidth> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const sc_dt::sc_int<Twidth> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   // sc_assert(length == Twidth);
   rvec = in;
 }
 
 template < int Twidth>
-void type_to_vector(const sc_bigint<Twidth> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const sc_dt::sc_bigint<Twidth> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   // sc_assert(length == Twidth);
   rvec = in;
@@ -109,31 +109,31 @@ void type_to_vector(const sc_bigint<Twidth> &in, int length, sc_lv<Twidth> &rvec
 // ---------------------------------  SC_FIXED
 // SC_FIXED => SC_LV
 template<int Twidth, int Ibits>
-void type_to_vector(const sc_fixed<Twidth,Ibits> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const sc_fixed<Twidth,Ibits> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   // sc_assert(length == Twidth);
   // rvec = in.range(Twidth-1, 0); // via assignment from sc_bv_base not provided
-  sc_int<Twidth> tmp;
+  sc_dt::sc_int<Twidth> tmp;
   tmp = in.range(Twidth-1, 0);
   type_to_vector(tmp, length, rvec);
 }
 
 // SC_FIXED => SC_LV
 template<int Twidth, int Ibits, sc_q_mode Qmode, sc_o_mode Omode, int Nbits>
-void type_to_vector(const sc_fixed<Twidth,Ibits,Qmode,Omode,Nbits> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const sc_fixed<Twidth,Ibits,Qmode,Omode,Nbits> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   // sc_assert(length == Twidth);
   // rvec = in.range(Twidth-1, 0); // via assignment from sc_bv_base not provided
-  sc_bigint<Twidth> tmp;
+  sc_dt::sc_bigint<Twidth> tmp;
   tmp = in.range(Twidth-1, 0);
   type_to_vector(tmp, length, rvec);
 }
 
 // SC_LV => SC_FIXED
 template<int Twidth, int Ibits, sc_q_mode Qmode, sc_o_mode Omode, int Nbits>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_fixed<Twidth,Ibits,Qmode,Omode,Nbits> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, sc_fixed<Twidth,Ibits,Qmode,Omode,Nbits> *result)
 {
-  sc_bigint<Twidth> tmp = in;
+  sc_dt::sc_bigint<Twidth> tmp = in;
   result->range(Twidth-1, 0) = tmp; // via sc_bv_base
 }
 
@@ -141,20 +141,20 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_fixed<Twidth,Ibit
 // ---------------------------------  SC_UFIXED
 // SC_UFIXED => SC_LV
 template<int Twidth, int Ibits, sc_q_mode Qmode, sc_o_mode Omode, int Nbits>
-void type_to_vector(const sc_ufixed<Twidth,Ibits,Qmode,Omode,Nbits> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const sc_ufixed<Twidth,Ibits,Qmode,Omode,Nbits> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   // sc_assert(length == Twidth);
   // rvec = in.range(Twidth-1, 0); // via assignment from sc_bv_base not provided
-  sc_bigint<Twidth> tmp;
+  sc_dt::sc_bigint<Twidth> tmp;
   tmp = in.range(Twidth-1, 0);
   type_to_vector(tmp, length, rvec);
 }
 
 // SC_LV => SC_UFIXED
 template<int Twidth, int Ibits, sc_q_mode Qmode, sc_o_mode Omode, int Nbits>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_ufixed<Twidth,Ibits,Qmode,Omode,Nbits> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, sc_ufixed<Twidth,Ibits,Qmode,Omode,Nbits> *result)
 {
-  sc_bigint<Twidth> tmp = in;
+  sc_dt::sc_bigint<Twidth> tmp = in;
   result->range(Twidth-1, 0) = tmp;
 }
 
@@ -163,39 +163,39 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_ufixed<Twidth,Ibi
 // then these conversions allow a better "Not Allowed in sysnthesis" message is possible.
 // SC_FIXED_FAST => SC_LV
 template<int Twidth, int Ibits, sc_q_mode Qmode, sc_o_mode Omode, int Nbits>
-void type_to_vector(const sc_fixed_fast<Twidth,Ibits,Qmode,Omode,Nbits> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const sc_fixed_fast<Twidth,Ibits,Qmode,Omode,Nbits> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   // sc_assert(length == Twidth);
   // rvec = in.range(Twidth-1, 0); // via assignment from sc_bv_base not provided
-  sc_bigint<Twidth> tmp;
+  sc_dt::sc_bigint<Twidth> tmp;
   tmp = in.range(Twidth-1, 0);
   type_to_vector(tmp, length, rvec);
 }
 
 // SC_LV => SC_FIXED_FAST
 template<int Twidth, int Ibits, sc_q_mode Qmode, sc_o_mode Omode, int Nbits>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_fixed_fast<Twidth,Ibits,Qmode,Omode,Nbits> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, sc_fixed_fast<Twidth,Ibits,Qmode,Omode,Nbits> *result)
 {
-  sc_bigint<Twidth> tmp = in;
+  sc_dt::sc_bigint<Twidth> tmp = in;
   result->range(Twidth-1, 0) = tmp; // via sc_bv_base
 }
 
 // SC_UFIXED_FAST => SC_LV
 template<int Twidth, int Ibits, sc_q_mode Qmode, sc_o_mode Omode, int Nbits>
-void type_to_vector(const sc_ufixed_fast<Twidth,Ibits,Qmode,Omode,Nbits> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const sc_ufixed_fast<Twidth,Ibits,Qmode,Omode,Nbits> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   // sc_assert(length == Twidth);
   // rvec = in.range(Twidth-1, 0); // via assignment from sc_bv_base not provided
-  sc_bigint<Twidth> tmp;
+  sc_dt::sc_bigint<Twidth> tmp;
   tmp = in.range(Twidth-1, 0);
   type_to_vector(tmp, length, rvec);
 }
 
 // SC_LV => SC_UFIXED_FAST
 template<int Twidth, int Ibits, sc_q_mode Qmode, sc_o_mode Omode, int Nbits>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_ufixed_fast<Twidth,Ibits,Qmode,Omode,Nbits> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, sc_ufixed_fast<Twidth,Ibits,Qmode,Omode,Nbits> *result)
 {
-  sc_bigint<Twidth> tmp = in;
+  sc_dt::sc_bigint<Twidth> tmp = in;
   result->range(Twidth-1, 0) = tmp;
 }
 #endif
@@ -208,7 +208,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_ufixed_fast<Twidt
 
 // GENERIC => SC_LV
 template <class T, int Twidth>
-void type_to_vector(const T &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const T &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   // sc_assert(length == Twidth);
   rvec = in;
@@ -222,7 +222,7 @@ void type_to_vector(const T &in, int length, sc_lv<Twidth> &rvec)
 
 // SC_LV => SC_INT
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_int<Twidth> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, sc_dt::sc_int<Twidth> *result)
 {
   *result = in;
 }
@@ -235,7 +235,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_int<Twidth> *resu
 
 // SC_LV => SC_UINT
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_uint<Twidth> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, sc_dt::sc_uint<Twidth> *result)
 {
   *result = in;
 }
@@ -248,7 +248,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_uint<Twidth> *res
 
 // SC_LV => SC_BIGINT
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_bigint<Twidth> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, sc_dt::sc_bigint<Twidth> *result)
 {
   *result = in;
 }
@@ -261,7 +261,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_bigint<Twidth> *r
 
 // SC_LV => SC_BIGUINT
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_biguint<Twidth> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, sc_dt::sc_biguint<Twidth> *result)
 {
   *result = in;
 }
@@ -275,7 +275,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_biguint<Twidth> *
 
 // SC_LV => BOOL
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, bool *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, bool *result)
 {
   *result = (in[0] == sc_dt::Log_1 ? true : false);
 }
@@ -286,14 +286,14 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, bool *result)
 // ---------------------------------  ***SPECIAL*** sc_logic to bool, bool to sc_logic
 // SC_Logic => BOOL
 inline
-void vector_to_type(const sc_logic &in, bool issigned, bool *result)
+void vector_to_type(const sc_dt::sc_logic &in, bool issigned, bool *result)
 {
   *result = (in == sc_dt::Log_1 ? true : false);
 }
 
 // BOOL => SC_Logic
 inline
-void type_to_vector(const bool &in, int length, sc_logic &rvec)
+void type_to_vector(const bool &in, int length, sc_dt::sc_logic &rvec)
 {
   rvec = in;
 }
@@ -304,27 +304,27 @@ void type_to_vector(const bool &in, int length, sc_logic &rvec)
 // Should not really ever need this, but for completeness...
 // SC_Logic => SC_UINT<1>
 inline
-void vector_to_type(const sc_logic &in, bool issigned, sc_uint<1> *result)
+void vector_to_type(const sc_dt::sc_logic &in, bool issigned, sc_dt::sc_uint<1> *result)
 {
   *result = (in == sc_dt::Log_1 ? 1 : 0);
 }
 
 // SC_UINT<1> => SC_Logic
 inline
-void type_to_vector(const sc_uint<1> &in, int length, sc_logic &rvec)
+void type_to_vector(const sc_dt::sc_uint<1> &in, int length, sc_dt::sc_logic &rvec)
 {
   rvec = in ? sc_dt::Log_1 : sc_dt::Log_0;
 }
 
 // ---------------------------------  ***SPECIAL*** sc_lv<1> to sc_logic, sc_logic to sc_lv<1>
 inline
-void vector_to_type(const sc_lv<1> &in, bool issigned, sc_logic *result)
+void vector_to_type(const sc_dt::sc_lv<1> &in, bool issigned, sc_dt::sc_logic *result)
 {
   *result = in[0];
 }
 
 inline
-void type_to_vector(const sc_logic &in, int length, sc_lv<1> &rvec)
+void type_to_vector(const sc_dt::sc_logic &in, int length, sc_dt::sc_lv<1> &rvec)
 {
   rvec[0] = in;
 }
@@ -332,13 +332,13 @@ void type_to_vector(const sc_logic &in, int length, sc_lv<1> &rvec)
 
 // ---------------------------------  ***SPECIAL*** sc_logic to sc_lv<1>, sc_lv<1> to sc_logic
 inline
-void vector_to_type(const sc_logic &in, bool issigned, sc_lv<1> *result)
+void vector_to_type(const sc_dt::sc_logic &in, bool issigned, sc_dt::sc_lv<1> *result)
 {
   (*result)[0] = in;
 }
 
 inline
-void type_to_vector(const sc_lv<1> &in, int length, sc_logic &rvec)
+void type_to_vector(const sc_dt::sc_lv<1> &in, int length, sc_dt::sc_logic &rvec)
 {
   rvec = in[0];
 }
@@ -346,13 +346,13 @@ void type_to_vector(const sc_lv<1> &in, int length, sc_logic &rvec)
 
 // ---------------------------------  ***SPECIAL*** sc_logic to sc_logic, sc_logic to sc_logic
 inline
-void vector_to_type(const sc_logic &in, bool issigned, sc_logic *result)
+void vector_to_type(const sc_dt::sc_logic &in, bool issigned, sc_dt::sc_logic *result)
 {
   *result = in;
 }
 
 inline
-void type_to_vector(const sc_logic &in, int length, sc_logic &rvec)
+void type_to_vector(const sc_dt::sc_logic &in, int length, sc_dt::sc_logic &rvec)
 {
   rvec = in;
 }
@@ -361,14 +361,14 @@ void type_to_vector(const sc_logic &in, int length, sc_logic &rvec)
 // ---------------------------------  ***SPECIAL*** sc_lv<N> to sc_lv<N>,
 template<int Twidth>
 inline
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_lv<Twidth> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, sc_dt::sc_lv<Twidth> *result)
 {
   *result = in;
 }
 
 template<int Twidth>
 inline
-void type_to_vector(const sc_lv<Twidth> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const sc_dt::sc_lv<Twidth> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   rvec = in;
 }
@@ -377,14 +377,14 @@ void type_to_vector(const sc_lv<Twidth> &in, int length, sc_lv<Twidth> &rvec)
 // ---------------------------------  sc_bv<N> to sc_lv<N>, sc_lv<N> to sc_bv<N>
 template<int Twidth>
 inline
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, sc_bv<Twidth> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, sc_dt::sc_bv<Twidth> *result)
 {
   *result = in;
 }
 
 template<int Twidth>
 inline
-void type_to_vector(const sc_bv<Twidth> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const sc_dt::sc_bv<Twidth> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   rvec = in;
 }
@@ -392,20 +392,20 @@ void type_to_vector(const sc_bv<Twidth> &in, int length, sc_lv<Twidth> &rvec)
 
 // ---------------------------------  ***SPECIAL*** sc_lv<1> to sc_bit, sc_bit to sc_lv<1>
 inline
-void vector_to_type(const sc_lv<1> &in, bool issigned, sc_bit *result)
+void vector_to_type(const sc_dt::sc_lv<1> &in, bool issigned, sc_dt::sc_bit *result)
 {
   *result = in[0];
 }
 
 inline
-void type_to_vector(const sc_bit &in, int length, sc_lv<1> &rvec)
+void type_to_vector(const sc_dt::sc_bit &in, int length, sc_dt::sc_lv<1> &rvec)
 {
   rvec = in;
 }
 // ---------------------------------------------------------
 
 template<int Twidth, class T>
-void vector_to_type_builtin(const sc_lv<Twidth> &in, bool issigned, T *result)
+void vector_to_type_builtin(const sc_dt::sc_lv<Twidth> &in, bool issigned, T *result)
 {
   // sc_assert(sizeof(T) <= sizeof(int));
   if (issigned) {
@@ -416,15 +416,15 @@ void vector_to_type_builtin(const sc_lv<Twidth> &in, bool issigned, T *result)
 }
 
 template<int Twidth, class T>
-void vector_to_type_builtin_64(const sc_lv<Twidth> &in, bool issigned, T *result)
+void vector_to_type_builtin_64(const sc_dt::sc_lv<Twidth> &in, bool issigned, T *result)
 {
   // sc_assert(sizeof(T) * CHAR_BIT <= 64);
   if (issigned) {
-    sc_int<Twidth < 64 ? Twidth : 64> i;
+    sc_dt::sc_int<Twidth < 64 ? Twidth : 64> i;
     i = in;
     *result = i.to_int64();
   } else {
-    sc_uint<Twidth < 64 ? Twidth : 64> u;
+    sc_dt::sc_uint<Twidth < 64 ? Twidth : 64> u;
     u = in;
     *result = u.to_uint64();
   }
@@ -435,7 +435,7 @@ void vector_to_type_builtin_64(const sc_lv<Twidth> &in, bool issigned, T *result
 // --------------------------------- GENERIC
 
 template<int Twidth, class T>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, T *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, T *result)
 {
   // sc_assert(sizeof(T) <= sizeof(int));
   //assert(Twidth<=sizeof(T)*CHAR_BIT);
@@ -447,11 +447,11 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, T *result)
     }
   } else {
     if (issigned) {
-      sc_int<Twidth < 64 ? Twidth : 64> i;
+      sc_dt::sc_int<Twidth < 64 ? Twidth : 64> i;
       i = in;
       *result = static_cast<T> (i.to_int64());
     } else {
-      sc_uint<Twidth < 64 ? Twidth : 64> u;
+      sc_dt::sc_uint<Twidth < 64 ? Twidth : 64> u;
       u = in;
       *result = static_cast<T> (u.to_uint64());
     }
@@ -466,7 +466,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, T *result)
 
 // SC_LV => CHAR
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, char *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, char *result)
 {
   vector_to_type_builtin(in, issigned, result);
 }
@@ -480,7 +480,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, char *result)
 
 // SC_LV => UNSIGNED CHAR
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, unsigned char *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, unsigned char *result)
 {
   vector_to_type_builtin(in, issigned, result);
 }
@@ -490,7 +490,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, unsigned char *resul
 // --------------------------------- SIGNED CHAR
 // SC_LV => SIGNED CHAR
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, signed char *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, signed char *result)
 {
   vector_to_type_builtin(in, issigned, result);
 }
@@ -504,7 +504,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, signed char *result)
 
 // SC_LV => SHORT
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, short *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, short *result)
 {
   vector_to_type_builtin(in, issigned, result);
 }
@@ -517,7 +517,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, short *result)
 
 // SC_LV => UNSIGNED SHORT
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, unsigned short *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, unsigned short *result)
 {
   vector_to_type_builtin(in, issigned, result);
 }
@@ -529,7 +529,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, unsigned short *resu
 
 // SC_LV => INT
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, int *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, int *result)
 {
   vector_to_type_builtin(in, issigned, result);
 }
@@ -541,7 +541,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, int *result)
 
 // SC_LV => UNSIGNED INT
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, unsigned int *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, unsigned int *result)
 {
   vector_to_type_builtin(in, issigned, result);
 }
@@ -553,7 +553,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, unsigned int *result
 
 // SC_LV => LONG
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, long *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, long *result)
 {
   vector_to_type_builtin_64(in, issigned, result);
 }
@@ -565,7 +565,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, long *result)
 
 // SC_LV => UNSIGNED LONG
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, unsigned long *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, unsigned long *result)
 {
   vector_to_type_builtin_64(in, issigned, result);
 }
@@ -577,7 +577,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, unsigned long *resul
 
 // SC_LV => LONG LONG
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, long long *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, long long *result)
 {
   vector_to_type_builtin_64(in, issigned, result);
 }
@@ -589,7 +589,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, long long *result)
 
 // SC_LV => UNSIGNED LONG LONG
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, unsigned long long *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, unsigned long long *result)
 {
   vector_to_type_builtin_64(in, issigned, result);
 }
@@ -597,7 +597,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, unsigned long long *
 // ---------------------------------------------------------
 // --------------------------------- DOUBLE
 template <int Twidth>
-void type_to_vector(const double &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const double &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   long long tmp;
   std::memcpy(&tmp, &in, sizeof(double));
@@ -605,7 +605,7 @@ void type_to_vector(const double &in, int length, sc_lv<Twidth> &rvec)
 }
 
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, double *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, double *result)
 {
   long long res;
   vector_to_type(in, issigned, &res);
@@ -616,7 +616,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, double *result)
 // ---------------------------------------------------------
 // --------------------------------- FLOAT
 template <int Twidth>
-void type_to_vector(const float &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const float &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   int tmp;
   std::memcpy(&tmp, &in, sizeof(float));
@@ -624,7 +624,7 @@ void type_to_vector(const float &in, int length, sc_lv<Twidth> &rvec)
 }
 
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, float *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, float *result)
 {
   int res;
   vector_to_type(in, issigned, &res);
@@ -637,13 +637,13 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, float *result)
 // --------------------------------- CONTAINER
 // CONTAINER mgc_sysc_ver_array1D => SC_LV
 template <class Tclass, int V, int Twidth>
-void type_to_vector(const mgc_sysc_ver_array1D<Tclass,V> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const mgc_sysc_ver_array1D<Tclass,V> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 
 {
   // sc_assert(Twidth == length);
   // sc_assert(Twidth % V == 0);
   const int element_length = Twidth / V;
-  sc_lv<element_length> el_vec;
+  sc_dt::sc_lv<element_length> el_vec;
   for (int i = 0; i < V; ++i) {
     type_to_vector(in[i], element_length, el_vec);
     rvec.range((i + 1) * element_length - 1, i * element_length) = el_vec;
@@ -652,13 +652,13 @@ void type_to_vector(const mgc_sysc_ver_array1D<Tclass,V> &in, int length, sc_lv<
 
 // SC_LV => CONTAINER mgc_sysc_ver_array1D
 template <int Twidth, class Tclass, int TclassW>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, mgc_sysc_ver_array1D<Tclass,TclassW> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, mgc_sysc_ver_array1D<Tclass,TclassW> *result)
 
 {
   // sc_assert(Twidth > 0 && Twidth % TclassW == 0);
   enum { ew = Twidth/TclassW };
   for (int i = 0; i < TclassW; ++i) {
-    sc_lv<ew> tmp = in.range((i + 1) * ew - 1, i * ew);
+    sc_dt::sc_lv<ew> tmp = in.range((i + 1) * ew - 1, i * ew);
     vector_to_type(tmp, issigned, &result->operator[](i));
   }
 }
@@ -671,54 +671,54 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, mgc_sysc_ver_array1D
 
 #include <ac_sc.h>
 
-// AC_INT => SC_LV
-template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, ac_int<Twidth,true> *result)
-{
-  sc_bigint<Twidth> tmp;
-  vector_to_type(in, issigned, &tmp);
-  *result = to_ac(tmp);
-}
-
-template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, ac_int<Twidth,false> *result)
-{
-  sc_biguint<Twidth> tmp;
-  vector_to_type(in, issigned, &tmp);
-  *result = to_ac(tmp);
-}
-
 // SC_LV => AC_INT
 template<int Twidth>
-void type_to_vector(const ac_int<Twidth,true> &in, int length, sc_lv<Twidth> &rvec)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, ac_int<Twidth,true> *result)
 {
-  sc_bigint<Twidth> tmp;
+  sc_dt::sc_bigint<Twidth> tmp;
+  vector_to_type(in, issigned, &tmp);
+  *result = to_ac(tmp);
+}
+
+template<int Twidth>
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, ac_int<Twidth,false> *result)
+{
+  sc_dt::sc_biguint<Twidth> tmp;
+  vector_to_type(in, issigned, &tmp);
+  *result = to_ac(tmp);
+}
+
+// AC_INT => SC_LV
+template<int Twidth>
+void type_to_vector(const ac_int<Twidth,true> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
+{
+  sc_dt::sc_bigint<Twidth> tmp;
   tmp = to_sc(in);
   type_to_vector(tmp, length, rvec);
 }
 
 template<int Twidth>
-void type_to_vector(const ac_int<Twidth,false> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const ac_int<Twidth,false> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
-  sc_biguint<Twidth> tmp;
+  sc_dt::sc_biguint<Twidth> tmp;
   tmp = to_sc(in);
   type_to_vector(tmp, length, rvec);
 }
 
 // SC_LOGIC => AC_INT
 inline
-void vector_to_type(const sc_logic &in, bool issigned, ac_int<1,false> *result)
+void vector_to_type(const sc_dt::sc_logic &in, bool issigned, ac_int<1,false> *result)
 {
-  sc_uint<1> tmp;
+  sc_dt::sc_uint<1> tmp;
   vector_to_type(in,false,&tmp);
   *result = tmp.to_uint();
 }
 
 // AC_INT => SC_LOGIC
 inline
-void type_to_vector(const ac_int<1,false> &in, int length, sc_logic &rvec)
+void type_to_vector(const ac_int<1,false> &in, int length, sc_dt::sc_logic &rvec)
 {
-  sc_uint<1> tmp = in.to_uint();
+  sc_dt::sc_uint<1> tmp = in.to_uint();
   type_to_vector(tmp,1,rvec);
 }
 
@@ -731,7 +731,7 @@ void type_to_vector(const ac_int<1,false> &in, int length, sc_logic &rvec)
 
 // AC_FIXED => SC_LV
 template<int Twidth, int Ibits, bool Signed, ac_q_mode Qmode, ac_o_mode Omode>
-void type_to_vector(const ac_fixed<Twidth,Ibits,Signed,Qmode,Omode> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const ac_fixed<Twidth,Ibits,Signed,Qmode,Omode> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   ac_int<Twidth,Signed> tmp;
   tmp = in.template slc<Twidth>(0);
@@ -740,7 +740,7 @@ void type_to_vector(const ac_fixed<Twidth,Ibits,Signed,Qmode,Omode> &in, int len
 
 // SC_LV => AC_FIXED
 template<int Twidth, int Ibits, bool Signed, ac_q_mode Qmode, ac_o_mode Omode>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, ac_fixed<Twidth,Ibits,Signed,Qmode,Omode> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, ac_fixed<Twidth,Ibits,Signed,Qmode,Omode> *result)
 {
   ac_int<Twidth,Signed> tmp;
   vector_to_type(in, issigned, &tmp);
@@ -755,7 +755,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, ac_fixed<Twidth,Ibit
 
 // AC_FLOAT => SC_LV
 template<int Twidth, int MTbits, int MIbits, int Ebits, ac_q_mode Qmode>
-void type_to_vector(const ac_float<MTbits,MIbits,Ebits,Qmode> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const ac_float<MTbits,MIbits,Ebits,Qmode> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   ac_int<MTbits+Ebits,false> tmp = 0;
   tmp.set_slc(0, in.mantissa().template slc<MTbits>(0));
@@ -765,7 +765,7 @@ void type_to_vector(const ac_float<MTbits,MIbits,Ebits,Qmode> &in, int length, s
 
 // SC_LV => AC_FLOAT
 template<int Twidth, int MTbits, int MIbits, int Ebits, ac_q_mode Qmode>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, ac_float<MTbits,MIbits,Ebits,Qmode> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, ac_float<MTbits,MIbits,Ebits,Qmode> *result)
 {
   ac_int<MTbits+Ebits,false> tmp;
   ac_int<Ebits,false> tmp_exp = 0;
@@ -787,7 +787,7 @@ void vector_to_type(const sc_lv<Twidth> &in, bool issigned, ac_float<MTbits,MIbi
 
 // AC_IEEE_FLOAT => SC_LV
 template<ac_ieee_float_format Format>
-void type_to_vector(const ac_ieee_float<Format> &in, int length, sc_lv<_IEEE_TWIDTH_(Format)> &rvec)
+void type_to_vector(const ac_ieee_float<Format> &in, int length, sc_dt::sc_lv<_IEEE_TWIDTH_(Format)> &rvec)
 {
   const int fSize =  _IEEE_TWIDTH_(Format);
 
@@ -797,7 +797,7 @@ void type_to_vector(const ac_ieee_float<Format> &in, int length, sc_lv<_IEEE_TWI
 
 // SC_LV => AC_IEEE_FLOAT
 template<ac_ieee_float_format Format>
-void vector_to_type(const sc_lv<_IEEE_TWIDTH_(Format)> &in, bool issigned, ac_ieee_float<Format> *result)
+void vector_to_type(const sc_dt::sc_lv<_IEEE_TWIDTH_(Format)> &in, bool issigned, ac_ieee_float<Format> *result)
 {
   const int fSize = _IEEE_TWIDTH_(Format);
   const int Ebits = _IEEE_EWIDTH_(Format);
@@ -811,7 +811,7 @@ void vector_to_type(const sc_lv<_IEEE_TWIDTH_(Format)> &in, bool issigned, ac_ie
 
 // AC_STD_FLOAT => SC_LV
 template<int W, int E>
-void type_to_vector(const ac_std_float<W,E> &in, int length, sc_lv<W> &rvec)
+void type_to_vector(const ac_std_float<W,E> &in, int length, sc_dt::sc_lv<W> &rvec)
 {
   ac_int<W,true> tmp = in.data();
   type_to_vector(tmp, length, rvec);
@@ -819,7 +819,7 @@ void type_to_vector(const ac_std_float<W,E> &in, int length, sc_lv<W> &rvec)
 
 // SC_LV => AC_STD_FLOAT
 template<int W, int E>
-void vector_to_type(const sc_lv<W> &in, bool issigned, ac_std_float<W,E> *result)
+void vector_to_type(const sc_dt::sc_lv<W> &in, bool issigned, ac_std_float<W,E> *result)
 {
   ac_int<W,false> tmp;
   vector_to_type(in, issigned, &tmp);
@@ -830,7 +830,7 @@ void vector_to_type(const sc_lv<W> &in, bool issigned, ac_std_float<W,E> *result
 // These need to be inline otherwise we get a link-time name collision
 // with questasim mti_ac_types library
 template<>
-inline void type_to_vector(const ac::bfloat16 &in, int length, sc_lv<16> &rvec)
+inline void type_to_vector(const ac::bfloat16 &in, int length, sc_dt::sc_lv<16> &rvec)
 {
   ac::bfloat16::data_t tmp = in.data();
   type_to_vector(tmp, length, rvec);
@@ -838,7 +838,7 @@ inline void type_to_vector(const ac::bfloat16 &in, int length, sc_lv<16> &rvec)
 
 // SC_LV => bfloat16
 template<>
-inline void vector_to_type(const sc_lv<16> &in, bool issigned, ac::bfloat16 *result)
+inline void vector_to_type(const sc_dt::sc_lv<16> &in, bool issigned, ac::bfloat16 *result)
 {
   const int fSize = 16;
 
@@ -917,65 +917,65 @@ sc_dt::sc_biguint<Twidth> to_sc(const ap_uint<Twidth> &val)
   return sc_dt::sc_bigint<Twidth>(r);
 }
 
-// AP_INT => SC_LV
+// SC_LV => AP_INT
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, ap_int<Twidth> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, ap_int<Twidth> *result)
 {
   sc_bigint<Twidth> tmp;
   vector_to_type(in, issigned, &tmp);
   *result = to_ap(tmp);
 }
 template<int Twidth>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, ap_uint<Twidth> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, ap_uint<Twidth> *result)
 {
-  sc_biguint<Twidth> tmp;
+  sc_dt::sc_biguint<Twidth> tmp;
   vector_to_type(in, issigned, &tmp);
   *result = to_ap(tmp);
 }
 
-// SC_LV => AP_INT
+// AP_INT => SC_LV
 template<int Twidth>
-void type_to_vector(const ap_int<Twidth> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const ap_int<Twidth> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   sc_bigint<Twidth> tmp;
   tmp = to_sc(in);
   type_to_vector(tmp, length, rvec);
 }
 template<int Twidth>
-void type_to_vector(const ap_uint<Twidth> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const ap_uint<Twidth> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
-  sc_biguint<Twidth> tmp;
+  sc_dt::sc_biguint<Twidth> tmp;
   tmp = to_sc(in);
   type_to_vector(tmp, length, rvec);
 }
 
 // SC_LOGIC => AP_UINT
 inline
-void vector_to_type(const sc_logic &in, bool issigned, ap_uint<1> *result)
+void vector_to_type(const sc_dt::sc_logic &in, bool issigned, ap_uint<1> *result)
 {
-  sc_uint<1> tmp;
+  sc_dt::sc_uint<1> tmp;
   vector_to_type(in,false,&tmp);
   *result = tmp.to_uint();
 }
 // AP_UINT => SC_LOGIC
 inline
-void type_to_vector(const ap_uint<1> &in, int length, sc_logic &rvec)
+void type_to_vector(const ap_uint<1> &in, int length, sc_dt::sc_logic &rvec)
 {
-  sc_uint<1> tmp = in.to_uint();
+  sc_dt::sc_uint<1> tmp = in.to_uint();
   type_to_vector(tmp,1,rvec);
 }
 
 #if defined(__AESL_AP_SIM_H__) || defined(__AP_FIXED_H__)
 // AP_FIXED => SC_LV
 template<int Twidth, int Ibits, ap_q_mode Qmode, ap_o_mode Omode, int Sbits>
-void type_to_vector(const ap_fixed<Twidth,Ibits,Qmode,Omode,Sbits> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const ap_fixed<Twidth,Ibits,Qmode,Omode,Sbits> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   ap_int<Twidth> tmp;
   tmp.range(Twidth-1, 0) = in.range(Twidth-1, 0);
   type_to_vector(tmp, length, rvec);
 }
 template<int Twidth, int Ibits, ap_q_mode Qmode, ap_o_mode Omode, int Sbits>
-void type_to_vector(const ap_ufixed<Twidth,Ibits,Qmode,Omode,Sbits> &in, int length, sc_lv<Twidth> &rvec)
+void type_to_vector(const ap_ufixed<Twidth,Ibits,Qmode,Omode,Sbits> &in, int length, sc_dt::sc_lv<Twidth> &rvec)
 {
   ap_uint<Twidth> tmp;
   tmp.range(Twidth-1, 0) = in.range(Twidth-1, 0);
@@ -984,14 +984,14 @@ void type_to_vector(const ap_ufixed<Twidth,Ibits,Qmode,Omode,Sbits> &in, int len
 
 // SC_LV => AP_FIXED
 template<int Twidth, int Ibits, ap_q_mode Qmode, ap_o_mode Omode, int Sbits>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, ap_fixed<Twidth,Ibits,Qmode,Omode,Sbits> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, ap_fixed<Twidth,Ibits,Qmode,Omode,Sbits> *result)
 {
   ap_int<Twidth> tmp;
   vector_to_type(in, issigned, &tmp);
   result->range(Twidth-1, 0) = tmp.range(Twidth-1, 0);
 }
 template<int Twidth, int Ibits, ap_q_mode Qmode, ap_o_mode Omode, int Sbits>
-void vector_to_type(const sc_lv<Twidth> &in, bool issigned, ap_ufixed<Twidth,Ibits,Qmode,Omode,Sbits> *result)
+void vector_to_type(const sc_dt::sc_lv<Twidth> &in, bool issigned, ap_ufixed<Twidth,Ibits,Qmode,Omode,Sbits> *result)
 {
   ap_uint<Twidth> tmp;
   vector_to_type(in, issigned, &tmp);
