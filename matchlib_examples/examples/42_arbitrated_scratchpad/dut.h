@@ -8,6 +8,8 @@
 #include <ArbitratedScratchpad.h>
 #undef HLS_ALGORITHMICC
 
+#include "sc_named.h"
+
 
 namespace local_mem {
 
@@ -61,6 +63,7 @@ private:
   void main() {
     out1.Reset();
     in1.Reset();
+    mem.reset();
 
     bool was_consumed[local_mem::num_inputs];
     bool all_consumed = 1;
