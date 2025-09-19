@@ -3,135 +3,132 @@
 
 #include <mc_connections.h>
 
+#include "auto_gen_fields.h"
+
+#include "stable_random.h"
 #include "sc_named.h"
 
-#include "auto_gen_fields.h"
-#include "stable_random.h"
+#include "ac_assert.h"
 
 #ifdef __SYNTHESIS__
 #define SYNTH_NAME(prefix, nm) ""
 #else
-#define SYNTH_NAME(prefix, nm) (std::string(prefix) + nm ).c_str()
+#define SYNTH_NAME(prefix, nm) (std::string(prefix) + nm).c_str()
 #endif
 
-////////////////////////////////////////////
-// The mem_with_stall protocol is for a RAM that has a stall signal originating in the RAM.
-
-template <class ADDR_T, class DATA_T>
-struct mem_with_stall_chan : public sc_channel {
-  mem_with_stall_chan(sc_module_name nm) : sc_channel(nm) {}
+template <typename T_data, typename T_addr>
+class mem_with_stall_chan : public sc_channel {
+ public:
+  mem_with_stall_chan(sc_module_name name) : sc_channel(name) {}
 
   sc_signal<bool> SC_NAMED(stall);
   sc_signal<bool> SC_NAMED(read_en);
   sc_signal<bool> SC_NAMED(write_en);
-  sc_signal<ADDR_T> SC_NAMED(address);
-  sc_signal<DATA_T> SC_NAMED(write_data);
-  sc_signal<DATA_T> SC_NAMED(read_data);
+  sc_signal<T_addr> SC_NAMED(address);
+  sc_signal<T_data> SC_NAMED(write_data);
+  sc_signal<T_data> SC_NAMED(read_data);
 };
 
-template <class ADDR_T, class DATA_T>
-struct mem_with_stall_in {
-  mem_with_stall_in(const char* nm = "") :
-    stall(SYNTH_NAME(nm, "_stall"))
-  , read_en(SYNTH_NAME(nm, "_read_en"))
-  , write_en(SYNTH_NAME(nm, "_write_en"))
-  , address(SYNTH_NAME(nm, "_address"))
-  , write_data(SYNTH_NAME(nm, "_write_data"))
-  , read_data(SYNTH_NAME(nm, "_read_data"))
-  {}
+// Memory side of interface
+template <typename T_data, typename T_addr>
+class mem_with_stall_in {
+ public:
+  mem_with_stall_in(const char* name = "")
+      : stall(SYNTH_NAME(name, "_stall"))
+      , read_en(SYNTH_NAME(name, "_read_en"))
+      , write_en(SYNTH_NAME(name, "_write_en"))
+      , address(SYNTH_NAME(name, "_address"))
+      , write_data(SYNTH_NAME(name, "_write_data"))
+      , read_data(SYNTH_NAME(name, "_read_data")) {}
 
   sc_out<bool> stall;
   sc_in<bool> read_en;
   sc_in<bool> write_en;
-  sc_in<ADDR_T> address;
-  sc_in<DATA_T> write_data;
-  sc_out<DATA_T> read_data;
+  sc_in<T_addr> address;
+  sc_in<T_data> write_data;
+  sc_out<T_data> read_data;
 
-  template <class C>
-  void operator()(C& c) {
-     stall(c.stall);
-     read_en(c.read_en);
-     write_en(c.write_en);
-     address(c.address);
-     write_data(c.write_data);
-     read_data(c.read_data);
+  template <class T_class>
+  void operator()(T_class& in_val) {
+    stall(in_val.stall);
+    read_en(in_val.read_en);
+    write_en(in_val.write_en);
+    address(in_val.address);
+    write_data(in_val.write_data);
+    read_data(in_val.read_data);
   }
 };
 
-template <class ADDR_T, class DATA_T>
-struct mem_with_stall_out {
-  mem_with_stall_out(const char* nm = "") :
-    stall(SYNTH_NAME(nm, "_stall"))
-  , read_en(SYNTH_NAME(nm, "_read_en"))
-  , write_en(SYNTH_NAME(nm, "_write_en"))
-  , address(SYNTH_NAME(nm, "_address"))
-  , write_data(SYNTH_NAME(nm, "_write_data"))
-  , read_data(SYNTH_NAME(nm, "_read_data"))
-  {}
+// memory controller side of interface
+template <typename T_data, typename T_addr>
+class mem_with_stall_out {
+ public:
+  mem_with_stall_out(const char* name = "")
+      : stall(SYNTH_NAME(name, "_stall"))
+      , read_en(SYNTH_NAME(name, "_read_en"))
+      , write_en(SYNTH_NAME(name, "_write_en"))
+      , address(SYNTH_NAME(name, "_address"))
+      , write_data(SYNTH_NAME(name, "_write_data"))
+      , read_data(SYNTH_NAME(name, "_read_data")) {}
 
   sc_in<bool> stall;
   sc_out<bool> read_en;
   sc_out<bool> write_en;
-  sc_out<ADDR_T> address;
-  sc_out<DATA_T> write_data;
-  sc_in<DATA_T> read_data;
+  sc_out<T_addr> address;
+  sc_out<T_data> write_data;
+  sc_in<T_data> read_data;
 
-  template <class C>
-  void operator()(C& c) {
-     stall(c.stall);
-     read_en(c.read_en);
-     write_en(c.write_en);
-     address(c.address);
-     write_data(c.write_data);
-     read_data(c.read_data);
+  template <class T_class>
+  void operator()(T_class& in_val) {
+    stall(in_val.stall);
+    read_en(in_val.read_en);
+    write_en(in_val.write_en);
+    address(in_val.address);
+    write_data(in_val.write_data);
+    read_data(in_val.read_data);
+  }
+
+  void Reset() {
+    read_en.write(false);
+    write_en.write(false);
+    address.write(0);
+    write_data.write(0);
   }
 };
 
 // transaction payloads for use with Push/Pop
-template <class ADDR_T, class DATA_T>
+template <typename T_data, typename T_addr>
 struct mem_with_stall_req {
   bool read_en{0};
   bool write_en{0};
-  ADDR_T address{0};
-  DATA_T write_data{0};
+  T_addr address{0};
+  T_data write_data{0};
 
-  AUTO_GEN_FIELD_METHODS(mem_with_stall_req, ( \
-     read_en \
-   , write_en \
-   , address \
-   , write_data \
-  ) )
-  //
+  AUTO_GEN_FIELD_METHODS(mem_with_stall_req, (read_en, write_en, address, write_data))
 };
 
 // transaction payloads for use with Push/Pop
-template <class DATA_T>
+template <class T_data>
 struct mem_with_stall_rsp {
-  DATA_T read_data{0};
+  T_data read_data{0};
 
-  AUTO_GEN_FIELD_METHODS(mem_with_stall_rsp, ( \
-    read_data \
-  ) )
-  //
+  AUTO_GEN_FIELD_METHODS(mem_with_stall_rsp, (read_data))
 };
 
-
-//////////////////////
-
 // Transactor to convert mem_with_stall_in to Push/Pop
-template <class ADDR_T, class DATA_T>
-struct mem_with_stall_in_xactor : public sc_module {
+template <typename T_data, typename T_addr>
+class mem_with_stall_in_xactor : public sc_module {
+ public:
   sc_in<bool> SC_NAMED(clk);
-  sc_in<bool> SC_NAMED(rst_bar);
+  sc_in<bool> SC_NAMED(rst_n);
 
-  mem_with_stall_in<ADDR_T, DATA_T> SC_NAMED(mem_with_stall_in1);
-  Connections::In<mem_with_stall_rsp<DATA_T>> SC_NAMED(rsp_chan);
-  Connections::Out<mem_with_stall_req<ADDR_T, DATA_T>> SC_NAMED(req_chan);
+  mem_with_stall_in<T_data, T_addr> SC_NAMED(stallable_mem_slave);
+  Connections::In<mem_with_stall_rsp<T_data>> SC_NAMED(rsp_chan);
+  Connections::Out<mem_with_stall_req<T_data, T_addr>> SC_NAMED(req_chan);
 
   SC_CTOR(mem_with_stall_in_xactor) {
-    SC_THREAD(main);
-    sensitive << clk.pos();
-    async_reset_signal_is(rst_bar, false);
+    SC_CTHREAD(SlaveThread, clk.pos());
+    async_reset_signal_is(rst_n, false);
 
 #ifdef CONNECTIONS_SIM_ONLY
     rsp_chan.disable_spawn();
@@ -139,303 +136,351 @@ struct mem_with_stall_in_xactor : public sc_module {
 #endif
   }
 
-  /// This is "RTL in SystemC"
-
 #pragma implicit_fsm true
-  void main() {
-    req_chan.vld = 0;
-    rsp_chan.rdy = 0;
-    mem_with_stall_in1.stall = 0;
+
+  void SlaveThread() {
+    req_chan.vld = false;
+    rsp_chan.rdy = false;
+    stallable_mem_slave.stall = false;
     wait();
-    mem_with_stall_req<ADDR_T, DATA_T> req;
-    bool got_req{0};
+    mem_with_stall_req<T_data, T_addr> req;
+    bool req_received = false;
 
     while (1) {
-
-      if (got_req && req.read_en) {
-        rsp_chan.rdy = 1;
+      if (req_received && req.read_en) {
+        rsp_chan.rdy = true;
       } else {
-        rsp_chan.rdy = 0;
+        rsp_chan.rdy = false;
       }
 
       wait();
 
-      req_chan.vld = 0;
+      req_chan.vld = false;
 
-      if (got_req && req.read_en) {
+      if (req_received && req.read_en) {
         if (!rsp_chan.vld.read()) {
           CCS_LOG("Error rsp_chan not valid");
         }
 
         auto rsp = rsp_chan.dat.read();
-        mem_with_stall_in1.read_data = rsp.read_data;
-        rsp_chan.rdy = 0;
+        stallable_mem_slave.read_data = rsp.read_data;
+        rsp_chan.rdy = false;
       }
 
-      if (got_req) {
-       if (!req_chan.rdy.read()) {
-         CCS_LOG("Error: req_chan backpressure");
-       }
-       got_req = 0;
+      if (req_received) {
+        if (!req_chan.rdy.read()) {
+          CCS_LOG("Error req_chan backpressure");
+        }
+        req_received = false;
       }
 
-      req.read_en = mem_with_stall_in1.read_en;
-      req.write_en = mem_with_stall_in1.write_en;
-      req.address = mem_with_stall_in1.address;
-      req.write_data = mem_with_stall_in1.write_data;
+      req.read_en = stallable_mem_slave.read_en;
+      req.write_en = stallable_mem_slave.write_en;
+      req.address = stallable_mem_slave.address;
+      req.write_data = stallable_mem_slave.write_data;
 
       if (req.read_en || req.write_en) {
-       // CCS_LOG("in_xactor: " << (int)req.address);
-       req_chan.vld = 1;
-       req_chan.dat = req;
-       got_req = 1;
+        req_chan.vld = true;
+        req_chan.dat = req;
+        req_received = true;
       }
     }
   }
 };
 
 // Transactor to convert Push/Pop to mem_with_stall_out
-template <class ADDR_T, class DATA_T>
-struct mem_with_stall_out_xactor : public sc_module {
+template <typename T_data, typename T_addr>
+class mem_with_stall_out_xactor : public sc_module {
+ public:
   sc_in<bool> SC_NAMED(clk);
-  sc_in<bool> SC_NAMED(rst_bar);
+  sc_in<bool> SC_NAMED(rst_n);
+  sc_in<bool> SC_NAMED(other_mem_stall);
 
-  mem_with_stall_out<ADDR_T, DATA_T> SC_NAMED(mem_with_stall_out1);
-  Connections::In<mem_with_stall_req<ADDR_T, DATA_T>> SC_NAMED(req_chan);
-  Connections::Out<mem_with_stall_rsp<DATA_T>> SC_NAMED(rsp_chan);
+  mem_with_stall_out<T_data, T_addr> SC_NAMED(stallable_mem_master);
+  Connections::In<mem_with_stall_req<T_data, T_addr>> SC_NAMED(rd_req_chan);
+  Connections::In<mem_with_stall_req<T_data, T_addr>> SC_NAMED(wr_req_chan);
+  Connections::Out<mem_with_stall_rsp<T_data>> SC_NAMED(rsp_chan);
+
+  sc_signal<bool> SC_NAMED(rd_start);
+  sc_signal<bool> SC_NAMED(wr_req_delayed);
+  sc_signal<bool> SC_NAMED(stall);
 
   SC_CTOR(mem_with_stall_out_xactor) {
-    SC_THREAD(main);
-    sensitive << clk.pos();
-    async_reset_signal_is(rst_bar, false);
-
 #ifdef CONNECTIONS_SIM_ONLY
-    req_chan.disable_spawn();
+    rd_req_chan.disable_spawn();
+    wr_req_chan.disable_spawn();
     rsp_chan.disable_spawn();
 #endif
+
+    SC_CTHREAD(rd_start_thread, clk.pos());
+    async_reset_signal_is(rst_n, false);
+
+    SC_CTHREAD(wr_req_delayed_thread, clk.pos());
+    async_reset_signal_is(rst_n, false);
+
+    SC_METHOD(rsp_vld);
+    sensitive << rd_start << stall;
+
+    SC_METHOD(rsp_dat);
+    sensitive << stallable_mem_master.read_data;
+
+    SC_METHOD(stall_method);
+    sensitive << stallable_mem_master.stall << other_mem_stall;
+
+    SC_METHOD(wr_req_rdy);
+    sensitive << stall;
+
+    SC_METHOD(rd_req_rdy);
+    sensitive << stall;
+
+    SC_METHOD(mem_read_en);
+    sensitive << rd_req_chan.vld << rd_req_chan.rdy;
+
+    SC_METHOD(mem_write_en);
+    sensitive << wr_req_delayed << wr_req_chan.vld << rd_req_chan.vld 
+              << wr_req_chan.rdy << rd_req_chan.rdy << stall;
+
+    SC_METHOD(mem_address);
+    sensitive << rd_req_chan.vld << wr_req_chan.dat << rd_req_chan.dat << wr_req_delayed;
+
+    SC_METHOD(mem_wr_data);
+    sensitive << wr_req_chan.dat;
   }
 
-  // This is "RTL in SystemC"
+  void stall_method() {
+    stall = stallable_mem_master.stall || other_mem_stall;
+  }
 
-#pragma implicit_fsm true
-  void main() {
-    mem_with_stall_req<ADDR_T, DATA_T> req;
-    mem_with_stall_rsp<DATA_T> rsp;
-    //rsp_chan.dat = rsp;
-    rsp_chan.vld = 0;
-    req_chan.rdy = 0;
-    mem_with_stall_out1.read_en = 0;
-    mem_with_stall_out1.write_en = 0;
-    mem_with_stall_out1.address = 0;
-    mem_with_stall_out1.write_data = 0;
-    wait();
-
-    bool got_req{0};
-    bool got_rsp{0};
-    bool do_read1{0};
-    bool do_read2{0};
-
+  void rd_start_thread() {
+    rd_start = 0;
     while (1) {
-      if (got_req) {
-        mem_with_stall_out1.read_en = req.read_en;
-        mem_with_stall_out1.write_en = req.write_en;
-        mem_with_stall_out1.address = req.address;
-        mem_with_stall_out1.write_data = req.write_data;
-        got_req = 0;
-        do_read1 = req.read_en;
-      } else {
-        mem_with_stall_out1.read_en = 0;
-        mem_with_stall_out1.write_en = 0;
+      wait();
+      if (!stall)
+        rd_start = rd_req_chan.vld && rd_req_chan.rdy;
+
+      if (!stall && rsp_chan.vld) {
+#ifdef HLS_ASSERTION
+        HLS_ASSERTION(rsp_chan.rdy);  // Catapult 2025.3 and later
+#else
+        assert(rsp_chan.rdy);      // Catapult 2025.2 and earlier
+#endif
       }
-
-      if (got_req)
-        req_chan.rdy = 0;
-      else
-        req_chan.rdy = 1;
-
-      do {
-       wait();
-       if (rsp_chan.vld.read()) {
-        if (!rsp_chan.rdy.read()) // Any backpressure is an error..
-        {
-          CCS_LOG("Error: read response backpressure");
-        }
-        rsp_chan.vld = 0;
-       }
-
-       rsp_chan.vld = 0;
-
-       if (!got_req && req_chan.vld.read()) {
-        got_req = 1;
-        req = req_chan.dat.read();
-        req_chan.rdy = 0;
-       }
-      } while (mem_with_stall_out1.stall);
-
-      if (do_read2) {
-          do_read2 = 0;
-          rsp.read_data = mem_with_stall_out1.read_data.read();
-          rsp_chan.dat = rsp;
-          rsp_chan.vld = 1;
-      }
-
-      do_read2 = do_read1;
-      do_read1 = 0;
     }
+  }
+
+  void wr_req_delayed_thread() {
+    wr_req_delayed = 0;
+    while (1) {
+      wait();
+      if (!stall)
+        wr_req_delayed = wr_req_chan.vld && rd_req_chan.vld && rd_req_chan.rdy && wr_req_chan.rdy;
+
+      if (!stall) {
+#ifdef HLS_ASSERTION
+        HLS_ASSERTION(!wr_req_delayed || !rd_req_chan.vld); // Catapult 2025.3 and later
+#else
+        assert(!wr_req_delayed || !rd_req_chan.vld); // Catapult 2025.2 and earlier
+#endif
+      }
+    }
+  }
+
+  void rsp_vld() {
+    rsp_chan.vld = rd_start && !stall;
+  }
+
+  void rsp_dat() {
+    mem_with_stall_rsp<T_data> rsp;
+    rsp.read_data = stallable_mem_master.read_data;
+    rsp_chan.dat = rsp;
+  }
+
+  void wr_req_rdy() {
+    wr_req_chan.rdy = !stall;
+  }
+
+  void rd_req_rdy() {
+    rd_req_chan.rdy = !stall;
+  }
+
+  void mem_read_en() {
+    stallable_mem_master.read_en = rd_req_chan.vld && rd_req_chan.rdy;
+  }
+
+  void mem_write_en() {
+    stallable_mem_master.write_en = !stall && 
+      (wr_req_delayed || (!(rd_req_chan.vld && rd_req_chan.rdy)
+         && (wr_req_chan.vld && wr_req_chan.rdy)));
+  }
+
+  void mem_address() {
+    if (!wr_req_delayed && rd_req_chan.vld)
+      stallable_mem_master.address = rd_req_chan.dat.read().address;
+    else
+      stallable_mem_master.address = wr_req_chan.dat.read().address;
+  }
+
+  void mem_wr_data() {
+    stallable_mem_master.write_data = wr_req_chan.dat.read().write_data;
   }
 };
 
-
-// mem_with_stall_memory is intended for use in SystemC testbench, not for HLS.
-// Assumption is that actual implementation model comes from elsewhere
-
-template <class ADDR_T, class DATA_T, int ELEMENTS>
-struct mem_with_stall_memory : public sc_module {
+// memory bfm
+template <typename T_data, typename T_addr, int MEM_SIZE>
+class mem_with_stall_memory : public sc_module {
+ public:
   sc_in<bool> SC_NAMED(clk);
-  sc_in<bool> SC_NAMED(rst_bar);
+  sc_in<bool> SC_NAMED(rst_n);
 
-  bool debug{0};
-  bool do_stall{0};
+  bool debug{false};
+  bool do_stall{false};
 
-  mem_with_stall_in<ADDR_T, DATA_T> SC_NAMED(mem_with_stall_in1);
+  mem_with_stall_in<T_data, T_addr> SC_NAMED(stallable_mem_slave);
 
   SC_CTOR(mem_with_stall_memory) {
-    SC_THREAD(main);
-    sensitive << clk.pos();
-    async_reset_signal_is(rst_bar, false);
+    SC_CTHREAD(ModelThread, clk.pos());
+    async_reset_signal_is(rst_n, false);
   }
 
-  DATA_T data[ELEMENTS];
+  T_data mem[MEM_SIZE];
 
-#pragma implicit_fsm true
-  void main() {
-    ADDR_T read_adr;
-    mem_with_stall_in1.read_data = 0;
-    mem_with_stall_in1.stall = 0;
+  void ModelThread() {
+    T_addr read_addr;
+    stallable_mem_slave.read_data = 0;
+    stallable_mem_slave.stall = false;
     wait();
 
     stable_random gen;
 
     while (1) {
-
       wait();
 
-      if (!mem_with_stall_in1.stall) {
-       ADDR_T adr = mem_with_stall_in1.address;
+      if (!stallable_mem_slave.stall.read()) {
+        read_addr = stallable_mem_slave.address.read();
 
-       if (mem_with_stall_in1.write_en) {
-        assert(adr < ELEMENTS);
-        data[adr] = mem_with_stall_in1.write_data;
-        if (debug)
-         CCS_LOG("mem: write addr data " << (int)adr << " " << (int)data[adr]);
-       }
-
-       if (mem_with_stall_in1.read_en) {
-        assert(adr < ELEMENTS);
-        mem_with_stall_in1.read_data = data[adr];
-        if (debug)
-         CCS_LOG("mem: read addr data " << (int)adr << " " << (int)data[adr]);
-       }
+        if (stallable_mem_slave.write_en.read()) {
+          assert(read_addr < MEM_SIZE);
+          mem[read_addr] = stallable_mem_slave.write_data.read();
+          if (debug) {
+            CCS_LOG(
+                "mem: write addr data " << (int)read_addr << " " << (int)mem[read_addr]
+            );
+          }
+        }
+        if (stallable_mem_slave.read_en.read()) {
+          assert(read_addr < MEM_SIZE);
+          stallable_mem_slave.read_data = mem[read_addr];
+          if (debug) {
+            CCS_LOG("mem: read addr data " << (int)read_addr << " " << (int)mem[read_addr]);
+          }
+        }
       }
 
-      mem_with_stall_in1.stall = 0;
+      stallable_mem_slave.stall = false;
 
       if (do_stall) {
         if ((gen.get() & 3) == 3) {
-          mem_with_stall_in1.stall = 1;
+          stallable_mem_slave.stall = true;
         }
       }
     }
   }
 };
 
-
-////////////////
-// Convenience classes for instantiating transactor modules in user designs
-
-template <class ADDR_T, class DATA_T>
-struct mem_with_stall_in_xact {
+template <typename T_data, typename T_addr>
+class mem_with_stall_in_xact {
+ public:
   std::string prefix;
-  mem_with_stall_in_xactor<ADDR_T, DATA_T> in_xactor1;
-  Connections::Combinational<mem_with_stall_rsp<DATA_T>> SC_NAMED(rsp_chan);
-  Connections::Combinational<mem_with_stall_req<ADDR_T, DATA_T>> SC_NAMED(req_chan);
+  mem_with_stall_in_xactor<T_data, T_addr> slave_xactor;
+  Connections::Combinational<mem_with_stall_rsp<T_data>> SC_NAMED(rsp_chan);
+  Connections::Combinational<mem_with_stall_req<T_data, T_addr>> SC_NAMED(req_chan);
 
-  mem_with_stall_in_xact(const char* s) : 
-    prefix(s)
-  , in_xactor1(SYNTH_NAME(prefix, "_xactor1"))
-  , rsp_chan(SYNTH_NAME(prefix, "rsq_chan"))
-  , req_chan(SYNTH_NAME(prefix, "req_chan"))
-  {
-  }
+  mem_with_stall_in_xact(const char* s)
+      : prefix(s)
+      , slave_xactor(SYNTH_NAME(prefix, "_xactor1"))
+      , rsp_chan(SYNTH_NAME(prefix, "rsq_chan"))
+      , req_chan(SYNTH_NAME(prefix, "req_chan")) {}
 
   template <class C, class R, class P>
   void bind(C& clk, R& rst_bar, P& in1) {
-    in_xactor1.clk(clk);
-    in_xactor1.rst_bar(rst_bar);
-    in_xactor1.req_chan(req_chan);
-    in_xactor1.rsp_chan(rsp_chan);
-    in_xactor1.mem_with_stall_in1(in1);
+    slave_xactor.clk(clk);
+    slave_xactor.rst_bar(rst_bar);
+    slave_xactor.req_chan(req_chan);
+    slave_xactor.rsp_chan(rsp_chan);
+    slave_xactor.stallable_mem_slave(in1);
   }
 };
 
-
-template <class ADDR_T, class DATA_T>
-struct mem_with_stall_out_xact {
+template <typename T_data, typename T_addr>
+class mem_with_stall_out_xact {
+ public:
   std::string prefix;
-  mem_with_stall_out_xactor<ADDR_T, DATA_T> out_xactor1;
-  Connections::Combinational<mem_with_stall_rsp<DATA_T>> SC_NAMED(rsp_chan);
-  Connections::Combinational<mem_with_stall_req<ADDR_T, DATA_T>> SC_NAMED(req_chan);
+  mem_with_stall_out_xactor<T_data, T_addr> master_xactor;
+  Connections::Combinational<mem_with_stall_rsp<T_data>> rsp_chan;
+  Connections::Combinational<mem_with_stall_req<T_data, T_addr>> rd_req_chan;
+  Connections::Combinational<mem_with_stall_req<T_data, T_addr>> wr_req_chan;
 
-  typedef DATA_T data_t;
-  typedef ADDR_T addr_t;
+  using T_DATA = T_data;
+  using T_ADDR = T_addr;
 
-  mem_with_stall_out_xact(const char* s) : 
-    prefix(s)
-  , out_xactor1(SYNTH_NAME(prefix, "_xactor1"))
-  , rsp_chan(SYNTH_NAME(prefix, "rsq_chan"))
-  , req_chan(SYNTH_NAME(prefix, "req_chan"))
-  {
-  }
+  mem_with_stall_out_xact(const char* s)
+      : prefix(s)
+      , master_xactor(SYNTH_NAME(prefix, "_xactor"))
+      , rsp_chan(SYNTH_NAME(prefix, "rsp_chan"))
+      , rd_req_chan(SYNTH_NAME(prefix, "rd_req_chan"))
+      , wr_req_chan(SYNTH_NAME(prefix, "wr_req_chan")) {}
 
-  template <class C, class R, class P>
-  void bind(C& clk, R& rst_bar, P& out1) {
-    out_xactor1.clk(clk);
-    out_xactor1.rst_bar(rst_bar);
-    out_xactor1.req_chan(req_chan);
-    out_xactor1.rsp_chan(rsp_chan);
-    out_xactor1.mem_with_stall_out1(out1);
-  }
+  template <typename T_element_data, typename T_element_addr>
+  class elem_proxy {
+   public:
+    using T_master_xact = mem_with_stall_out_xact<T_element_data, T_element_addr>;
+    T_master_xact& xact;
+    T_element_data idx;
 
-  struct elem_proxy {
-    typedef mem_with_stall_out_xact::addr_t addr_t;
-    typedef mem_with_stall_out_xact::data_t data_t;
-    mem_with_stall_out_xact& xact;
-    data_t idx;
+    elem_proxy(T_master_xact& _xact, T_element_addr _idx) : xact(_xact), idx(_idx) {}
 
-    elem_proxy(mem_with_stall_out_xact& _xact, unsigned _idx)
-     : xact(_xact), idx(_idx) {}
-
-    operator data_t () {
-      mem_with_stall_req<addr_t, data_t> req;
-      req.write_en = 0;
-      req.read_en = 1;
+    operator T_element_data() {
+      mem_with_stall_req<T_element_data, T_element_addr> req;
+      req.write_en = false;
+      req.read_en = true;
       req.address = idx;
-      xact.req_chan.Push(req);
+      xact.rd_req_chan.Push(req);
       auto rsp = xact.rsp_chan.Pop();
       return rsp.read_data;
     }
 
-    void operator=(const mem_with_stall_out_xact::data_t& val) {
-      mem_with_stall_req<addr_t, data_t> req;
-      req.write_en = 1;
-      req.read_en = 0;
+    void operator=(const T_element_data& val) {
+      mem_with_stall_req<T_element_data, T_element_addr> req;
+      req.write_en = true;
+      req.read_en = false;
       req.address = idx;
       req.write_data = val;
-      xact.req_chan.Push(req);
+      xact.wr_req_chan.Push(req);
     }
   };
 
-  elem_proxy operator[](unsigned idx) { return elem_proxy(*this, idx); }
-  const elem_proxy operator[](unsigned idx) const { return elem_proxy(*this, idx); }
-};
+  void Reset() {
+    rsp_chan.ResetRead();
+    rd_req_chan.ResetWrite();
+    wr_req_chan.ResetWrite();
+  }
 
+  template <class C, class R, class P, class B>
+  void bind(C& clk, R& rst_n, P& master, B& stall) {
+    master_xactor.clk(clk);
+    master_xactor.rst_n(rst_n);
+    master_xactor.stallable_mem_master(master);
+    master_xactor.rd_req_chan(rd_req_chan);
+    master_xactor.wr_req_chan(wr_req_chan);
+    master_xactor.rsp_chan(rsp_chan);
+    master_xactor.other_mem_stall(stall);
+  }
+
+  elem_proxy<T_data, T_addr> operator[](T_addr idx) {
+    return elem_proxy<T_data, T_addr>(*this, idx);
+  }
+
+  const elem_proxy<T_data, T_addr> operator[](T_addr idx) const {
+    return elem_proxy<T_data, T_addr>(*this, idx);
+  }
+};

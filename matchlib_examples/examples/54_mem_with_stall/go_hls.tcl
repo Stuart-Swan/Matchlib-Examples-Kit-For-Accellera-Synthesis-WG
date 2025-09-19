@@ -1,58 +1,27 @@
-# enable struct field names to be preserved in the RTL
-set enable_preserve_fields 1
-
-set sfd [file dir [info script]]
-
-options defaults
-
-options set /Input/CppStandard c++11
-if {$enable_preserve_fields} {
-  options set /Input/CompilerFlags { "-DFORCE_AUTO_PORT=Connections::DIRECT_PORT" }
-} else {
-  options set /Input/CompilerFlags { }
-}
+project new
+solution options defaults
+flow package require /SCVerify
 options set /Input/SearchPath {../../include} -append
 options set /Input/SearchPath {$MGC_HOME/shared/pkgs/matchlib/cmod/include} -append
-
-project new
-
-flow package require /SCVerify
-# Set to a non-zero number to enable automatic random stall injection on handshake interfaces
-#flow package option set /SCVerify/AUTOWAIT 0
-# Allow initial toggle of reset
-#flow package option set /SCVerify/ENABLE_RESET_TOGGLE true
-# Turn on to enable systematic STALL_FLAG toggling (requires STALL_FLAG directive to be set)
-#flow package option set /SCVerify/ENABLE_STALL_TOGGLE true
-
-flow package require /QuestaSIM
-flow package option set /QuestaSIM/ENABLE_CODE_COVERAGE true
-
-solution file add "$sfd/dut.h" -type CHEADER
-solution file add "$sfd/testbench.cpp" -type C++ -exclude true
-
-if {$enable_preserve_fields} {
-  directive set -STRUCT_LAYOUT c_style
-  directive set -PRESERVE_STRUCTS true
-  solution options set /Output/VerilogStructFormat packed
-}
-
+solution options set /Input/CompilerFlags {-DFORCE_AUTO_PORT=Connections::DIRECT_PORT}
+directive set -ON_THE_FLY_PROTOTYPING false
+solution file add ./dut.cpp -type C++
+solution file add ./testbench.cpp -type C++ -exclude true
+directive set -STRUCT_LAYOUT c_style
+directive set -PRESERVE_STRUCTS true
+directive set -STRICT_CHANSYNC_IO_SCHEDULING true 
 go analyze
 solution design set dut -top
-
 go compile
 solution library add nangate-45nm_beh -- -rtlsyntool OasysRTL -vendor Nangate -technology 045nm
-
-
 go libraries
-directive set -CLOCKS {clk {-CLOCK_PERIOD 2.0}}
-
+directive set -CLOCKS {clk {-CLOCK_PERIOD 2.0 -CLOCK_UNCERTAINTY 0.0 -CLOCK_HIGH_TIME 1.0}}
 go assembly
+directive set /dut/dut:ProcessingThread/ProcessingThread -STRICT_MIO_SCHEDULING false
 go architect
-
-# need cycle set for memory read response to fully utilize pipeline:
-cycle set /dut/dut:main/main/main:rlp/while/mem1_xact.rsp_chan.Pop() -from \
-/dut/dut:main/main/main:rlp/while/mem1_xact.req_chan.Push()#1 -equal 3
-
+directive set /dut/dut:ProcessingThread/ProcessingThread/mem1_xact.rsp_chan.Pop() -CSTEPS_FROM {{mem1_xact.rd_req_chan.Push() == 1}}
+directive set /dut/dut:ProcessingThread/ProcessingThread/mem2_xact.rsp_chan.Pop()#1 -CSTEPS_FROM {{mem2_xact.rd_req_chan.Push()#1 == 1}}
+directive set /dut/dut:ProcessingThread/ProcessingThread/mem1_xact.rsp_chan.Pop()#2 -CSTEPS_FROM {{mem1_xact.rd_req_chan.Push()#2 == 1}}
+directive set /dut/dut:ProcessingThread/ProcessingThread/mem2_xact.rsp_chan.Pop()#3 -CSTEPS_FROM {{mem2_xact.rd_req_chan.Push()#3 == 1}}
 go allocate
 go extract
-

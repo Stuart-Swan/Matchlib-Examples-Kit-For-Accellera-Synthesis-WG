@@ -1,4 +1,6 @@
 
+See ./custom_memory_protocols.pdf
+
 This example shows the mem_with_stall protocol usage.
 This protocol is used to model a RAM that has a stall signal originating from the RAM.
 
