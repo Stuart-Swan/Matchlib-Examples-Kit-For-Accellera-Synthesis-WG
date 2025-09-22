@@ -3,7 +3,7 @@
 #define SC_INCLUDE_DYNAMIC_PROCESSES 1
 #include <ac_sysc_trace.h>
 #include "dut.h"
-#include <memory.h>
+#include <memory>
 
 #include <mc_scverify.h>
 using namespace::std;

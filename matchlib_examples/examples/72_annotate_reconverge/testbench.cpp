@@ -2,7 +2,7 @@
 
 #include <mc_connections.h>
 #include <ac_sysc_trace.h>
-#include <memory.h>
+#include <memory>
 
 #ifndef __SYNTHESIS__
 #ifndef CCS_SYSC

@@ -10,7 +10,7 @@ std::vector<block_data_abs*> block_data_vec;
 #endif
 
 #include <mc_scverify.h>
-#include <memory.h>
+#include <memory>
 
 ofstream log_stream;
 

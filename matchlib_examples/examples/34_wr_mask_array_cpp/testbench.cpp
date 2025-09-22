@@ -13,7 +13,7 @@ CCS_MAIN(int argc, char **argv)
   ac_channel<uint32> addr_chan;
   ac_channel<uint32> out1_chan;
 
-    // initilialize mem so it doesn't have X values:
+    // initialize mem so it doesn't have X values:
     for (int i=0; i < 16; i++) {
       mask_chan.write(~0);
       data_chan.write(0);

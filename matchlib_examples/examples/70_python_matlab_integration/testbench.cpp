@@ -93,7 +93,7 @@ int sc_main(int argc, char **argv)
 {
   sc_report_handler::set_actions("/IEEE_Std_1666/deprecated", SC_DO_NOTHING);
   sc_report_handler::set_actions(SC_ERROR, SC_DISPLAY);
-  // This function instantiates the design hiearchy including the testbench.
+  // This function instantiates the design hierarchy including the testbench.
 
   sc_trace_file *trace_file_ptr = sc_trace_static::setup_trace_file("trace");
 

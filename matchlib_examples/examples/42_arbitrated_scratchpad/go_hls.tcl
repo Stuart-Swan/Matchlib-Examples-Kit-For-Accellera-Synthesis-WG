@@ -46,7 +46,9 @@ solution library add nangate-45nm_beh -- -rtlsyntool OasysRTL -vendor Nangate -t
 solution library add ccs_sample_mem
 
 go libraries
-directive set -CLOCKS {clk {-CLOCK_PERIOD 2.0}}
+directive set -CLOCKS {clk {-CLOCK_PERIOD 10.0}}
+directive set /dut/main -MEM_MAP_THRESHOLD 4096
+
 
 go assembly
 go architect

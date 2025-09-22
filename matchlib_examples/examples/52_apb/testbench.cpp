@@ -5,7 +5,7 @@
 #include "apb_ram.h"
 #include "apb_dma.h"
 #include <mc_scverify.h>
-#include <memory.h>
+#include <memory>
 
 // Create a typedef for the configuration of this local APB bus
 typedef apb::apb_transactor<axi::cfg::lite> local_apb;

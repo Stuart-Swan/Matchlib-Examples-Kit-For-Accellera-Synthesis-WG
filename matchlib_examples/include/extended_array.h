@@ -7,6 +7,7 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <ac_array_1D.h>
 

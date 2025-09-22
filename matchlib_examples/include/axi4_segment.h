@@ -191,7 +191,7 @@ namespace axi
         base::ar.Push(ar_item);
         r = base::r.Pop();
 
-        uint64 data_mask = (1 << size) -1;
+        uint64 data_mask = (1ull << size) -1;
         r.data = (r.data >> (8 * (addr & byte_field))) & data_mask;
         return r;
       }

@@ -3,7 +3,7 @@
 #include "dut.h"
 #include <mc_scverify.h>
 #include <stable_random.h>
-#include <memory.h>
+#include <memory>
 
 class Top : public sc_module
 {

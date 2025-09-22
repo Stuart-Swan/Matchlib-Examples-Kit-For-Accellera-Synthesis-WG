@@ -6,6 +6,7 @@
 
 #include <random>
 #include <functional>
+#include <cstdlib>
 
 // This class provides stable random number generation in a SystemC simulation with multiple threads.
 // Each thread has separate generators, and generators are initialized with a seed

@@ -4,7 +4,7 @@
 
 
 #include <mc_scverify.h>
-#include <memory.h>
+#include <memory>
 
 ofstream log_stream;
 

@@ -3,7 +3,7 @@
 
 #include "car_factory.h"
 #include <mc_scverify.h>
-#include <memory.h>
+#include <memory>
 
 class spark_plug_producer : public sc_module
 {

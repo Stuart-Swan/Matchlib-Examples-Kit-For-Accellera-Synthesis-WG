@@ -51,7 +51,7 @@ template <typename T>
       }
   };
 
-  // Synthesizable assert "ac_assert_any_x" to check if the expression has any bit as "x"
+  // Synthesizable assert "ac_assert_no_x" to check if the expression has any bit as "x"
   template <typename T>
   inline void ac_assert_no_x(const char *filename, int lineno, const char *expr_str, T din) {
     static x_assert_bb<T> x_check_obj; 

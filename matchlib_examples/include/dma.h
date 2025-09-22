@@ -6,6 +6,7 @@
 #include "auto_gen_fields.h"
 #include "auto_gen_port_info.h"
 #include "axi4_segment.h"
+#include <cstddef>
 
 /**
  *  * \brief dma command sent to the DMA engine

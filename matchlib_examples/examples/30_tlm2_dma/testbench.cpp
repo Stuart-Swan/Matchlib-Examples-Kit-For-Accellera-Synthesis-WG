@@ -1,7 +1,7 @@
 // INSERT_EULA_COPYRIGHT: 2020
 
 #include <mc_scverify.h>
-#include <memory.h>
+#include <memory>
 
 #include "tlm2_axi4_adapters.h"
 

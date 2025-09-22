@@ -2,7 +2,7 @@
 
 #include "dut.h"
 #include <mc_scverify.h>
-#include <memory.h>
+#include <memory>
 
 #ifndef __SYNTHESIS__
 #include <connections/annotate.h>

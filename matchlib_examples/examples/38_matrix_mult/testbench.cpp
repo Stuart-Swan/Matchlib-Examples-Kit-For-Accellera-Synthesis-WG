@@ -1,7 +1,7 @@
 #include <mc_connections.h>
 #include <ac_sysc_trace.h>
 #include <stable_random.h>
-#include <memory.h>
+#include <memory>
 
 
 #ifdef SINGLE_PROCESS

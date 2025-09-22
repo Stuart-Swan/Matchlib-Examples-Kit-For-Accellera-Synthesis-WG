@@ -288,7 +288,7 @@ public:
    for (unsigned i=0; i<port_info_vec.size(); ++i) {
     os << "port: " << port_info_vec[i].type 
               << " " << port_info_vec[i].width << " " << port_info_vec[i].name << "\n";
-    emit_field_vec(std::cout, port_info_vec[i].field_vec);
+    emit_field_vec(os, port_info_vec[i].field_vec);
    }
   }
 

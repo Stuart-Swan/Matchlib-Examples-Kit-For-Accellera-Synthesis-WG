@@ -3,7 +3,7 @@
 #include "dma.h"
 #include "ram.h"
 #include <mc_scverify.h>
-#include <memory.h>
+#include <memory>
 
 #include "axi4_signal_transactor.h"
 

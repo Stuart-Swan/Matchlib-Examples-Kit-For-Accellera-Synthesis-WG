@@ -4,7 +4,7 @@
 
 #include "dut.h"
 #include "ram.h"
-#include <memory.h>
+#include <memory>
 
 
 class Top : public sc_module, public local_axi

@@ -1,0 +1,118 @@
+Architecture Specification – `connections.h`
+=============================================
+
+1. Scope and Purpose
+--------------------
+`connections.h` defines the public, synthesizable interface for NVIDIA/Siemens MatchLib "Connections" ports and channels. It exposes the user-facing `Connections::In`, `Out`, and `Combinational` templates and the infrastructure that allows those interfaces to operate across multiple abstraction levels (RTL-accurate, marshalled bit vectors, direct SystemC types, and TLM). The header also embeds the simulation-management runtime that MatchLib relies on for cycle-accurate pre-HLS simulation, waveform tracing, and optional randomized backpressure. Understanding this file is prerequisite to any refactor because most other headers in the package (e.g. `connections_fifo.h`, `connections_sync.h`) build on the abstractions declared here.
+
+2. Build-Time Configuration Model
+---------------------------------
+- **Simulation modes** (`CONNECTIONS_ACCURATE_SIM`, `CONNECTIONS_FAST_SIM`, `CONNECTIONS_SYN_SIM`) define the behavioral model: cycle-accurate port simulation, faster TLM simulation, or synthesis-view debugging. Only one may be active; otherwise compile-time errors are raised. `CONNECTIONS_SIM_ONLY` is implied for the accurate/fast modes.
+- **Port abstraction selection** uses the `connections_port_t` enum (`SYN_PORT`, `MARSHALL_PORT`, `DIRECT_PORT`, `TLM_PORT`). The `AUTO_PORT` macro expands to the preferred abstraction based on build mode: `SYN_PORT` under `__SYNTHESIS__`, `DIRECT_PORT` by default for simulation, or `TLM_PORT` when `CONNECTIONS_FAST_SIM` is defined. `FORCE_AUTO_PORT` can override the automatic selection, even for synthesis.
+- **Port naming** macros (`_VLDNAME_`, `_RDYNAME_`, `_DATNAME_`, plus IN/OUT/COMB variants) support legacy (`val/rdy/msg`) and Catapult-style (`vld/rdy/dat`) naming via `CONNECTIONS_NAMING_ORIGINAL`.
+- **Query semantics**: defining `CONNECTIONS_ASSERT_ON_QUERY` replaces `Empty/Peek/Full` style APIs with compile-time errors (`QUERY_CALL`) because those queries are not synthesizable in HLS.
+- **Custom signal debug**: `CONNECTIONS_CUSTOM_DEBUG` enables the `dbg_signal` specialization that registers Questa custom wave callbacks for types with a `Marshall` method.
+- **Reset polarity** and synchrony are configured via `CONNECTIONS_SYNC_RESET` and `CONNECTIONS_POS_RESET`, funneling into helper macros (`CONNECTIONS_RESET_SIGNAL_IS`).
+
+3. Shared Dependencies and Support Utilities
+-------------------------------------------
+- The header requires `systemc`, Catapult `ac_assert.h` (through `connections_utils.h`), and MatchLib utilities (`marshaller.h`, `message.h`, `connections_trace.h`, `Pacer.h` under simulation). `SpecialWrapperIfc(Connections::In/Out)` hooks the ports into the marshaller infrastructure.
+- `Wrapped<T>` (from `marshaller.h`) is the canonical bit-accurate wrapper. `convert_to_lv`/`convert_from_lv` in this header expose conversions between arbitrary `Message` types and `sc_lv<width>` using the wrapper’s `Marshall` method.
+- `CollectAllocs` tracks dynamically created `sc_module` adapters (e.g. direct↔marshalled bridges) and, under simulation, dynamically allocated `Blocking_abs` helpers so destructors can clean them up without leaking.
+- `ResetChecker` associates every port/channel endpoint with a flag; `Reset()` must be called before use. It provides helpful error/warning messages pointing to the owning process when omitted or when a non-leaf port is reset.
+
+4. Simulation Runtime Infrastructure
+------------------------------------
+- **`Blocking_abs`** is a light-weight base (optionally inheriting from `sc_object`) that every blocking port/channel specialization derives from. It exposes virtual `Pre()`, `Post()`, and `PrePostReset()` hooks which the runtime calls once per cycle, plus state (clock number, sibling pointer) used for registration.
+- **`SimConnectionsClk`** discovers all `sc_clock` objects in the design (or uses `Connections::set_sim_clk()` when `sc_reset.h` is unavailable) and exposes clock-edge helper methods. It keeps per-clock metadata such as the current active edge time and whether synchronous/asynchronous resets are asserted.
+- **`ConManager`** is a singleton (instantiated via `ConManager_statics<void>::conManager`) responsible for:
+  - Tracking all blocking endpoints and annotation hooks.
+  - Resolving each port to a driving clock by interrogating the owning process’s static sensitivity (`add_clock_event`).
+  - Spawning per-clock kernel threads (`run`, `async_reset_thread`, `sync_reset_thread`) that call `Post`, `Pre`, and `PrePostReset` on the registered ports each cycle and propagate reset state.
+  - Checking at elaboration that every port was reset (`check_registration`) and that reset specifications are consistent per clock.
+  - Managing optional clock-alias mappings and ensuring ports are accessed only on their active edges (`check_on_clock_edge`).
+- **Random stalling support** (`__CONN_RAND_STALL_FEATURE`) adds global settings to `ConManager_statics` (`rand_stall_enable`, seeds, debug flags) and per-port `Pacer` instances. Global APIs (`enable_global_rand_stall`, etc.) provide runtime control; per-port overrides are exposed in `InBlocking_SimPorts_abs` and `InBlocking<TLM_PORT>`.
+- **Back-annotation** (`Connections_BA_abs`) lets combinational channels register for latency/capacity annotations and integrate with trace/log infrastructure (`connections_trace.h`).
+
+5. Input Port Architecture (`Connections::In`)
+---------------------------------------------
+Layering (for each `Message`, per port mode):
+1. `InBlocking_abs` defines the abstract interface (`Reset`, `Pop`, `Peek`, `PopNB`, `PeekNB`) and embeds a `ResetChecker`.
+2. `InBlocking_Ports_abs` binds the handshake signals (`sc_in<bool>` for valid, `sc_out<bool>` for ready), implements default blocking/non-blocking semantics for synthesis, and enforces reset registration via `ConManager` in simulation builds.
+3. `InBlocking_SimPorts_abs` overrides IO behavior when `CONNECTIONS_SIM_ONLY` is defined:
+   - Buffers the sampled message/value state (`data_buf`, `data_val`).
+   - Uses `ConManager` callbacks to schedule handshake updates each cycle (`receive`, `transmit`), optionally injecting randomized stalls via `Pacer`.
+   - Supplies per-port APIs to enable/disable local random stall and stall-debug logging.
+4. `InBlocking<Message, PORT>` specializations map to concrete data transports:
+   - `SYN_PORT`: payload communicated as `sc_lv<width>`; `read_msg` marshalls bits to `Message`.
+   - `MARSHALL_PORT`: same as synthesis but with additional tracing markers (`in_port_marker`) and simulation-only split between in/out `_DATNAME` signals.
+   - `DIRECT_PORT`: payload is native `Message` and bypasses marshalling.
+   - `TLM_PORT` (simulation only): wraps a `tlm::tlm_fifo<Message>` and implements handshake via FIFO `get/peek/nb_get`.
+5. Adapter modules (`MarshalledToDirect*`, `DirectToMarshalled*`, `TLMToDirectOutPort`, `DirectToTLMInPort`) are created on-demand when binding mismatched port types. They are tracked through `CollectAllocs` for cleanup and marked as `Blocking_abs` siblings so `ConManager` can resolve clocks through binding chains.
+6. The user-facing `In<Message, PORT>` simply inherits the blocking class and exposes an `Empty()` query (synthesizable only when not compiled with `CONNECTIONS_ASSERT_ON_QUERY`).
+7. Legacy interoperability: `Bind` overloads exist for Catapult `p2p<SYN>::in/chan` endpoints.
+
+6. Output Port Architecture (`Connections::Out`)
+-----------------------------------------------
+The outbound stack mirrors the inbound path:
+1. `OutBlocking_abs` (abstract) + `OutBlocking_Ports_abs` (synthesis handshake) + `OutBlocking_SimPorts_abs` (simulation buffer management using `ConManager` hooks).
+2. Specializations for each port mode manage message serialization:
+   - `SYN_PORT` / `MARSHALL_PORT` produce `sc_lv` payloads and integrate with waveform tracing (`out_port_marker`).
+   - `DIRECT_PORT` writes native `Message` instances.
+   - `TLM_PORT` (simulation only) pushes into a `tlm::tlm_fifo<Message>`.
+3. For simulation, `OutBlocking_SimPorts_abs` ensures data remains valid until acknowledged, detects external interference with `_VLDNAME_`, and records driver chains for logging.
+4. `Out<Message, PORT>` wrappers add the `Full()` query and, under simulation, delegate to buffered `Full_SIM()`; TLM specialization reports FIFO capacity via `nb_can_put()`.
+
+7. Channel Architecture (`Connections::Combinational`)
+------------------------------------------------------
+- `Combinational_abs` + `Combinational_Ports_abs` establish a bidirectional handshake channel with in/out valid/ready signals. Like the ports, they use `ResetChecker` to require both read and write sides to reset.
+- Simulation specializations (`Combinational_SimPorts_abs<Message, PORT>`) derive from both `Blocking_abs` and `Connections_BA_abs` and add: 
+  - Dual endpoint (`sim_in`, `sim_out`) instances to support portless channel access and tracing.
+  - A small FIFO (`Connections::BA_Message`) tracking message availability and ready cycles to model pipeline latency.
+  - Registration with `ConManager` for per-cycle `receive` (consume upstream data), `transmit` (drive downstream), and reset handling.
+  - Latency annotation plumbing (`annotate`, `disable_annotate`, `is_bypass` heuristics) and logging integration.
+- Specializations per port mode control serialization:
+  - `SYN_PORT`: single `_DATNAME_` signal carrying marshalled bits.
+  - `MARSHALL_PORT`: separate input/output signals under simulation, plus a nested `DummyPortManager` `sc_module` that auto-binds the standalone `sim_in`/`sim_out` ports when users access the channel directly (enabling waveform/log capture without manual port wiring).
+  - `DIRECT_PORT`: native `Message` signals mirroring marshalled behavior.
+  - `TLM_PORT`: only available in simulation. Instead of signals it owns a `tlm::tlm_fifo<Message>`; inherits from `sc_trace_marker` so the FIFO can be traced or logged.
+- Although `connections.h` forward-declares `Bypass`, `Pipeline`, and `Buffer`, their implementations live in other headers (`connections_fifo.h`, historical code). Any refactor must confirm whether those classes are intentionally absent here or defined elsewhere before removing the declarations.
+
+8. Binding & Interoperability Rules
+-----------------------------------
+- Every port exposes multiple `Bind()` overloads for connecting to other `Connections` ports/channels with varying abstraction types. During simulation, the bind helpers mark participants as `non_leaf_port` and link `Blocking_abs::sibling_port` chains so clock registration can propagate to the actual driver.
+- When cross-abstraction binding occurs (e.g. marshalled ↔ direct), helper modules translate payloads and handshake semantics. These helpers are only instantiated in simulation builds (`__SYNTHESIS__` guard) to avoid HLS incompatibility.
+- Some binds actively disable spawned threads (`disable_spawn()`) on the source/destination to prevent redundant simulation processes once bridged through an adapter.
+- Macros `CONNECTIONS_CONCAT` and naming constants generate stable SystemC object names for signals, ports, and helper modules; this aids debugging and stops Catapult from complaining about string concatenation in C++11 mode.
+
+9. Random Stall & Debug Instrumentation
+--------------------------------------
+- Random stall machinery is centralized in `InBlocking_SimPorts_abs` and TLM input specializations. Each port can enable/disable stall injection and logging independently of the global settings (`local_rand_stall_override`). Stall probabilities and hold probabilities are configurable (as percentages) and converted to fractional values for the `Pacer` instance.
+- Debug traces: `dbg_signal` (when enabled) registers custom waveform callbacks so Questa can show marshalled types as hex strings. `connections_trace.h` integration is accomplished through `Connections_BA_abs` and `DummyPortManager`, which implement `sc_trace_marker::set_trace`/`set_log`.
+
+10. Control Flow Summary (Simulation)
+------------------------------------
+1. During elaboration, ports/channels call `Reset()`, which registers them with `ConManager` and (for simulation) attaches them to a discovered clock event via `add_clock_event`.
+2. `ConManager::init_sim_clk()` spawns per-clock worker processes that iterate forever:
+   - `Post()` phase drives outputs based on buffered state (`transmit_val`, `_DATNAME_` updates).
+   - `post2pre_delay` waits a small epsilon to model after-edge timing.
+   - `Pre()` samples new inputs and updates buffers (`receive`).
+   - `PrePostReset()` is called when synchronous/asynchronous resets fire to flush buffers.
+3. When random stall is enabled, input ports conditionally withhold ready based on the `Pacer` outcome.
+4. User processes calling `Push/Pop/Peek` interact with the buffered state; in accurate simulation they block on `wait()` statements, and in fast mode the TLM FIFO mediates event-driven communication.
+
+11. External Touchpoints
+------------------------
+- **Tracing/logging**: `connections_trace.h` relies on `sc_trace_marker` implementations inside combinational channels and port markers to walk hierarchies and emit waveforms or textual logs.
+- **Catapult/HLS integration**: Numerous `#pragma design modulario` and `#pragma builtin_modulario` annotations enforce Catapult’s scheduling assumptions. Any rewrite must preserve equivalent pragmas or replace with modern directives.
+- **Inter-header dependencies**: `connections_fifo.h` (FIFO channels), `connections_sync.h` (dataless sync ports), and higher-level MatchLib libraries assume these classes and macros exist. Modifying method signatures or renaming enums will cascade broadly.
+
+12. Noted Gaps / Refactor Considerations
+---------------------------------------
+- `Bypass`, `Pipeline`, and `Buffer` are forward-declared but not implemented in this header; verify their real definitions before altering declarations. They may historically have lived here.
+- The simulation runtime is tightly coupled to SystemC internals (`sc_get_current_process_handle`, `sc_reset`, `sc_event` introspection). Any refactor must account for tool/version differences (Accellera vs commercial simulators) and the conditional compilation paths (`HAS_SC_RESET_API`, `NO_SC_RESET_INCLUDE`).
+- Global singletons (`ConManager_statics`) and numerous `#ifdef` paths complicate testability. Future architecture might separate synthesis-ready interface definitions from simulation/runtime helpers.
+- Dynamic allocation in bind adapters and dummy port managers requires deterministic cleanup; `CollectAllocs` currently handles this, but refactors should consider modern RAII alternatives.
+- The code assumes certain Catapult behaviors (e.g., inability to concatenate strings in C++11, need for `sc_gen_unique_name`). Validate whether these constraints still apply when modernizing.
+- Error handling uses `SC_REPORT_ERROR/WARNING` with custom message IDs (`CONNECTIONS-1xx`). Maintain or document these codes for regression compatibility.
+

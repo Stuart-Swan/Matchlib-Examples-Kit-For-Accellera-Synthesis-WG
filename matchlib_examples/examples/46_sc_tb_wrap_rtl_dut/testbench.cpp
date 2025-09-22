@@ -4,7 +4,7 @@
 #include "dma.h"
 #include "ram.h"
 #include <mc_scverify.h>
-#include <memory.h>
+#include <memory>
 
 #include "dma_wrap_rtl.h"
 

@@ -1,7 +1,7 @@
 
 #include "mc_scverify.h"
 #include "dut.h"
-#include <memory.h>
+#include <memory>
 
 SC_MODULE(driver){
   sc_in<bool> clk{"clk"};

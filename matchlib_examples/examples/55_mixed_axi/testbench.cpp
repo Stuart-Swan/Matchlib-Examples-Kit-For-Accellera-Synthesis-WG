@@ -3,7 +3,7 @@
 #include "mixed_dma.h"
 #include "mixed_ram.h"
 #include <mc_scverify.h>
-#include <memory.h>
+#include <memory>
 
 class Top : public sc_module
 {

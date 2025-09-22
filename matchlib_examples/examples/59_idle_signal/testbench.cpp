@@ -2,7 +2,7 @@
 
 #include <mc_scverify.h>
 #include <stable_random.h>
-#include <memory.h>
+#include <memory>
 
 #define USE_GATED_CLOCK 1
 #define SAMPLE_COUNT  300

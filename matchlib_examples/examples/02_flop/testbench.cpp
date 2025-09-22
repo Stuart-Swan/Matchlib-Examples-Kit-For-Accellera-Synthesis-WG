@@ -2,7 +2,7 @@
 
 #include "flop.h"
 #include <mc_scverify.h>
-#include <memory.h>
+#include <memory>
 using namespace::std;
 
 class Top : public sc_module

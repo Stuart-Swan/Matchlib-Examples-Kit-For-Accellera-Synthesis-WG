@@ -21,7 +21,7 @@ public:
       (ac_int<W,S>::type_name() +
           " used for ac_enum not able to capture enumT value").c_str());  
   }
-  operator enumT() { return (enumT)(int)_val; }   // restores the value as an enum type 
+  operator enumT() const { return (enumT)(int)_val; }   // restores the value as an enum type 
 
   AUTO_GEN_FIELD_METHODS(ac_enum, ( \
     _val \
@@ -54,7 +54,7 @@ int main() {
   { 
     ac_enum<Cstate,1> x = Cstart; 
     std::cout << x << std::endl; 
-    x = Cinvalid; 
+    x = Cinvalid;  // assertion will fire
     std::cout << x << std::endl; 
   } 
 }

@@ -1,4 +1,3 @@
-# Makefile for example 10_fifo_channel_hier
 
 CXXFLAGS += -g -std=c++11 -Wall -Wno-unknown-pragmas -Wno-unused-variable -Wno-unused-label
 

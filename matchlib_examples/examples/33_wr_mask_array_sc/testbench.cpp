@@ -3,7 +3,7 @@
 #include <mc_scverify.h>
 
 #include "dut.h"
-#include <memory.h>
+#include <memory>
 
 
 class Top : public sc_module
@@ -52,8 +52,7 @@ public:
     wait();
 
     start_time = sc_time_stamp();
-
-    // initilialize mem so it doesn't have X values:
+    // initialize mem so it doesn't have X values:
     for (int i=0; i < 16; i++) {
       mask_chan.Push(~0);
       data_chan.Push(0);

@@ -4,7 +4,7 @@
 #include "ram.h"
 #include <mc_scverify.h>
 #include <time.h>
-#include <memory.h>
+#include <memory>
 
 typedef axi::axi4_segment<axi::cfg::standard> local_axi;
 
