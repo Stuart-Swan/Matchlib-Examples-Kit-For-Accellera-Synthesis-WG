@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-29 Sept 2025
+1 Oct 2025
 
 This is a complete rewrite of the old connections.h file.
 Goals:
@@ -17,7 +17,7 @@ Removed Features from old connections.h:
  - overloaded Connections Port binding operators to allow mismatched port types to be bound.
 
 Features still to be implemented from old
- - Error checking in pre-HLS sim.
+ - Still may be some missing error checking in pre-HLS sim.
  - TLM_PORT, FAST_SIM
  - random stall injection
  - latency and capacity backannotation
@@ -29,6 +29,10 @@ Features still to be implemented from old
 
 #ifndef __SYNTHESIS__
 #define CONNECTIONS_SIM_ONLY
+#endif
+
+#ifdef CONNECTIONS_FAST_SIM
+#error "FAST_SIM not supported yet"
 #endif
 
 #include <systemc.h>
@@ -80,6 +84,573 @@ namespace Connections {
 
 enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_PORT=3};
 
+  class SimConnectionsClk;
+  SimConnectionsClk &get_sim_clk();
+  void set_sim_clk(sc_clock *clk_ptr);
+
+  class ConManager;
+  ConManager &get_conManager();
+
+#ifdef CONNECTIONS_SIM_ONLY
+
+  class SimConnectionsClk
+  {
+  public:
+    SimConnectionsClk() { }
+
+    void set(sc_clock *clk_ptr_) {
+#ifndef HAS_SC_RESET_API
+      clk_info_vector.push_back(clk_ptr_);
+#endif
+    }
+
+    void pre_delay(int c) const {
+      wait(adjust_for_edge(get_period_delay(c)-epsilon, c).to_seconds(),SC_SEC);
+    }
+
+    void post_delay(int c) const {
+      wait(adjust_for_edge(epsilon, c).to_seconds(),SC_SEC);
+    }
+
+    inline void post2pre_delay(int c) const {
+      wait(clk_info_vector[c].post2pre_delay);
+    }
+
+    inline void pre2post_delay() const {
+      static sc_time delay(((2*epsilon).to_seconds()), SC_SEC);
+      //caching it to optimize wall runtime
+      wait(delay);
+    }
+
+    inline void period_delay(int c) const {
+      wait(clk_info_vector[c].period_delay);
+    }
+
+    struct clk_info {
+      clk_info(sc_clock *cp) {
+        clk_ptr = cp;
+        do_sync_reset = 0;
+        do_async_reset = 0;
+      }
+      sc_clock *clk_ptr;
+      sc_time post2pre_delay;
+      sc_time period_delay;
+      sc_time clock_edge; // time of next active edge during simulation, per clock
+      bool do_sync_reset;
+      bool do_async_reset;
+    };
+
+    std::vector<clk_info> clk_info_vector;
+
+    struct clock_alias_info {
+      const sc_event *sc_clock_event;
+      const sc_event *alias_event;
+    };
+    std::vector<clock_alias_info> clock_alias_vector;
+
+    void add_clock_alias(const sc_event &sc_clock_event, const sc_event &alias_event) {
+      clock_alias_info cai;
+      cai.sc_clock_event = &sc_clock_event;
+      cai.alias_event = &alias_event;
+      clock_alias_vector.push_back(cai);
+    }
+
+    void find_clocks(sc_object *obj) {
+      sc_clock *clk = dynamic_cast<sc_clock *>(obj);
+      if (clk) {
+        clk_info_vector.push_back(clk);
+        std::cout << "Connections Clock: " << clk->name() << " Period: " << clk->period() << std::endl;
+      }
+
+      std::vector<sc_object *> children = obj->get_child_objects();
+      for ( unsigned i = 0; i < children.size(); i++ ) {
+        if ( children[i] ) { find_clocks(children[i]); }
+      }
+    }
+
+    void start_of_simulation() {
+      // Set epsilon to default value at start of simulation, after time resolution has been set
+      epsilon = sc_time(0.01, SC_NS);
+      const std::vector<sc_object *> tops = sc_get_top_level_objects();
+      for (unsigned i=0; i < tops.size(); i++) {
+        if (tops[i]) { find_clocks(tops[i]); }
+      }
+
+      for (unsigned c=0; c < clk_info_vector.size(); c++) {
+        clk_info_vector[c].post2pre_delay = (sc_time((get_period_delay(c)-2*epsilon).to_seconds(), SC_SEC));
+        clk_info_vector[c].period_delay = (sc_time((get_period_delay(c).to_seconds()), SC_SEC));
+        clk_info_vector[c].clock_edge = adjust_for_edge(SC_ZERO_TIME,c);
+      }
+    }
+
+    inline void check_on_clock_edge(int c) {
+      if (clk_info_vector[c].clock_edge != sc_time_stamp()) {
+        sc_process_handle h = sc_get_current_process_handle();
+        std::ostringstream ss;
+        ss << "Push or Pop called outside of active clock edge. \n";
+        ss << "Process: " << h.name() << "\n";
+        ss << "Current simulation time: " << sc_time_stamp() << "\n";
+        ss << "Active clock edge: " << clk_info_vector[c].clock_edge << "\n";
+        SC_REPORT_ERROR("CONNECTIONS-113", ss.str().c_str());
+      }
+    }
+
+  private:
+
+    sc_core::sc_time epsilon;
+
+    inline sc_time get_period_delay(int c) const {
+      return clk_info_vector.at(c).clk_ptr->period();
+    }
+
+    double get_duty_ratio(int c) const {
+      return clk_info_vector.at(c).clk_ptr->duty_cycle();
+    }
+
+    sc_time adjust_for_edge(sc_time t, int c) const {
+      if (!clk_info_vector.at(c).clk_ptr->posedge_first()) {
+        return t + get_duty_ratio(c)*get_period_delay(c);
+      }
+
+      return t;
+    }
+  };
+
+#define DBG_CONNECT(x)
+
+  class Blocking_abs
+  {
+  public:
+    Blocking_abs() {
+       DBG_CONNECT("Blocking_abs CTOR: " << std::hex << (void*)this );
+    };
+    virtual void Post() {};
+    virtual void Pre()  {};
+    virtual void PrePostReset()  {};
+    bool clock_registered{0};
+    bool was_reset{0};
+    bool disabled{0};
+    bool non_leaf_port{0};  // TODO
+    int  clock_number{0};
+    virtual std::string base_name() {return std::string("unnamed"); }
+    virtual std::string full_name() { return "unnamed"; }
+  };
+
+
+  class ConManager
+  {
+  public:
+    ConManager() { }
+
+    ~ConManager() {
+      for (std::vector<std::vector<Blocking_abs *>*>::iterator it=tracked_per_clk.begin(); it!=tracked_per_clk.end(); ++it) {
+        delete *it;
+      }
+      tracked_per_clk.clear();
+    }
+
+    std::vector<Blocking_abs *> tracked;
+
+    void add(Blocking_abs *c) {
+      tracked.push_back(c);
+    }
+
+    std::map<const Blocking_abs *, const sc_event *> map_port_to_event;
+    std::map<const sc_event *, int> map_event_to_clock; // value is clock # + 1, so that 0 is error
+
+    struct process_reset_info {
+      process_reset_info() {
+        process_ptr = 0;
+        async_reset_level = false;
+        sync_reset_level = false;
+        async_reset_sig_if = 0;
+        sync_reset_sig_if = 0;
+        clk = 0;
+      }
+      unsigned clk;
+      sc_process_b *process_ptr;
+      bool        async_reset_level;
+      bool        sync_reset_level;
+      const sc_signal_in_if<bool> *async_reset_sig_if;
+      const sc_signal_in_if<bool> *sync_reset_sig_if;
+      bool operator == (const process_reset_info &rhs) {
+        return (async_reset_sig_if == rhs.async_reset_sig_if) &&
+               ( sync_reset_sig_if == rhs.sync_reset_sig_if) &&
+               (async_reset_level  == rhs.async_reset_level) &&
+               ( sync_reset_level  == rhs.sync_reset_level);
+      }
+
+      std::string to_string() {
+        std::ostringstream ss;
+        ss << "Process name: " << process_ptr->name();
+        if (async_reset_sig_if) {
+          const char *nm = "unknown";
+          const sc_object *ob = dynamic_cast<const sc_object *>(async_reset_sig_if);
+          sc_assert(ob);
+          nm = ob->name();
+          ss << " async reset signal: " << std::string(nm) << " level: " << async_reset_level ;
+        }
+
+        if (sync_reset_sig_if) {
+          const char *nm = "unknown";
+          const sc_object *ob = dynamic_cast<const sc_object *>(sync_reset_sig_if);
+          sc_assert(ob);
+          nm = ob->name();
+          ss << " sync reset signal: " << std::string(nm) << " level: " << sync_reset_level ;
+        }
+
+        return ss.str();
+      }
+    };
+    std::map<int, process_reset_info> map_clk_to_reset_info;
+    std::map<sc_process_b *, process_reset_info> map_process_to_reset_info;
+    bool sim_clk_initialized;
+
+    std::vector<std::vector<Blocking_abs *>*> tracked_per_clk;
+
+    void init_sim_clk() {
+      if (sim_clk_initialized) { return; }
+
+      sim_clk_initialized = true;
+
+      get_sim_clk().start_of_simulation();
+
+      for (unsigned c=0; c < get_sim_clk().clk_info_vector.size(); c++) {
+        map_event_to_clock[&(get_sim_clk().clk_info_vector[c].clk_ptr->posedge_event())] = c + 1; // add +1 encoding
+        std::ostringstream ss, ssync;
+        ss << "connections_manager_run_" << c;
+        sc_spawn(sc_bind(&ConManager::run, this, c), ss.str().c_str());
+        tracked_per_clk.push_back(new std::vector<Blocking_abs *>);
+        ssync << ss.str();
+        ss << "async_reset_thread";
+        sc_spawn(sc_bind(&ConManager::async_reset_thread, this, c), ss.str().c_str());
+        ssync << "sync_reset_thread";
+        sc_spawn(sc_bind(&ConManager::sync_reset_thread, this, c), ssync.str().c_str());
+      }
+
+      for (unsigned c=0; c < get_sim_clk().clock_alias_vector.size(); c++) {
+        int resolved = map_event_to_clock[get_sim_clk().clock_alias_vector[c].sc_clock_event];
+        if (resolved) {
+          map_event_to_clock[get_sim_clk().clock_alias_vector[c].alias_event] = resolved;
+        } else {
+          SC_REPORT_ERROR("CONNECTIONS-225", "Could not resolve alias clock!");
+        }
+      }
+
+      sc_spawn(sc_bind(&ConManager::check_registration, this, true), "check_registration");
+    }
+
+    void async_reset_thread(int c) {
+      wait(10, SC_PS);
+      process_reset_info &pri = map_clk_to_reset_info[c];
+
+      if (pri.async_reset_sig_if == 0) { return; }
+
+      while (1) {
+        wait(pri.async_reset_sig_if->value_changed_event());
+        // std::cout << "see async reset val now: " << pri.async_reset_sig_if->read() << "\n";
+        get_sim_clk().clk_info_vector[c].do_async_reset =
+          (pri.async_reset_sig_if->read() == pri.async_reset_level);
+      }
+    }
+
+    void sync_reset_thread(int c) {
+      wait(10, SC_PS);
+      process_reset_info &pri = map_clk_to_reset_info[c];
+
+      if (pri.sync_reset_sig_if == 0) { return; }
+
+      while (1) {
+        wait(pri.sync_reset_sig_if->value_changed_event());
+        // std::cout << "see sync reset val now: " << pri.sync_reset_sig_if->read() << "\n";
+        get_sim_clk().clk_info_vector[c].do_sync_reset =
+          (pri.sync_reset_sig_if->read() == pri.sync_reset_level);
+      }
+    }
+
+
+    void check_registration(bool b) {
+      wait(50, SC_PS); // allow all Reset calls to complete, so that add_clock_event calls are all done
+
+      bool error{0};
+
+      // first produce list of all warnings
+      for (unsigned i=0; i < tracked.size(); i++) { 
+       if (tracked[i]->disabled)
+         continue;
+
+       error |= !tracked[i]->was_reset;
+       if (!tracked[i]->was_reset) {
+         std::string name = tracked[i]->full_name();
+         SC_REPORT_WARNING("CONNECTIONS-101", ("Port or channel <" + name +
+            "> wasn't reset! In thread or process '" 
+            + std::string(sc_core::sc_get_current_process_b()->basename()) + "'.").c_str());
+       }
+      }
+
+      if (error) {
+         SC_REPORT_ERROR("CONNECTIONS-125",
+           std::string("Unable to resolve clock on port - check and fix any prior warnings about missing Reset() on ports: ").c_str());
+         sc_stop();
+      }
+
+      for (unsigned i=0; i < tracked.size(); i++) {
+        if (tracked[i]->disabled)
+          continue;
+
+        if (!!tracked[i] && (!tracked[i]->clock_registered || (map_port_to_event[tracked[i]] == 0))) {
+          DBG_CONNECT("check_registration: unreg port " << std::hex << tracked[i] << " (" << tracked[i]->full_name() << ")");
+
+          if (!tracked[i]->clock_registered && (get_sim_clk().clk_info_vector.size() > 1)) {
+            SC_REPORT_ERROR("CONNECTIONS-125",
+                          (std::string("Unable to resolve clock on port - check and fix any prior warnings about missing Reset() on ports: "
+                                       + tracked[i]->full_name() + " (" + tracked[i]->base_name() + ")").c_str()));
+          }
+        }
+      }
+
+      for (unsigned i=0; i < get_sim_clk().clk_info_vector.size(); i++) {
+        std::vector<process_reset_info> v;
+        decltype(map_process_to_reset_info)::iterator it;
+        for (it = map_process_to_reset_info.begin(); it != map_process_to_reset_info.end(); it++) {
+          if (it->second.clk == i) { v.push_back(it->second); }
+        }
+
+        if (v.size() > 1)
+          for (unsigned u=0; u<v.size(); u++)
+            if (!(v[0] == v[u])) {
+              std::ostringstream ss;
+              ss << "Two processes using same clock have different reset specs: \n"
+                 << v[0].to_string() << "\n"
+                 << v[u].to_string() << "\n";
+              SC_REPORT_WARNING("CONNECTIONS-212", ss.str().c_str());
+            }
+      }
+    }
+
+    void add_clock_event(Blocking_abs *c) {
+      init_sim_clk();
+
+      if (c->clock_registered) { return; }
+
+      c->clock_registered = true;
+
+      class my_process : public sc_process_b
+      {
+      public:
+#ifdef HAS_SC_RESET_API
+        // Code written in restricted style to work on OSCI/Accellera sim as well as Questa and VCS
+        // when SYSTEMC_HOME/sysc/kernel/sc_reset.h is available
+        int static_events_size() { return m_static_events.size(); }
+        const sc_event *first_event() { return m_static_events[0]; }
+        std::vector<sc_reset *> &get_sc_reset_vector() { return m_resets; }
+#else
+        // Remove dependency on sc_reset.h, but requires user call Connections::set_sim_clk(&clk) before sc_start() 
+        int static_events_size() { return 1; }
+        const sc_event *first_event() { 
+          SimConnectionsClk::clk_info &ci = get_sim_clk().clk_info_vector[0];
+          return &(ci.clk_ptr->posedge_event());
+        }
+#endif
+      };
+
+      sc_process_handle h = sc_get_current_process_handle();
+      sc_object *o = h.get_process_object();
+      sc_process_b *b = dynamic_cast<sc_process_b *>(o);
+      sc_assert(b);
+      my_process *m = static_cast<my_process *>(b);
+      if (m->static_events_size() != 1)
+        SC_REPORT_ERROR("CONNECTIONS-112",
+                        (std::string("Process does not have static sensitivity to exactly 1 event: " +
+                                     std::string(h.name())).c_str()));
+
+      const sc_event *e = m->first_event();
+      map_port_to_event[c] = e;
+
+      int clk = map_event_to_clock[e];
+      if (clk <= 0) {
+        SC_REPORT_ERROR("CONNECTIONS-111",
+                        (std::string("Failed to find sc_clock for process: " + std::string(h.name())).c_str()));
+        SC_REPORT_ERROR("CONNECTIONS-111", "Stopping sim due to fatal error.");
+        sc_stop();
+        return;
+      }
+
+      --clk; // undo +1 encoding for errors
+
+      tracked_per_clk[clk]->push_back(c);
+      c->clock_number = clk;
+      DBG_CONNECT("add_clock_event: port " << std::hex << c << " clock_number " << clk << " process " << h.name());
+
+      sc_clock* clk_ptr = get_sim_clk().clk_info_vector[clk].clk_ptr;
+      if (!clk_ptr->posedge_first()) {
+                std::ostringstream ss;
+                ss << "clk posedge_first() != true : process: "
+                   << h.name() << " "
+                   << "\n";
+                SC_REPORT_ERROR("CONNECTIONS-303", ss.str().c_str());
+      }
+
+      if (clk_ptr->start_time().value() % clk_ptr->period().value()) {
+                std::ostringstream ss;
+                ss << "clk start_time is not a multiple of clk period: process: "
+                   << h.name() << " "
+                   << "\n";
+                SC_REPORT_ERROR("CONNECTIONS-304", ss.str().c_str());
+      }
+
+#ifdef HAS_SC_RESET_API
+      class my_reset : public sc_reset
+      {
+      public:
+        const sc_signal_in_if<bool> *get_m_iface_p() { return m_iface_p; }
+        std::vector<sc_reset_target> &get_m_targets() { return m_targets; }
+      };
+
+      // Here we enforce that all processes using a clock have:
+      //  - consistent async resets (at most 1)
+      //  - consistent sync resets  (at most 1)
+      // Note that this applies to entire SC model (ie both DUT and TB)
+
+      for (unsigned r=0; r < m->get_sc_reset_vector().size(); r++) {
+        my_reset *mr = static_cast<my_reset *>(m->get_sc_reset_vector()[r]);
+        sc_assert(mr);
+        const sc_object *ob = dynamic_cast<const sc_object *>(mr->get_m_iface_p());
+        sc_assert(ob);
+
+        for (unsigned t=0; t < mr->get_m_targets().size(); t++)
+          if (mr->get_m_targets()[t].m_process_p == b) {
+            bool level = mr->get_m_targets()[t].m_level;
+
+            process_reset_info &pri = map_process_to_reset_info[b];
+            pri.process_ptr = b;
+            pri.clk = clk;
+
+            if (mr->get_m_targets()[t].m_async) {
+              if (pri.async_reset_sig_if == 0) {
+                pri.async_reset_sig_if = mr->get_m_iface_p();
+                pri.async_reset_level = level;
+              }
+
+              if (pri.async_reset_sig_if != mr->get_m_iface_p()) {
+                std::ostringstream ss;
+                ss << "Mismatching async reset signal objects for same process: process: "
+                   << h.name() << " "
+                   << "\n";
+                SC_REPORT_ERROR("CONNECTIONS-212", ss.str().c_str());
+              }
+
+              if (pri.async_reset_level != level) {
+                std::ostringstream ss;
+                ss << "Mismatching async reset signal level for same process: process: "
+                   << h.name() << " "
+                   << "\n";
+                SC_REPORT_ERROR("CONNECTIONS-212", ss.str().c_str());
+              }
+            } else {
+              if (pri.sync_reset_sig_if == 0) {
+                pri.sync_reset_sig_if = mr->get_m_iface_p();
+                pri.sync_reset_level = level;
+              }
+
+              if (pri.sync_reset_sig_if != mr->get_m_iface_p()) {
+                std::ostringstream ss;
+                ss << "Mismatching sync reset signal objects for same process: process: "
+                   << h.name() << " "
+                   << "\n";
+                SC_REPORT_ERROR("CONNECTIONS-212", ss.str().c_str());
+              }
+
+              if (pri.sync_reset_level != level) {
+                std::ostringstream ss;
+                ss << "Mismatching sync reset signal level for same process: process: "
+                   << h.name() << " "
+                   << "\n";
+                SC_REPORT_ERROR("CONNECTIONS-212", ss.str().c_str());
+              }
+            }
+
+            map_clk_to_reset_info[clk] = pri;
+          }
+      }
+#endif //HAS_SC_RESET_API
+    }
+
+
+    void run(int clk) {
+      get_sim_clk().post_delay(clk);  // align to occur just after the cycle
+
+      SimConnectionsClk::clk_info &ci = get_sim_clk().clk_info_vector[clk];
+
+      while (1) {
+        // Post();
+        for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk]->begin(); it!=tracked_per_clk[clk]->end(); ) {
+          (*it)->Post();
+          ++it;
+        }
+
+        get_sim_clk().post2pre_delay(clk);
+
+        //Pre();
+        for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk]->begin(); it!=tracked_per_clk[clk]->end(); ) {
+          (*it)->Pre();
+          ++it;
+        }
+        ci.clock_edge += ci.period_delay;
+
+        if (ci.do_sync_reset || ci.do_async_reset) {
+          for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk]->begin();
+               it!=tracked_per_clk[clk]->end(); ++it) {
+            (*it)->PrePostReset();
+          }
+        }
+
+        get_sim_clk().pre2post_delay();
+
+        if (ci.do_sync_reset || ci.do_async_reset) {
+          for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk]->begin();
+               it!=tracked_per_clk[clk]->end(); ++it) {
+            (*it)->PrePostReset();
+          }
+        }
+      }
+    }
+  };
+
+// See: https://stackoverflow.com/questions/18860895/how-to-initialize-static-members-in-the-header
+  template <class Dummy>
+  struct ConManager_statics {
+    static SimConnectionsClk sim_clk;
+    static ConManager conManager;
+  };
+
+  inline void set_sim_clk(sc_clock *clk_ptr)
+  {
+#ifndef HAS_SC_RESET_API
+    ConManager_statics<void>::sim_clk.clk_info_vector.push_back(clk_ptr);
+#endif
+  }
+
+  template <class Dummy>
+  SimConnectionsClk ConManager_statics<Dummy>::sim_clk;
+  template <class Dummy>
+  ConManager ConManager_statics<Dummy>::conManager;
+
+  inline SimConnectionsClk &get_sim_clk()
+  {
+#ifndef HAS_SC_RESET_API
+    CONNECTIONS_ASSERT_MSG(ConManager_statics<void>::sim_clk.clk_info_vector.size() > 0, "You must call Connections::set_sim_clk(&clk) before sc_start()");
+#endif
+    return ConManager_statics<void>::sim_clk;
+  }
+
+  inline ConManager &get_conManager()
+  {
+    return ConManager_statics<void>::conManager;
+  }
+
+#endif // CONNECTIONS_SIM_ONLY
+
 struct chan_base
 #ifndef __SYNTHESIS__
  : public sc_channel
@@ -99,6 +670,7 @@ public:
   virtual bool PopNB(Message& m) = 0;
   virtual void ResetRead() = 0;
   virtual void disable_spawn_in() = 0;
+  virtual void set_in_port_names(std::string full_name, std::string base_name) = 0;
 };
 
 template <typename Message> 
@@ -108,7 +680,109 @@ public:
   virtual bool PushNB(const Message& m) = 0;
   virtual void ResetWrite() = 0;
   virtual void disable_spawn_out() = 0;
+  virtual void set_out_port_names(std::string full_name, std::string base_name) = 0;
 };
+
+#ifndef __SYNTHESIS__
+
+template <typename Message>
+struct In_sim_port : public Blocking_abs {
+  Message& in_buf_dat;
+  bool&    in_buf_vld;
+  sc_signal<bool>& rdy;
+  sc_signal<bool>& vld;
+  sc_signal<Message>& dat;
+
+  In_sim_port(Message& _in_buf_dat, bool& _in_buf_vld, 
+              sc_signal<bool>& _rdy, sc_signal<bool>& _vld, sc_signal<Message>& _dat)
+    : in_buf_dat(_in_buf_dat)
+    , in_buf_vld(_in_buf_vld)
+    , rdy(_rdy)
+    , vld(_vld)
+    , dat(_dat)
+  {
+       get_conManager().add(this);
+  }
+
+  void disable() { disabled = 1; }
+
+  virtual void Post() {
+   if (!disabled) {
+     if (!in_buf_vld)
+      rdy = 1;
+     else
+      rdy = 0;
+   }
+  }
+
+  virtual void Pre() {
+   if (!disabled && !in_buf_vld && vld) {
+    in_buf_vld = 1;
+    in_buf_dat = dat;
+   }
+  }
+
+  virtual void PrePostReset() {
+    in_buf_vld = 0;
+  }
+
+  std::string _base_name{"unnamed"};
+  std::string _full_name{"unnamed"};
+
+  virtual std::string base_name() {return _base_name; }
+  virtual std::string full_name() { return _full_name; }
+};
+
+
+template <typename Message>
+struct Out_sim_port : public Blocking_abs {
+  Message& out_buf_dat;
+  bool&    out_buf_vld;
+  sc_signal<bool>& rdy;
+  sc_signal<bool>& vld;
+  sc_signal<Message>& dat;
+
+  Out_sim_port(Message& _out_buf_dat, bool& _out_buf_vld, 
+              sc_signal<bool>& _rdy, sc_signal<bool>& _vld, sc_signal<Message>& _dat)
+    : out_buf_dat(_out_buf_dat)
+    , out_buf_vld(_out_buf_vld)
+    , rdy(_rdy)
+    , vld(_vld)
+    , dat(_dat)
+  {
+       get_conManager().add(this);
+  }
+
+  void disable() { disabled = 1; }
+
+  virtual void Post() {
+   if (!disabled) {
+     if (out_buf_vld) {
+      vld = 1;
+      dat = out_buf_dat;
+     } else {
+      vld = 0;
+     }
+   }
+  }
+
+  virtual void Pre() {
+   if (!disabled && vld && rdy)
+    out_buf_vld = 0;
+  }
+
+  virtual void PrePostReset() {
+    out_buf_vld = 0;
+  }
+
+  std::string _base_name{"unnamed"};
+  std::string _full_name{"unnamed"};
+
+  virtual std::string base_name() {return _base_name; }
+  virtual std::string full_name() { return _full_name; }
+};
+
+#endif
 
 
 template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
@@ -118,9 +792,6 @@ class Combinational
   , public Out_if<Message> 
 {
 public:
-#ifndef __SYNTHESIS__
-  SC_HAS_PROCESS(Combinational);
-#endif
 
   Combinational(sc_module_name nm) 
    : chan_base(nm) 
@@ -128,27 +799,19 @@ public:
    , dat("dat")
    , rdy("rdy")
   {
-#ifndef __SYNTHESIS__
-    SC_THREAD(pre_thread);
-    SC_THREAD(post_thread);
-#endif
   }
 
   Combinational() : chan_base(sc_module_name(sc_gen_unique_name("Comb"))) {
     // This ctor needed for legacy code to compile, but cannot explicitly name vld/dat/rdy
     // else will cause naming warnings at pre-hls sim elaboration time.
-#ifndef __SYNTHESIS__
-    SC_THREAD(pre_thread);
-    SC_THREAD(post_thread);
-#endif
   } 
 
 #ifdef __SYNTHESIS__
 
-  void pre_thread() {}
-  void post_thread() {}
   void disable_spawn_in() {}
   void disable_spawn_out() {}
+  virtual void set_in_port_names(std::string full_name, std::string base_name) {}
+  virtual void set_out_port_names(std::string full_name, std::string base_name) {}
 
   void ResetWrite() {
    vld = 0;
@@ -208,16 +871,25 @@ public:
   Message out_buf_dat;
   bool    out_buf_vld;
 
+  In_sim_port<Message> in_port{in_buf_dat, in_buf_vld, rdy, vld, dat};
+  Out_sim_port<Message> out_port{out_buf_dat, out_buf_vld, rdy, vld, dat};
+
   void ResetWrite() {
+   get_conManager().add_clock_event(&out_port);
+   out_port.was_reset=1;
    out_buf_vld = 0;
    out_buf_dat = Message();
   }
 
   void ResetRead() {
+   get_conManager().add_clock_event(&in_port);
+   in_port.was_reset=1;
    in_buf_vld = 0;
   }
 
   Message Pop() {
+   get_sim_clk().check_on_clock_edge(in_port.clock_number);
+
    if (!in_buf_vld) {
      do {
       wait();
@@ -229,6 +901,8 @@ public:
   }
 
   bool PopNB(Message& m) { 
+   get_sim_clk().check_on_clock_edge(in_port.clock_number);
+
    if (in_buf_vld) {
     m = in_buf_dat;
     in_buf_vld = 0;
@@ -239,6 +913,8 @@ public:
   }
 
   void Push(const Message& m) {
+   get_sim_clk().check_on_clock_edge(out_port.clock_number);
+
    if (out_buf_vld) {
      do {
       wait();
@@ -250,6 +926,8 @@ public:
   }
 
   bool PushNB(const Message& m) {
+   get_sim_clk().check_on_clock_edge(out_port.clock_number);
+
    if (!out_buf_vld) {
      out_buf_vld = 1;
      out_buf_dat = m;
@@ -259,65 +937,41 @@ public:
    }
   }
 
-  void Pre() {
-   // In:
-   if (!disable_in && !in_buf_vld && vld) {
-    in_buf_vld = 1;
-    in_buf_dat = dat;
-   }
-
-   // Out:
-   if (!disable_out && vld && rdy)
-    out_buf_vld = 0;
-  }
-
-  void Post() {
-   // In:
-   if (!disable_in) {
-     if (!in_buf_vld)
-      rdy = 1;
-     else
-      rdy = 0;
-   }
-
-   // Out:
-   if (!disable_out) {
-     if (out_buf_vld) {
-      vld = 1;
-      dat = out_buf_dat;
-     } else {
-      vld = 0;
-     }
-   }
-  }
-
-  void pre_thread() {
-    wait(0.9, SC_NS);
-
-    while (1) {
-      Pre();
-      wait(1.0, SC_NS);
-    }
-  }
-
-  void post_thread() {
-    wait(1.1, SC_NS);
-
-    while (1) {
-      Post();
-      wait(1.0, SC_NS);
-    }
-  }
-
-  bool disable_in{0};
-  bool disable_out{0};
-
   void disable_spawn_in() {
-    disable_in=1;
+    in_port.disable();
   }
 
   void disable_spawn_out() {
-    disable_out=1;
+    out_port.disable();
+  }
+
+  bool port_less_channel_access_in = 1;
+  bool port_less_channel_access_out = 1;
+
+  void set_in_port_names(std::string full_name, std::string base_name) {
+    in_port._full_name = full_name;
+    in_port._base_name = base_name;
+    port_less_channel_access_in = 0;
+  }
+  
+  void set_out_port_names(std::string full_name, std::string base_name) {
+    out_port._full_name = full_name;
+    out_port._base_name = base_name;
+    port_less_channel_access_out = 0;
+  }
+
+  void start_of_simulation() {
+    // at end_of_elaboration, if this channel has real user ports, then set_in/out_port_names was called.
+    // At start_of_sim, if we see that set_in/out_port_names was not called,
+    // then we have "port-less channel access"
+    if (port_less_channel_access_in) {
+      in_port._full_name = std::string(name()) + ".In";
+      in_port._base_name = ".In";
+    }
+    if (port_less_channel_access_out) {
+      out_port._full_name = std::string(name()) + ".Out";
+      out_port._base_name = ".Out";
+    }
   }
   
 #endif
@@ -335,7 +989,9 @@ class In
 public:
   typedef sc_port<In_if<Message>> port_t;
 
-  In(const char* nm = sc_gen_unique_name("In")) : port_t(nm) {}
+  In(const char* nm = sc_gen_unique_name("In")) : port_t(nm) {
+  }
+
 
 #ifdef __SYNTHESIS__
 
@@ -379,6 +1035,8 @@ public:
   void disable_spawn() {do_disable=1;}
 
   void end_of_elaboration() {
+   port_t* p=this; (*p)->set_in_port_names(this->name(), this->basename());
+
    if (do_disable) {
     port_t* p=this; 
     (*p)->disable_spawn_in(); 
@@ -455,6 +1113,8 @@ public:
   void disable_spawn() {do_disable=1;}
 
   void end_of_elaboration() {
+   port_t* p=this; (*p)->set_out_port_names(this->name(), this->basename());
+
    if (do_disable) {
     port_t* p=this; 
     (*p)->disable_spawn_out(); 
