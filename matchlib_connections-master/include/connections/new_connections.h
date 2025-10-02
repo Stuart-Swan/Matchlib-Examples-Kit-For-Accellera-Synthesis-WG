@@ -2,14 +2,15 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-1 Oct 2025
+2 Oct 2025
 
 This is a complete rewrite of the old connections.h file.
 Goals:
  - "Drop in" replacement for old connections.h file.
- - Cleanup & major simplification
+ - Major cleanup 
+ - Major simplification
  - Removal of obsolete features
- - pre-HLS sim performance improvement for DIRECT_PORT
+ - pre-HLS sim performance improvement for DIRECT_PORT (roughly 20% improvement)
 
 Removed Features from old connections.h:
  - MARSHALL_PORT, SYN_PORT - use DIRECT_PORT instead
@@ -17,10 +18,9 @@ Removed Features from old connections.h:
  - overloaded Connections Port binding operators to allow mismatched port types to be bound.
 
 Features still to be implemented from old
- - Still may be some missing error checking in pre-HLS sim.
- - TLM_PORT, FAST_SIM
  - random stall injection
  - latency and capacity backannotation
+ - Still may be a few missing error checks in pre-HLS sim.
 */
 
 
@@ -32,7 +32,9 @@ Features still to be implemented from old
 #endif
 
 #ifdef CONNECTIONS_FAST_SIM
-#error "FAST_SIM not supported yet"
+#define AUTO_PORT Connections::TLM_PORT
+#else
+#define AUTO_PORT Connections::DIRECT_PORT
 #endif
 
 #include <systemc.h>
@@ -71,12 +73,11 @@ Features still to be implemented from old
 #define _DATNAMESTR_ "dat"
 
 
-#define AUTO_PORT Connections::DIRECT_PORT
 
 #ifdef __SYNTHESIS__
-#define SYNTH_NAME(prefix, nm) ""
+#define CONN_SYNTH_NAME(prefix, nm) ""
 #else
-#define SYNTH_NAME(prefix, nm) (std::string(prefix) + nm ).c_str()
+#define CONN_SYNTH_NAME(prefix, nm) (std::string(prefix) + nm ).c_str()
 #endif
 
 
@@ -90,6 +91,10 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
 
   class ConManager;
   ConManager &get_conManager();
+
+  struct force_disable_if  {
+   virtual void force_disable() = 0;
+  };
 
 #ifdef CONNECTIONS_SIM_ONLY
 
@@ -168,6 +173,48 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
       }
     }
 
+    void find_ccs_rtl(sc_object *obj) {
+      // WAR for scverify RTL wrapper since it does not call disable_spawn for In/Out ports
+      sc_module *mod = dynamic_cast<sc_module *>(obj);
+      if (mod) {
+        if (std::string(mod->basename()) == "ccs_rtl") {
+          // std::cout << "FOUND ccs_rtl: " << mod->name() << std::endl;
+          sc_object* obj = mod->get_parent_object();
+          if (obj) {
+            std::vector<sc_object *> children = obj->get_child_objects();
+            for ( unsigned i = 0; i < children.size(); i++ ) {
+              if ( children[i] ) {
+                force_disable_if* f = dynamic_cast<force_disable_if*>(children[i]);
+                if (f) {
+                  f->force_disable();
+                  // std::cout << "disabling: " << children[i]->name() << std::endl;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      std::vector<sc_object *> children = obj->get_child_objects();
+      for ( unsigned i = 0; i < children.size(); i++ ) {
+        if ( children[i] ) { find_ccs_rtl(children[i]); }
+      }
+    }
+
+    void end_of_elaboration() {
+      static bool done_ccs_rtl{0};
+      if (done_ccs_rtl) 
+        return;
+
+      const std::vector<sc_object *> tops = sc_get_top_level_objects();
+
+      for (unsigned i=0; i < tops.size(); i++) {
+        if (tops[i]) { find_ccs_rtl(tops[i]); }
+      }
+
+      done_ccs_rtl = 1;
+    }
+
     void start_of_simulation() {
       // Set epsilon to default value at start of simulation, after time resolution has been set
       epsilon = sc_time(0.01, SC_NS);
@@ -230,9 +277,8 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
     bool clock_registered{0};
     bool was_reset{0};
     bool disabled{0};
-    bool non_leaf_port{0};  // TODO
     int  clock_number{0};
-    virtual std::string base_name() {return std::string("unnamed"); }
+    virtual std::string base_name() {return "unnamed"; }
     virtual std::string full_name() { return "unnamed"; }
   };
 
@@ -393,6 +439,7 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
            std::string("Unable to resolve clock on port - check and fix any prior warnings about missing Reset() on ports: ").c_str());
          sc_stop();
       }
+
 
       for (unsigned i=0; i < tracked.size(); i++) {
         if (tracked[i]->disabled)
@@ -651,17 +698,15 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
 
 #endif // CONNECTIONS_SIM_ONLY
 
-struct chan_base
 #ifndef __SYNTHESIS__
- : public sc_channel
-#endif
-{
-  chan_base(sc_module_name nm) 
-#ifndef __SYNTHESIS__
-   : sc_channel(nm) 
-#endif
-  {}
+struct chan_base : public sc_channel {
+  chan_base(sc_module_name nm) : sc_channel(nm) {}
 };
+#else
+struct chan_base {
+  chan_base(sc_module_name nm) {}
+};
+#endif
 
 template <typename Message> 
 class In_if : public sc_interface {
@@ -782,14 +827,44 @@ struct Out_sim_port : public Blocking_abs {
   virtual std::string full_name() { return _full_name; }
 };
 
+
+template <typename Message>
+struct logger : public sc_object, public sc_trace_marker {
+  logger(const char* nm) : sc_object(nm) {}
+ 
+  virtual void set_trace(sc_trace_file *trace_file_ptr) {}
+
+  std::ofstream* log_stream;
+  int log_number;
+
+  virtual bool set_log(std::ofstream *os, int &log_num, std::string &path_name) { 
+    log_stream = os;
+    path_name = this->name();
+    ++log_num;
+    log_number = log_num;
+    return 1; 
+  }
+
+  void emit(const Message& m) {
+    if (log_stream) { 
+      *log_stream << std::dec << log_number << " | " << std::hex <<  m << " | " << sc_time_stamp() << "\n"; 
+    }
+  }
+};
+
 #endif
 
-
 template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
-class Combinational 
+class Combinational ;
+
+template <typename Message>
+class Combinational<Message, DIRECT_PORT>
   : public chan_base 
   , public In_if<Message>
   , public Out_if<Message> 
+#ifndef __SYNTHESIS__
+  , public sc_trace_marker
+#endif
 {
 public:
 
@@ -805,6 +880,14 @@ public:
     // This ctor needed for legacy code to compile, but cannot explicitly name vld/dat/rdy
     // else will cause naming warnings at pre-hls sim elaboration time.
   } 
+
+  virtual void set_trace(sc_trace_file *trace_file_ptr) {
+    sc_trace(trace_file_ptr, vld, vld.name());
+    sc_trace(trace_file_ptr, rdy, rdy.name());
+    sc_trace(trace_file_ptr, dat, dat.name());
+  }
+
+  virtual bool set_log(std::ofstream *os, int &log_num, std::string &path_name) { return 0; }
 
 #ifdef __SYNTHESIS__
 
@@ -874,6 +957,9 @@ public:
   In_sim_port<Message> in_port{in_buf_dat, in_buf_vld, rdy, vld, dat};
   Out_sim_port<Message> out_port{out_buf_dat, out_buf_vld, rdy, vld, dat};
 
+  logger<Message> in_logger{"In"};
+  logger<Message> out_logger{"Out"};
+
   void ResetWrite() {
    get_conManager().add_clock_event(&out_port);
    out_port.was_reset=1;
@@ -896,6 +982,8 @@ public:
      } while (!in_buf_vld);
    }
 
+   in_logger.emit(in_buf_dat);
+
    in_buf_vld = 0;
    return in_buf_dat;
   }
@@ -906,6 +994,7 @@ public:
    if (in_buf_vld) {
     m = in_buf_dat;
     in_buf_vld = 0;
+    in_logger.emit(in_buf_dat);
     return 1;
    }
 
@@ -923,6 +1012,7 @@ public:
 
    out_buf_vld = 1;
    out_buf_dat = m;
+   out_logger.emit(out_buf_dat);
   }
 
   bool PushNB(const Message& m) {
@@ -931,6 +1021,7 @@ public:
    if (!out_buf_vld) {
      out_buf_vld = 1;
      out_buf_dat = m;
+     out_logger.emit(out_buf_dat);
      return 1;
    } else {
      return 0;
@@ -945,30 +1036,30 @@ public:
     out_port.disable();
   }
 
-  bool port_less_channel_access_in = 1;
-  bool port_less_channel_access_out = 1;
+  bool portless_channel_access_in = 1;
+  bool portless_channel_access_out = 1;
 
   void set_in_port_names(std::string full_name, std::string base_name) {
     in_port._full_name = full_name;
     in_port._base_name = base_name;
-    port_less_channel_access_in = 0;
+    portless_channel_access_in = 0;
   }
   
   void set_out_port_names(std::string full_name, std::string base_name) {
     out_port._full_name = full_name;
     out_port._base_name = base_name;
-    port_less_channel_access_out = 0;
+    portless_channel_access_out = 0;
   }
 
   void start_of_simulation() {
     // at end_of_elaboration, if this channel has real user ports, then set_in/out_port_names was called.
     // At start_of_sim, if we see that set_in/out_port_names was not called,
     // then we have "port-less channel access"
-    if (port_less_channel_access_in) {
+    if (portless_channel_access_in) {
       in_port._full_name = std::string(name()) + ".In";
       in_port._base_name = ".In";
     }
-    if (port_less_channel_access_out) {
+    if (portless_channel_access_out) {
       out_port._full_name = std::string(name()) + ".Out";
       out_port._base_name = ".Out";
     }
@@ -983,8 +1074,12 @@ public:
 
 
 template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
-class In 
+class In ;
+
+template <typename Message>
+class In <Message, DIRECT_PORT>
   : public sc_port<In_if<Message>> 
+  , public force_disable_if
 {
 public:
   typedef sc_port<In_if<Message>> port_t;
@@ -1022,13 +1117,23 @@ public:
 
   void disable_spawn() {}
 
+  void force_disable() {}
+
 #else
 
   Message Pop() { port_t* p=this; return (*p)->Pop(); }
 
   bool PopNB(Message& m) { port_t* p=this; return (*p)->PopNB(m); }
 
-  void Reset() { port_t* p=this; (*p)->ResetRead(); }
+  void Reset() { 
+    if (non_leaf_port) {
+        SC_REPORT_ERROR("CONNECTIONS-102", (std::string("Port ") + this->name() +
+              " was reset but it is a non-leaf port. In thread or process '" 
+              + std::string(sc_core::sc_get_current_process_b()->basename()) + "'.").c_str());
+    } else {
+      port_t* p=this; (*p)->ResetRead(); 
+    }
+  }
 
   bool do_disable{0};
 
@@ -1041,6 +1146,13 @@ public:
     port_t* p=this; 
     (*p)->disable_spawn_in(); 
    }
+
+   get_sim_clk().end_of_elaboration();
+  }
+
+  void force_disable() {
+    port_t* p=this; 
+    (*p)->disable_spawn_in(); 
   }
 
 #endif
@@ -1056,14 +1168,32 @@ public:
 #endif
   }
 
-  sc_in<bool> vld{SYNTH_NAME(this->basename(), "vld")};
-  sc_out<bool> rdy{SYNTH_NAME(this->basename(), "rdy")};
-  sc_in<Message> dat{SYNTH_NAME(this->basename(), "dat")};
+  template <typename M>
+  void operator()(In<M> &rhs) {
+   vld(rhs.vld);
+   rdy(rhs.rdy);
+   dat(rhs.dat);
+#ifndef __SYNTHESIS__
+   port_t* p = this;
+   (*p)(rhs);
+#endif
+   rhs.non_leaf_port = 1;
+  }
+ 
+  bool non_leaf_port{0};
+
+  sc_in<bool> vld{CONN_SYNTH_NAME(this->basename(), "vld")};
+  sc_out<bool> rdy{CONN_SYNTH_NAME(this->basename(), "rdy")};
+  sc_in<Message> dat{CONN_SYNTH_NAME(this->basename(), "dat")};
 };
 
 template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
-class Out 
+class Out ;
+
+template <typename Message>
+class Out <Message, DIRECT_PORT>
   : public sc_port<Out_if<Message>> 
+  , public force_disable_if
 {
 public:
   typedef sc_port<Out_if<Message>> port_t;
@@ -1100,13 +1230,23 @@ public:
 
   void disable_spawn() {}
 
+  void force_disable() {}
+
 #else
 
   void Push(const Message& m) { port_t* p = this; (*p)->Push(m); }
 
   bool PushNB(const Message& m) { port_t* p=this; return (*p)->PushNB(m); }
 
-  void Reset() { port_t* p=this; (*p)->ResetWrite(); }
+  void Reset() { 
+    if (non_leaf_port) {
+        SC_REPORT_ERROR("CONNECTIONS-102", (std::string("Port ") + this->name() +
+              " was reset but it is a non-leaf port. In thread or process '" 
+              + std::string(sc_core::sc_get_current_process_b()->basename()) + "'.").c_str());
+    } else {
+      port_t* p=this; (*p)->ResetWrite(); 
+    }
+  }
 
   bool do_disable{0};
 
@@ -1119,6 +1259,13 @@ public:
     port_t* p=this; 
     (*p)->disable_spawn_out(); 
    }
+
+   get_sim_clk().end_of_elaboration();
+  }
+
+  void force_disable() {
+    port_t* p=this; 
+    (*p)->disable_spawn_out(); 
   }
 
 #endif
@@ -1134,10 +1281,151 @@ public:
 #endif
   }
 
-  sc_out<bool> vld{SYNTH_NAME(this->basename(), "vld")};
-  sc_in<bool> rdy{SYNTH_NAME(this->basename(), "rdy")};
-  sc_out<Message> dat{SYNTH_NAME(this->basename(), "dat")};
+  template <typename M>
+  void operator()(Out<M> &rhs) {
+   vld(rhs.vld);
+   rdy(rhs.rdy);
+   dat(rhs.dat);
+#ifndef __SYNTHESIS__
+   port_t* p = this;
+   (*p)(rhs);
+#endif
+   rhs.non_leaf_port = 1;
+  }
+ 
+  bool non_leaf_port{0};
+
+  sc_out<bool> vld{CONN_SYNTH_NAME(this->basename(), "vld")};
+  sc_in<bool> rdy{CONN_SYNTH_NAME(this->basename(), "rdy")};
+  sc_out<Message> dat{CONN_SYNTH_NAME(this->basename(), "dat")};
 };
+
+
+
+///////////// TLM_PORT ///////////////////
+
+
+#ifndef __SYNTHESIS__
+template <typename Message>
+class Combinational<Message, TLM_PORT>
+  : public chan_base 
+  , public In_if<Message>
+  , public Out_if<Message> 
+  , public sc_trace_marker
+{
+public:
+
+  Combinational(sc_module_name nm) 
+   : chan_base(nm) 
+  {
+  }
+
+  Combinational() : chan_base(sc_module_name(sc_gen_unique_name("Comb"))) {
+    // This ctor needed for legacy code to compile, but cannot explicitly name vld/dat/rdy
+    // else will cause naming warnings at pre-hls sim elaboration time.
+  } 
+
+  virtual void set_trace(sc_trace_file *trace_file_ptr) { }
+
+  virtual bool set_log(std::ofstream *os, int &log_num, std::string &path_name) { return 0; }
+
+  tlm::tlm_fifo<Message> fifo;
+
+  logger<Message> in_logger{"In"};
+  logger<Message> out_logger{"Out"};
+
+  void ResetWrite() {
+    // TODO
+  }
+
+  void ResetRead() {
+    // TODO
+  }
+
+  Message Pop() {
+    Message m = fifo.get();
+    in_logger.emit(m);
+    return m;
+  }
+
+  bool PopNB(Message& m) { 
+   bool ret = fifo.nb_get(m);
+   if (ret)
+     in_logger.emit(m);
+   return ret;
+  }
+
+  void Push(const Message& m) {
+    fifo.put(m);
+    out_logger.emit(m);
+  }
+
+  bool PushNB(const Message& m) {
+    bool ret = fifo.nb_put(m);
+    if (ret)
+      out_logger.emit(m);
+
+    return ret;
+  }
+
+  void disable_spawn_in() { }
+
+  void disable_spawn_out() { }
+
+  void set_in_port_names(std::string full_name, std::string base_name) { }
+  
+  void set_out_port_names(std::string full_name, std::string base_name) { }
+};
+
+template <typename Message>
+class In <Message, TLM_PORT>
+  : public sc_port<In_if<Message>> 
+{
+public:
+  typedef sc_port<In_if<Message>> port_t;
+
+  In(const char* nm = sc_gen_unique_name("In")) : port_t(nm) { }
+
+  Message Pop() { port_t* p=this; return (*p)->Pop(); }
+
+  bool PopNB(Message& m) { port_t* p=this; return (*p)->PopNB(m); }
+
+  void Reset() { port_t* p=this; (*p)->ResetRead(); }
+
+  void disable_spawn() {}
+
+  template <typename C>
+  void operator()(C &rhs) {
+   port_t* p = this;
+   (*p)(rhs);
+  }
+};
+
+template <typename Message>
+class Out <Message, TLM_PORT>
+  : public sc_port<Out_if<Message>> 
+{
+public:
+  typedef sc_port<Out_if<Message>> port_t;
+
+  Out(const char* nm = sc_gen_unique_name("Out")) : port_t(nm) {}
+
+  void Push(const Message& m) { port_t* p = this; (*p)->Push(m); }
+
+  bool PushNB(const Message& m) { port_t* p=this; return (*p)->PushNB(m); }
+
+  void Reset() { port_t* p=this; (*p)->ResetWrite(); }
+
+  void disable_spawn() {}
+
+  template <typename C>
+  void operator()(C &rhs) {
+   sc_port<Out_if<Message>>* p = this;
+   (*p)(rhs);
+  }
+};
+
+#endif
 
 // Forward declarations below needed for other Matchlib headers currently
 
