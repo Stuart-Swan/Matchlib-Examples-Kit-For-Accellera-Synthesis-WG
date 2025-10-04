@@ -2,10 +2,10 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-2 Oct 2025
+3 Oct 2025
 
 This is a complete rewrite of the old connections.h file.
-Goals:
+Features & Goals:
  - "Drop in" replacement for old connections.h file.
  - Major cleanup 
  - Major simplification
@@ -20,7 +20,6 @@ Removed Features from old connections.h:
 Features still to be implemented from old
  - random stall injection
  - latency and capacity backannotation
- - Still may be a few missing error checks in pre-HLS sim.
 */
 
 
@@ -730,6 +729,15 @@ public:
 
 #ifndef __SYNTHESIS__
 
+class rand_force_if {
+ public:
+   virtual bool force_zero() = 0;
+};
+
+struct my_rand : public rand_force_if {
+  bool force_zero() { return rand() & 1; }
+};
+
 template <typename Message>
 struct In_sim_port : public Blocking_abs {
   Message& in_buf_dat;
@@ -749,11 +757,19 @@ struct In_sim_port : public Blocking_abs {
        get_conManager().add(this);
   }
 
+  bool force_zero{0};
+ 
+  rand_force_if* local_rand{0};
+
   void disable() { disabled = 1; }
 
   virtual void Post() {
+   if (local_rand) {
+     force_zero = local_rand->force_zero();
+   }
+
    if (!disabled) {
-     if (!in_buf_vld)
+     if (!in_buf_vld && !force_zero)
       rdy = 1;
      else
       rdy = 0;
@@ -761,7 +777,7 @@ struct In_sim_port : public Blocking_abs {
   }
 
   virtual void Pre() {
-   if (!disabled && !in_buf_vld && vld) {
+   if (!disabled && !in_buf_vld && vld && !force_zero) {
     in_buf_vld = 1;
     in_buf_dat = dat;
    }
@@ -874,11 +890,13 @@ public:
    , dat("dat")
    , rdy("rdy")
   {
+    Init();
   }
 
   Combinational() : chan_base(sc_module_name(sc_gen_unique_name("Comb"))) {
     // This ctor needed for legacy code to compile, but cannot explicitly name vld/dat/rdy
     // else will cause naming warnings at pre-hls sim elaboration time.
+    Init();
   } 
 
   virtual void set_trace(sc_trace_file *trace_file_ptr) {
@@ -891,6 +909,7 @@ public:
 
 #ifdef __SYNTHESIS__
 
+  void Init() {}
   void disable_spawn_in() {}
   void disable_spawn_out() {}
   virtual void set_in_port_names(std::string full_name, std::string base_name) {}
@@ -1064,7 +1083,15 @@ public:
       out_port._base_name = ".Out";
     }
   }
-  
+
+  SC_HAS_PROCESS(Combinational);
+
+  my_rand my_rand1;
+
+  void Init() {
+    //in_port.local_rand = &my_rand1;
+  }
+
 #endif
 
   sc_signal<bool> vld;
