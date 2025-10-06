@@ -54,15 +54,15 @@ static const char* make_permanent(const char* nm) {
 // nv_array_bank_array_no_assert_base is the base class for banked arrays,
 // and typically is not directly used in user models.
 
-template <typename B, size_t C>
+template <typename B, size_t C, size_t I=0>
 class nv_array_bank_array_no_assert_base;
 
-template <typename B>
-class nv_array_bank_array_no_assert_base<B, 1>
+template <typename B, size_t I>
+class nv_array_bank_array_no_assert_base<B, 1, I>
 {
-  B a;
-
 public:
+  #pragma hls_ac_bank_mem
+  B a;
 
   nv_array_bank_array_no_assert_base() : a() {}
 
@@ -75,12 +75,12 @@ public:
 };
 
 
-template <typename B, size_t C>
+template <typename B, size_t C, size_t I>
 class nv_array_bank_array_no_assert_base
 {
   static const size_t W = nv_array_pow2<C-1>::P;
-  nv_array_bank_array_no_assert_base<B, W  > a0;
-  nv_array_bank_array_no_assert_base<B, C-W> a1;
+  nv_array_bank_array_no_assert_base<B, W, I> a0;
+  nv_array_bank_array_no_assert_base<B, C-W, I+W> a1;
 public:
 
   nv_array_bank_array_no_assert_base() : a0(), a1() {}
