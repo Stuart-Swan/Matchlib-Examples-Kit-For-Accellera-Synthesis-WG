@@ -1,0 +1,407 @@
+================================================================================
+COMPREHENSIVE COMPARISON: connections.h vs new_connections.h
+================================================================================
+
+Author: Stuart Swan, Platform Architect, Siemens EDA
+Date: 6 Oct 2025
+
+This document compares the old connections.h file with its complete rewrite,
+new_connections.h. The files are intended to be "plug compatible" drop-in
+replacements for each other.
+
+================================================================================
+1. EXTERNALLY VISIBLE API DIFFERENCES
+================================================================================
+
+1.1 PORT AND CHANNEL CLASSES
+-----------------------------
+Both files provide:
+- In<Message, port_type> - Input port class
+- Out<Message, port_type> - Output port class
+- Combinational<Message, port_type> - Combinational channel class
+- Forward declarations for InBlocking, OutBlocking, Bypass, Pipeline, Buffer
+
+Port type enumeration (identical in both):
+  enum connections_port_t {
+    SYN_PORT = 0,
+    MARSHALL_PORT = 1,
+    DIRECT_PORT = 2,
+    TLM_PORT = 3
+  };
+
+1.2 CORE API METHODS
+--------------------
+connections.h (OLD) provides:
+- In<> methods: Pop(), Peek(), PopNB(), PeekNB(), Empty(), Reset()
+- Out<> methods: Push(), PushNB(), Full(), Reset()
+- InBlocking<> methods: Pop(), Peek(), PopNB(), PeekNB(), Reset()
+- OutBlocking<> methods: Push(), PushNB(), Reset()
+
+new_connections.h (NEW) provides:
+- In<> methods: Pop(), PopNB(), Reset()
+- Out<> methods: Push(), PushNB(), Reset()
+- Only DIRECT_PORT and TLM_PORT specializations are fully implemented
+
+1.3 SIGNAL NAMING CONVENTIONS
+------------------------------
+connections.h (OLD):
+- Supports two naming conventions via CONNECTIONS_NAMING_ORIGINAL macro:
+  * Original: val, rdy, msg (when CONNECTIONS_NAMING_ORIGINAL defined)
+  * Catapult: vld, rdy, dat (default)
+- Port signals: in_vld, in_rdy, in_dat, out_vld, out_rdy, out_dat
+
+new_connections.h (NEW):
+- Only supports Catapult style naming: vld, rdy, dat
+- No support for val/msg naming convention
+- Signals defined as: _VLDNAME_, _RDYNAME_, _DATNAME_ (hardcoded to vld/rdy/dat)
+
+================================================================================
+2. REMOVED FEATURES (in connections.h but NOT in new_connections.h)
+================================================================================
+
+2.1 PORT QUERY METHODS
+----------------------
+✗ Empty() method - Removed from In<> ports
+✗ Full() method - Removed from Out<> ports
+✗ Peek() method - Removed from In<> and InBlocking<> ports
+✗ PeekNB() method - Removed from In<> and InBlocking<> ports
+
+2.2 PORT TYPES
+--------------
+✗ SYN_PORT implementation - Fully deprecated (only DIRECT_PORT and TLM_PORT
+  implemented in new file)
+✗ MARSHALL_PORT implementation - Fully deprecated per comments in
+  new_connections.h
+
+2.3 SIMULATION MODES
+--------------------
+✗ CONNECTIONS_ACCURATE_SIM macro - Not defined in new file
+✗ CONNECTIONS_SYN_SIM macro - Not defined in new file
+  Only CONNECTIONS_FAST_SIM remains (for TLM_PORT selection)
+
+2.4 SIGNAL NAMING CONFIGURATION
+--------------------------------
+✗ CONNECTIONS_NAMING_ORIGINAL support - No longer supported
+  Cannot use val/rdy/msg signal naming
+
+2.5 BINDING FLEXIBILITY
+-----------------------
+✗ Cross-port-type binding - Old file has extensive Bind() method overloads
+  to allow:
+  - InBlocking<Message, MARSHALL_PORT> to bind to
+    Combinational<Message, DIRECT_PORT>
+  - InBlocking<Message, SYN_PORT> to bind to various other port types
+  - Many cross-type compatibility methods
+✗ p2p compatibility binding - Methods like Bind(p2p<SYN>::in<Message> &rhs)
+  removed
+
+2.6 RANDOM STALL FEATURES
+--------------------------
+✗ enable_global_rand_stall() - Global API function removed
+✗ disable_global_rand_stall() - Global API function removed
+✗ enable_global_rand_stall_print_debug() - Removed
+✗ disable_global_rand_stall_print_debug() - Removed
+✗ Per-port rand_stall methods - Methods like enable_local_rand_stall(),
+  set_rand_stall_prob() removed
+✗ Pacer.h include - Not included in new file
+
+2.7 HELPER CLASSES & INFRASTRUCTURE
+------------------------------------
+✗ ResetChecker class - Not present in new_connections.h
+✗ InBlocking_abs base class hierarchy - Simplified/restructured
+✗ OutBlocking_abs base class hierarchy - Simplified/restructured
+✗ CollectAllocs base class - Not used in new file
+✗ MarshalledToDirectOutPort helper module - Removed
+✗ MarshalledToDirectInPort helper module - Removed
+✗ DirectToMarshalledInPort helper module - Removed
+✗ DirectToMarshalledOutPort helper module - Removed
+✗ TLMToDirectOutPort helper class - Removed
+✗ DirectToTLMInPort helper class - Removed
+✗ Back-annotation tracking - tracked_annotate vector and Connections_BA_abs
+  removed from active use
+✗ BA_Message class - Removed
+
+2.8 ADVANCED FEATURES
+---------------------
+✗ do_wait parameter - PopNB(Message &data, const bool &do_wait = true)
+  signature changed to PopNB(Message& m) (no do_wait parameter)
+✗ PushNB with do_wait - Similar simplification
+✗ Non-leaf port tracking - non_leaf_port member variable removed from new
+  file's core functionality
+✗ disable_spawn() method - Present but simplified in new file
+
+2.9 COMPLETE CLASS IMPLEMENTATIONS REMOVED
+-------------------------------------------
+The old file has full implementations for:
+✗ InBlocking<Message, SYN_PORT>
+✗ InBlocking<Message, MARSHALL_PORT>
+✗ OutBlocking<Message, SYN_PORT>
+✗ OutBlocking<Message, MARSHALL_PORT>
+✗ Combinational<Message, SYN_PORT>
+✗ Combinational<Message, MARSHALL_PORT>
+
+All deprecated in the new file.
+
+================================================================================
+3. NEW FEATURES (in new_connections.h but NOT in connections.h)
+================================================================================
+
+3.1 SIMPLIFIED ARCHITECTURE
+----------------------------
+✓ Cleaner base interfaces: In_if<Message> and Out_if<Message> abstract
+  interfaces are more streamlined
+✓ Simplified hierarchy: Less inheritance depth, clearer separation of concerns
+
+3.2 NEW HELPER STRUCTURES
+--------------------------
+✓ In_sim_port<Message> struct - New simulation port helper that directly
+  manages buffers
+✓ Out_sim_port<Message> struct - Corresponding output simulation port helper
+✓ logger<Message> struct - New logging infrastructure with emit() method
+
+3.3 INTERFACE CHANGES
+----------------------
+✓ set_in_port_names() - New method in In_if<> for setting port names
+✓ set_out_port_names() - New method in Out_if<> for setting port names
+✓ force_disable_if interface - New interface with force_disable() method for
+  forcing port disabling
+
+3.4 RANDOM STALL INFRASTRUCTURE (BASE LAYER)
+---------------------------------------------
+✓ rand_force_if interface - New abstract interface with force_zero() method
+✓ set_rand_force_if interface - New interface with
+  set_rand_force(rand_force_if& r_if) method
+✓ my_rand struct - Simple random generator implementing rand_force_if
+  Note: Comments indicate this is "base layer implemented, compatibility with
+  old connections.h still TODO"
+
+3.5 BACK-ANNOTATION SUPPORT (PARTIAL)
+--------------------------------------
+✓ CONN_BACK_ANNOTATE conditional compilation - Framework for latency/capacity
+  annotation
+✓ set_latency_capacity(int, int) method - Added to
+  Combinational<Message, DIRECT_PORT> specialization
+✓ Annotation-aware Combinational specialization - When CONN_BACK_ANNOTATE is
+  defined, provides TLM FIFO-based implementation
+  Note: Comments indicate "base layer implemented, still work TODO to
+  interface with file input"
+
+3.6 PERFORMANCE OPTIMIZATIONS
+------------------------------
+✓ Streamlined simulation - Approximately 20% pre-HLS simulation performance
+  improvement for DIRECT_PORT (per header comments)
+✓ Simplified member access - Direct buffer management without intermediate
+  abstraction layers
+
+3.7 SMART CHANNEL ACCESS DETECTION
+-----------------------------------
+✓ Portless channel access detection - portless_channel_access_in and
+  portless_channel_access_out flags to detect direct channel usage vs.
+  port-based access
+✓ start_of_simulation() callback - Handles portless channel name assignment
+
+3.8 MORE EXPLICIT DESIGN
+------------------------
+✓ Comment documentation - Header includes explicit "Features & Goals" section
+✓ Clearer deprecation - Explicitly lists removed features at top of file
+
+================================================================================
+4. SIMILARITIES (core functionality that remains the same)
+================================================================================
+
+4.1 FUNDAMENTAL COMMUNICATION MODEL
+------------------------------------
+✓ Ready/Valid/Data protocol - Same handshaking mechanism
+✓ Blocking operations - Push() and Pop() semantics unchanged
+✓ Non-blocking operations - PushNB() and PopNB() still available
+✓ Reset semantics - Reset() for ResetRead() and ResetWrite() behavior
+
+4.2 CLOCK MANAGEMENT
+--------------------
+✓ SimConnectionsClk class - Nearly identical implementation
+✓ Multi-clock support - Same mechanism for multiple clocks
+✓ Clock registration - add_clock_event() mechanism preserved
+✓ Clock edge checking - check_on_clock_edge() functionality maintained
+
+4.3 CONNECTION MANAGER
+----------------------
+✓ ConManager class - Core structure very similar
+✓ Blocking_abs base class - Similar (though simplified in new file)
+✓ get_conManager() and get_sim_clk() - Same global accessor functions
+✓ Pre/Post cycle callbacks - Pre(), Post(), and PrePostReset() virtual methods
+
+4.4 RESET HANDLING
+------------------
+✓ Synchronous and asynchronous reset - Same infrastructure
+✓ Reset signal tracking - async_reset_thread() and sync_reset_thread()
+  identical
+✓ Process reset info - process_reset_info structure unchanged
+
+4.5 SYSTEMC INTEGRATION
+------------------------
+✓ #pragma builtin_modulario - Same HLS pragmas
+✓ sc_port<> based ports - Same SystemC port inheritance model
+✓ sc_signal<> for channels - Same signal-based communication
+✓ __SYNTHESIS__ macros - Same conditional compilation for HLS vs simulation
+
+4.6 TEMPLATE STRUCTURE
+----------------------
+✓ Message type parameterization - template <typename Message>
+✓ Port type parameterization -
+  template <typename Message, connections_port_t port_type>
+✓ AUTO_PORT macro - Both use AUTO_PORT to select default port type
+
+4.7 TLM SUPPORT
+---------------
+✓ TLM_PORT specialization - Both provide TLM-based fast simulation mode
+✓ tlm::tlm_fifo usage - Same underlying TLM FIFO for fast simulation
+✓ Event-based simulation - TLM mode operates identically
+
+4.8 TRACING AND LOGGING
+------------------------
+✓ sc_trace_marker interface - Inherited by channels
+✓ set_trace() virtual method - For waveform tracing
+✓ set_log() virtual method - For transaction logging
+
+4.9 MODULE NAMING
+-----------------
+✓ sc_gen_unique_name() - Used for automatic naming
+✓ sc_module_name constructors - Same hierarchical naming support
+
+================================================================================
+5. COMPATIBILITY NOTES
+================================================================================
+
+5.1 SOURCE CODE COMPATIBILITY - PARTIALLY COMPATIBLE
+-----------------------------------------------------
+
+COMPATIBLE scenarios (will work seamlessly):
+1. Code using only Pop(), Push(), Reset() methods
+2. Code using PopNB() and PushNB() (signature slightly different but
+   functionally compatible)
+3. Code using DIRECT_PORT or TLM_PORT explicitly
+4. Code using default vld/rdy/dat signal naming
+5. Code with simple port-to-channel bindings of matching types
+6. Most testbench code that doesn't rely on query methods
+
+INCOMPATIBLE scenarios (will require code changes):
+
+1. Code using Empty() or Full()
+   OLD: if (!in.Empty()) data = in.Pop();
+   NEW: if (in.PopNB(data)) { /* use data */ }
+
+2. Code using Peek() or PeekNB()
+   OLD: Message m = in.Peek();
+   NEW: Not supported - must use Pop() or PopNB()
+
+3. Code relying on MARSHALL_PORT or SYN_PORT
+   OLD: In<Message, MARSHALL_PORT> port;
+   NEW: In<Message, DIRECT_PORT> port;  // Must change to DIRECT_PORT
+
+4. Code using val/msg naming convention
+   OLD: #define CONNECTIONS_NAMING_ORIGINAL
+   NEW: Not supported - signals will be vld/rdy/dat
+
+5. Code using random stall APIs
+   OLD: Connections::enable_global_rand_stall();
+   NEW: Not yet implemented (TODO in new file)
+
+6. Code with cross-port-type bindings
+   OLD: InBlocking<Message, DIRECT_PORT> can bind to
+        Combinational<Message, MARSHALL_PORT>
+   NEW: Type must match exactly
+
+7. Code relying on do_wait parameter
+   OLD: bool success = in.PopNB(data, false);  // No wait
+   NEW: bool success = in.PopNB(data);  // Parameter removed
+
+5.2 BINARY/RTL COMPATIBILITY - COMPATIBLE
+------------------------------------------
+After HLS synthesis:
+✓ Generated RTL should be identical for DIRECT_PORT implementations
+✓ Signal interfaces (vld/rdy/dat) are the same
+✓ Hardware handshaking protocol unchanged
+✓ Can mix old and new in RTL co-simulation (at RTL boundary)
+
+5.3 PERFORMANCE CHARACTERISTICS
+--------------------------------
+Simulation performance:
+✓ New file claims ~20% improvement for DIRECT_PORT pre-HLS simulation
+✓ TLM_PORT should have similar performance in both versions
+✓ Removed abstractions reduce overhead
+
+Synthesis results:
+✓ Should be identical since HLS sees same pragmas and core logic
+✓ No impact on area, timing, or throughput
+
+5.4 MIGRATION STRATEGY
+----------------------
+Low-risk changes (recommended first):
+1. Replace Empty() checks with PopNB() pattern
+2. Replace Full() checks with PushNB() pattern
+3. Remove or refactor Peek() usage
+4. Update port type specifications to DIRECT_PORT
+
+Medium-risk changes:
+5. Verify all bindings are same-type-to-same-type
+6. Update signal naming if using CONNECTIONS_NAMING_ORIGINAL
+7. Remove dependencies on random stall features (if used)
+
+High-risk changes:
+8. Test thoroughly with multiple clocks
+9. Verify reset behavior in complex scenarios
+10. Check any custom binding or adapter code
+
+5.5 FEATURE PARITY STATUS
+-------------------------
+Feature Category              | Status in new_connections.h
+------------------------------|---------------------------------------
+Core communication (Push/Pop) | ✓ Full parity
+Non-blocking operations       | ✓ Full parity (simplified API)
+DIRECT_PORT                   | ✓ Full parity (improved)
+TLM_PORT                      | ✓ Full parity
+MARSHALL_PORT                 | ✗ Deprecated - removed
+SYN_PORT                      | ✗ Deprecated - removed
+Query methods (Empty/Full)    | ✗ Removed
+Peek operations               | ✗ Removed
+Random stall                  | ⚠ Base implemented, TODO compatibility
+Back-annotation               | ⚠ Base implemented, TODO file input
+Multi-clock support           | ✓ Full parity
+Reset handling                | ✓ Full parity
+Cross-type binding            | ✗ Removed
+Original signal naming        | ✗ Removed
+
+================================================================================
+6. SUMMARY RECOMMENDATIONS
+================================================================================
+
+new_connections.h is suitable as a drop-in replacement IF your code:
+✓ Uses only Pop(), Push(), PopNB(), PushNB(), Reset() methods
+✓ Uses DIRECT_PORT or TLM_PORT (not MARSHALL_PORT or SYN_PORT)
+✓ Uses default vld/rdy/dat signal naming
+✓ Has simple same-type port bindings
+✓ Doesn't depend on Empty(), Full(), Peek(), or random stall features
+
+Code changes required if you use:
+✗ Empty() → Replace with PopNB() pattern
+✗ Full() → Replace with PushNB() pattern
+✗ Peek()/PeekNB() → Refactor to use Pop()/PopNB()
+✗ MARSHALL_PORT or SYN_PORT → Change to DIRECT_PORT
+✗ val/msg naming → Accept vld/dat naming or add compatibility layer
+✗ Random stall → Wait for TODO completion or implement custom solution
+✗ Cross-type bindings → Ensure matching port types
+
+Benefits of migrating:
+✓ ~20% simulation performance improvement
+✓ Cleaner, more maintainable codebase
+✓ Simplified mental model
+✓ Future-proof (active development focus)
+
+Risks of migrating:
+✗ API changes require code modifications
+✗ Some advanced features not yet complete (rand_stall, back-annotation)
+✗ Less binding flexibility
+
+================================================================================
+END OF COMPARISON
+================================================================================
