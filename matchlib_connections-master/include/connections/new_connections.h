@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-3 Oct 2025
+6 Oct 2025
 
 This is a complete rewrite of the old connections.h file.
 Features & Goals:
@@ -18,8 +18,8 @@ Removed Features from old connections.h:
  - overloaded Connections Port binding operators to allow mismatched port types to be bound.
 
 Features still to be implemented from old
- - random stall injection
- - latency and capacity backannotation
+ - latency and capacity backannotation (base layer implemented, still work TODO to interface with file input)
+ - random stall injection (base layer implemented, compatibility with old connections.h still TODO)
 */
 
 
@@ -734,6 +734,11 @@ class rand_force_if {
    virtual bool force_zero() = 0;
 };
 
+class set_rand_force_if {
+public:
+  virtual void set_rand_force(rand_force_if& r_if) = 0;
+};
+
 struct my_rand : public rand_force_if {
   bool force_zero() { return rand() & 1; }
 };
@@ -874,17 +879,18 @@ template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
 class Combinational ;
 
 template <typename Message>
-class Combinational<Message, DIRECT_PORT>
+class Combinational_base
   : public chan_base 
   , public In_if<Message>
   , public Out_if<Message> 
 #ifndef __SYNTHESIS__
   , public sc_trace_marker
+  , public set_rand_force_if
 #endif
 {
 public:
 
-  Combinational(sc_module_name nm) 
+  Combinational_base(sc_module_name nm) 
    : chan_base(nm) 
    , vld("vld")
    , dat("dat")
@@ -893,7 +899,7 @@ public:
     Init();
   }
 
-  Combinational() : chan_base(sc_module_name(sc_gen_unique_name("Comb"))) {
+  Combinational_base() : chan_base(sc_module_name(sc_gen_unique_name("Comb"))) {
     // This ctor needed for legacy code to compile, but cannot explicitly name vld/dat/rdy
     // else will cause naming warnings at pre-hls sim elaboration time.
     Init();
@@ -1084,12 +1090,16 @@ public:
     }
   }
 
-  SC_HAS_PROCESS(Combinational);
-
   my_rand my_rand1;
 
   void Init() {
-    //in_port.local_rand = &my_rand1;
+#ifdef CONN_RAND_STALL
+    set_rand_force(my_rand1);
+#endif
+  }
+
+  virtual void set_rand_force(rand_force_if& r_if) {
+    in_port.local_rand = &r_if;
   }
 
 #endif
@@ -1098,6 +1108,161 @@ public:
   sc_signal<Message> dat;
   sc_signal<bool> rdy;
 };
+
+#ifndef CONN_BACK_ANNOTATE
+// TODO OR ifdef __SYNTHESIS__
+
+template <typename Message>
+class Combinational<Message, DIRECT_PORT>
+: public Combinational_base<Message> 
+{
+public:
+  Combinational(sc_module_name nm) : Combinational_base<Message>(nm) {}
+
+  Combinational() : Combinational_base<Message>() {}
+};
+
+#else
+
+template <typename Message>
+class Combinational<Message, DIRECT_PORT>
+: public Combinational_base<Message> 
+{
+public:
+  SC_HAS_PROCESS(Combinational);
+
+  typedef Combinational_base<Message> base_t;
+
+  Combinational(sc_module_name nm) : base_t(nm) {
+    Init();
+  }
+
+  Combinational() : base_t() {
+    Init();
+  }
+
+  void Init() {
+    SC_THREAD(run);
+    set_latency_capacity(5, 3); // TODO: get from json input file
+  }
+
+  void start_of_simulation() {
+    base_t::start_of_simulation();
+
+    if (this->in_port.disabled) {
+     SC_REPORT_ERROR("CONNECTIONS-302", (std::string("Port <") + this->in_port.full_name() +
+"> has disable_spawn() called but this cannot be used when back-annotation is also used on the channel").c_str());
+     sc_stop();
+    }
+    /*
+    TODO: Need to relax this check: only emit error if annotation actually occured to this channel.
+    This requires that in the case where no annotation occurred , channel acts exactly like base class
+    with no extra functionality
+    */
+  }
+
+  struct trans_t {
+    Message m;
+    sc_time timestamp;
+  };
+
+  void align() {
+    sc_time t = get_sim_clk().clk_info_vector[this->in_port.clock_number].clock_edge;
+    sc_time now = sc_time_stamp();
+    if (t > now)
+      wait(t - now);
+  }
+
+  tlm::tlm_fifo<trans_t> fifo{1};
+
+  sc_event tic_event;
+
+  bool annotated{0};
+  int latency{0};
+  int capacity{0};
+
+  void set_latency_capacity(int _latency, int _capacity) {
+    if (_capacity < 1)
+      _capacity = 1;
+
+   if ((_latency > 0) || (_capacity > 1))
+    annotated = 1;
+
+   fifo.nb_bound(_capacity);
+
+   latency = _latency;
+   capacity = _capacity;
+  }
+
+  sc_time period_delay() {
+    return get_sim_clk().clk_info_vector[this->in_port.clock_number].period_delay;
+  }
+
+  void run() {
+    base_t* p = this;
+    align();
+    while (1) {
+      wait(period_delay());
+      if (fifo.used() < fifo.size()) {
+        Message m;
+        bool b = p->base_t::PopNB(m);
+        trans_t t;
+        t.m = m;
+        t.timestamp = sc_time_stamp() + (latency * period_delay());
+        if (b)
+          fifo.put(t);
+      }
+      tic_event.notify_delayed();
+    }
+  }
+
+  void clear_fifo() {
+    while (fifo.used())
+      fifo.get();
+  }
+
+  void ResetRead() {
+    base_t* p = this;
+    p->base_t::ResetRead();
+    clear_fifo();
+  }
+
+  void ResetWrite() {
+    base_t* p = this;
+    p->base_t::ResetWrite();
+    clear_fifo();
+  }
+
+  bool PopNB(Message& m) { 
+    trans_t t;
+    bool b = fifo.nb_peek(t);
+    if (b) {
+      if (sc_time_stamp() >= t.timestamp) {
+        fifo.get();
+        m = t.m;
+        return 1;
+      }
+    }
+    return 0;
+  }
+
+  Message Pop() { 
+    while (1) {
+      trans_t t;
+      bool b = fifo.nb_peek(t);
+      if (b) {
+        if (sc_time_stamp() >= t.timestamp) {
+          fifo.get();
+          return t.m;
+        }
+      }
+
+      wait(tic_event);
+    }
+  }
+};
+
+#endif
 
 
 template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
@@ -1154,9 +1319,7 @@ public:
 
   void Reset() { 
     if (non_leaf_port) {
-        SC_REPORT_ERROR("CONNECTIONS-102", (std::string("Port ") + this->name() +
-              " was reset but it is a non-leaf port. In thread or process '" 
-              + std::string(sc_core::sc_get_current_process_b()->basename()) + "'.").c_str());
+        SC_REPORT_ERROR("CONNECTIONS-102", (std::string("Port ") + this->name() + " was reset but it is a non-leaf port.").c_str());
     } else {
       port_t* p=this; (*p)->ResetRead(); 
     }
@@ -1362,11 +1525,13 @@ public:
   logger<Message> out_logger{"Out"};
 
   void ResetWrite() {
-    // TODO
+    while (fifo.used() > 0)
+      fifo.get();
   }
 
   void ResetRead() {
-    // TODO
+    while (fifo.used() > 0)
+      fifo.get();
   }
 
   Message Pop() {
@@ -1451,6 +1616,8 @@ public:
    (*p)(rhs);
   }
 };
+
+// TODO: add checks that disable_spawn and disable_spawn_in/out never invoked if start_of_simulation_invoked()
 
 #endif
 
