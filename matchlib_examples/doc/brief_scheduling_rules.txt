@@ -1,0 +1,83 @@
+
+Brief Scheduling Rules Proposal
+Stuart Swan, Siemens EDA
+8 Oct 2025
+
+IO Operations Involved in Scheduling Rules
+------------------------------------------
+
+There are three sets of IO operations involved in the scheduling rules:
+
+Symbol   Description
+S:       Calls to synchronization interfaces (SystemC wait, Matchlib SyncChannel calls, barriers, etc.)
+R/W:     SystemC signal reads and writes
+M:       Calls to message-passing interfaces (Matchlib Push/PushNB/Pop/PopNB, p2p put/nb_put/get/nb_get)
+
+All the operations above are referred to as IO operations.
+
+
+Definitions
+-----------
+
+clk(x) represents the clock cycle at which IO operation x commits.
+issue(x) represents the clock cycle at which the IO operation x is issued by a process (applicable to messages).
+
+
+Equivalence Rules For Pre-HLS and Post-HLS Models
+-------------------------------------------------
+
+These are the scheduling rules for IO operations that HLS must adhere to.
+These rules are specified at the per-process level, but are proven to also hold at the system level.
+
+E1 (Synchronization-order preservation).
+∀ s1,s2 ∈ S : clk_pre(s1) < clk_pre(s2) ⇒ clk_post(s1) < clk_post(s2)
+E2 (Signal-visibility preservation).
+∀ r ∈ R : clk_post(r) = clk_post(pred_S(r))
+∀ w ∈ W : clk_post(w) = clk_post(succ_S(w))
+E3 (Safe message issue ordering).
+For every pair m1,m2 ∈ M on distinct channels within a single process,
+m1 <_src m2 ⇒ issue_post(m1) ≤ issue_post(m2).
+E4 (Per-channel FIFO semantics).
+For every channel c, the sequence of Push_c and Pop_c actions in τ_post is a legal FIFO schedule (no dropped or duplicated messages).
+E5 (Messages cannot cross syncs).
+For every message m and synchronization call s, 
+clk_pre(m) ≤ clk_pre(s) ⇒ clk_post(m) ≤ clk_post(s)
+clk_pre(m) > clk_pre(s) ⇒ clk_post(m) > clk_post(s)
+
+
+Allowed Transformations During HLS
+----------------------------------
+
+T1 During loop pipelining, message read ops may be moved before message write ops, as compared to pre-HLS order.
+Any wait statements in loop body will not preclude this from occurring.
+Pipeline flushing insures equivalent pre-HLS and post-HLS behavior.
+
+T2 Pragma for direct input signals (ASSUME_STABLE) allows HLS to remove pipeline registers.
+Drivers of such signals are required to hold them stable after receivers come out of reset.
+
+T3 Pragma for direct input sync signals allows HLS to remove pipeline registers. The sync channel controls
+when the driver updates such signals, and also when the pipeline ramps down and ramps up again.
+
+T4 When arrays are mapped to RAMs/ROMs during HLS, in all cases memory read and write accesses will commit 
+in a clock cycle after the closest preceding sync call commits,
+and before or in the same clock cycle as the closest succeeding sync call commits. 
+
+T5 When arrays are mapped to RAMs/ROMs during HLS, accesses may be reordered if HLS can prove that the reordering 
+is conflict-free. T4 must still be followed.
+
+T6 When a loop is pipelined, any signal read and write operations that occurred in the same clock cycle in the pre-HLS model 
+must also by default occur in the same clock cycle in the post-HLS model.  
+Similarly, the order of signal IO operations must be strictly preserved by default when loops are pipelined.
+Pragmas/directives can be used to explicitly disable this default behavior.
+
+T7 By default, HLS can add additional states (or latency) into a process. 
+This does not affect E1-E5 as long as the system is latency-insensitive.
+If the system is latency-sensitive verification techniques can be used to maintain pre-HLS and post-HLS equivalance.
+
+Design Rules
+------------
+
+RULE1 If a blocking message passing call separates a signal IO operation from its associated synchronization call, the design is ill-formed.
+
+RULE2 If a rolled loop body has signal IO operations but no wait statement, the design is ill-formed.
+
