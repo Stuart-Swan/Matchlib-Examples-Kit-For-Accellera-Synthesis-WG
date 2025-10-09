@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-6 Oct 2025
+9 Oct 2025
 
 This is a complete rewrite of the old connections.h file.
 Features & Goals:
@@ -287,13 +287,6 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
   public:
     ConManager() { }
 
-    ~ConManager() {
-      for (std::vector<std::vector<Blocking_abs *>*>::iterator it=tracked_per_clk.begin(); it!=tracked_per_clk.end(); ++it) {
-        delete *it;
-      }
-      tracked_per_clk.clear();
-    }
-
     std::vector<Blocking_abs *> tracked;
 
     void add(Blocking_abs *c) {
@@ -351,7 +344,7 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
     std::map<sc_process_b *, process_reset_info> map_process_to_reset_info;
     bool sim_clk_initialized;
 
-    std::vector<std::vector<Blocking_abs *>*> tracked_per_clk;
+    std::vector<std::vector<Blocking_abs *>> tracked_per_clk;
 
     void init_sim_clk() {
       if (sim_clk_initialized) { return; }
@@ -365,7 +358,7 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
         std::ostringstream ss, ssync;
         ss << "connections_manager_run_" << c;
         sc_spawn(sc_bind(&ConManager::run, this, c), ss.str().c_str());
-        tracked_per_clk.push_back(new std::vector<Blocking_abs *>);
+        tracked_per_clk.push_back(std::vector<Blocking_abs *>());
         ssync << ss.str();
         ss << "async_reset_thread";
         sc_spawn(sc_bind(&ConManager::async_reset_thread, this, c), ss.str().c_str());
@@ -524,7 +517,7 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
 
       --clk; // undo +1 encoding for errors
 
-      tracked_per_clk[clk]->push_back(c);
+      tracked_per_clk[clk].push_back(c);
       c->clock_number = clk;
       DBG_CONNECT("add_clock_event: port " << std::hex << c << " clock_number " << clk << " process " << h.name());
 
@@ -630,7 +623,7 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
 
       while (1) {
         // Post();
-        for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk]->begin(); it!=tracked_per_clk[clk]->end(); ) {
+        for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk].begin(); it!=tracked_per_clk[clk].end(); ) {
           (*it)->Post();
           ++it;
         }
@@ -638,15 +631,15 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
         get_sim_clk().post2pre_delay(clk);
 
         //Pre();
-        for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk]->begin(); it!=tracked_per_clk[clk]->end(); ) {
+        for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk].begin(); it!=tracked_per_clk[clk].end(); ) {
           (*it)->Pre();
           ++it;
         }
         ci.clock_edge += ci.period_delay;
 
         if (ci.do_sync_reset || ci.do_async_reset) {
-          for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk]->begin();
-               it!=tracked_per_clk[clk]->end(); ++it) {
+          for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk].begin();
+               it!=tracked_per_clk[clk].end(); ++it) {
             (*it)->PrePostReset();
           }
         }
@@ -654,8 +647,8 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
         get_sim_clk().pre2post_delay();
 
         if (ci.do_sync_reset || ci.do_async_reset) {
-          for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk]->begin();
-               it!=tracked_per_clk[clk]->end(); ++it) {
+          for (std::vector<Blocking_abs *>::iterator it=tracked_per_clk[clk].begin();
+               it!=tracked_per_clk[clk].end(); ++it) {
             (*it)->PrePostReset();
           }
         }
@@ -848,19 +841,33 @@ struct Out_sim_port : public Blocking_abs {
   virtual std::string full_name() { return _full_name; }
 };
 
+struct sc_trace_marker_v2 : public sc_trace_marker {
+  virtual bool set_log_v2(std::ofstream *os, int &log_num, std::string &path_name) = 0;
+};
 
 template <typename Message>
-struct logger : public sc_object, public sc_trace_marker {
+struct logger : public sc_object, public sc_trace_marker_v2 {
   logger(const char* nm) : sc_object(nm) {}
  
   virtual void set_trace(sc_trace_file *trace_file_ptr) {}
 
   std::ofstream* log_stream;
   int log_number;
+  std::string full_name{"unnamed"}; // set by start_of_sim to full_name of actual In/Out ports
 
-  virtual bool set_log(std::ofstream *os, int &log_num, std::string &path_name) { 
+  virtual bool set_log(std::ofstream *os, int &log_num, std::string &_path_name) { 
+    // end_of_elab has not occurred yet, so we have to set _path_name to our sc_object name
     log_stream = os;
-    path_name = this->name();
+    _path_name = this->name();
+    ++log_num;
+    log_number = log_num;
+    return 1; 
+  }
+
+  virtual bool set_log_v2(std::ofstream *os, int &log_num, std::string &_path_name) { 
+    // caller must only call after start_of_sim, allows to use full_name to actual In/Out path
+    log_stream = os;
+    _path_name = full_name;
     ++log_num;
     log_number = log_num;
     return 1; 
@@ -1067,12 +1074,14 @@ public:
   void set_in_port_names(std::string full_name, std::string base_name) {
     in_port._full_name = full_name;
     in_port._base_name = base_name;
+    in_logger.full_name = full_name;
     portless_channel_access_in = 0;
   }
   
   void set_out_port_names(std::string full_name, std::string base_name) {
     out_port._full_name = full_name;
     out_port._base_name = base_name;
+    out_logger.full_name = full_name;
     portless_channel_access_out = 0;
   }
 
@@ -1083,10 +1092,37 @@ public:
     if (portless_channel_access_in) {
       in_port._full_name = std::string(name()) + ".In";
       in_port._base_name = ".In";
+      in_logger.full_name = in_port._full_name;
     }
     if (portless_channel_access_out) {
       out_port._full_name = std::string(name()) + ".Out";
       out_port._base_name = ".Out";
+      out_logger.full_name = out_port._full_name;
+    }
+
+    if (in_port.disabled && in_logger.log_stream) {
+      sc_spawn_options opt;
+      sc_spawn(sc_bind(&Combinational_base<Message>::log_thread, this), 0, &opt);
+    }
+  }
+
+  void log_thread() {
+    // since port is disabled, clock won't be registered. 
+    // Don't even know what process port is associated with.
+    // So, only thing we can do is logging only if there is a single global clock
+    if (get_sim_clk().clk_info_vector.size() > 1) {
+      std::cout << "Port <" << in_port.full_name() << "> has disable_spawn().\n";
+      std::cout << "Logging was enabled but cannot be done since there are multiple system clocks.\n";
+      return;
+    }
+
+    assert(get_sim_clk().clk_info_vector.size() == 1);
+    sc_clock* clk_ptr = get_sim_clk().clk_info_vector[0].clk_ptr;
+
+    while (1) {
+      wait(clk_ptr->posedge_event());
+      if (vld && rdy)
+        in_logger.emit(dat.read());
     }
   }
 
@@ -1109,8 +1145,7 @@ public:
   sc_signal<bool> rdy;
 };
 
-#ifndef CONN_BACK_ANNOTATE
-// TODO OR ifdef __SYNTHESIS__
+#if !defined(CONN_BACK_ANNOTATE) || defined(__SYNTHESIS__)
 
 template <typename Message>
 class Combinational<Message, DIRECT_PORT>
@@ -1166,13 +1201,6 @@ public:
     sc_time timestamp;
   };
 
-  void align() {
-    sc_time t = get_sim_clk().clk_info_vector[this->in_port.clock_number].clock_edge;
-    sc_time now = sc_time_stamp();
-    if (t > now)
-      wait(t - now);
-  }
-
   tlm::tlm_fifo<trans_t> fifo{1};
 
   sc_event tic_event;
@@ -1199,10 +1227,12 @@ public:
   }
 
   void run() {
+    wait(100, SC_PS); // allow all Reset calls to complete, so that add_clock_event calls are all done
+    assert(this->in_port.clock_registered);
+    sc_clock* clk_ptr = get_sim_clk().clk_info_vector[this->in_port.clock_number].clk_ptr;
     base_t* p = this;
-    align();
     while (1) {
-      wait(period_delay());
+      wait(clk_ptr->posedge_event());
       if (fifo.used() < fifo.size()) {
         Message m;
         bool b = p->base_t::PopNB(m);
@@ -1637,3 +1667,36 @@ class Buffer;
 
 
 } // namespace Connections
+
+
+
+// Preferred replacement for old channel_logs
+
+struct channel_logs_v2 : public channel_logs
+{
+  void log_hier_helper( sc_object *obj ) {
+#ifdef CONNECTIONS_SIM_ONLY
+    if ( Connections::sc_trace_marker_v2 *p = dynamic_cast<Connections::sc_trace_marker_v2 *>(obj) ) {
+      std::string path_name;
+      if ( log_stream.is_open() && log_names.is_open() && p->set_log_v2(&log_stream, log_num, path_name) ) {
+        log_names << log_num << " " << path_name << "\n";
+      }
+    }
+    std::vector<sc_object *> children = obj->get_child_objects();
+    for ( unsigned i = 0; i < children.size(); i++ ) {
+      if ( children[i] ) {
+        log_hier_helper(children[i]);
+      }
+    }
+#endif
+  }
+
+  void run(sc_object* obj) {
+    wait(50, SC_PS);  // Let start_of_sim occur so that In/Out path names get propagated to loggers
+    log_hier_helper(obj);
+  }
+
+  void log_hierarchy( sc_object &sc_obj ) {
+    sc_spawn(sc_bind(&channel_logs_v2::run, this, &sc_obj), "channel_logs_v2");
+  }
+};
