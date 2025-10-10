@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-9 Oct 2025
+10 Oct 2025
 
 This is a complete rewrite of the old connections.h file.
 Features & Goals:
@@ -18,6 +18,7 @@ Removed Features from old connections.h:
  - overloaded Connections Port binding operators to allow mismatched port types to be bound.
 
 Features still to be implemented from old
+ - PeekNB interfaces
  - latency and capacity backannotation (base layer implemented, still work TODO to interface with file input)
  - random stall injection (base layer implemented, compatibility with old connections.h still TODO)
 */
@@ -733,7 +734,7 @@ public:
 };
 
 struct my_rand : public rand_force_if {
-  bool force_zero() { return rand() & 1; }
+  bool force_zero() { return rand() & 3; }
 };
 
 template <typename Message>
@@ -847,7 +848,7 @@ struct sc_trace_marker_v2 : public sc_trace_marker {
 
 template <typename Message>
 struct logger : public sc_object, public sc_trace_marker_v2 {
-  logger(const char* nm) : sc_object(nm) {}
+  logger(const char* nm) : sc_object(sc_gen_unique_name(nm)) {}
  
   virtual void set_trace(sc_trace_file *trace_file_ptr) {}
 
@@ -1112,7 +1113,8 @@ public:
     // So, only thing we can do is logging only if there is a single global clock
     if (get_sim_clk().clk_info_vector.size() > 1) {
       std::cout << "Port <" << in_port.full_name() << "> has disable_spawn().\n";
-      std::cout << "Logging was enabled but cannot be done since there are multiple system clocks.\n";
+      std::cout << 
+        "Logging was enabled but cannot be done on this port since there are multiple system clocks.\n";
       return;
     }
 
@@ -1159,6 +1161,8 @@ public:
 
 #else
 
+////////// BACK ANNOTATION ////////
+
 template <typename Message>
 class Combinational<Message, DIRECT_PORT>
 : public Combinational_base<Message> 
@@ -1184,16 +1188,11 @@ public:
   void start_of_simulation() {
     base_t::start_of_simulation();
 
-    if (this->in_port.disabled) {
+    if (this->in_port.disabled && this->annotated) {
      SC_REPORT_ERROR("CONNECTIONS-302", (std::string("Port <") + this->in_port.full_name() +
 "> has disable_spawn() called but this cannot be used when back-annotation is also used on the channel").c_str());
      sc_stop();
     }
-    /*
-    TODO: Need to relax this check: only emit error if annotation actually occured to this channel.
-    This requires that in the case where no annotation occurred , channel acts exactly like base class
-    with no extra functionality
-    */
   }
 
   struct trans_t {
@@ -1227,6 +1226,9 @@ public:
   }
 
   void run() {
+    if (!annotated)
+      return;
+
     wait(100, SC_PS); // allow all Reset calls to complete, so that add_clock_event calls are all done
     assert(this->in_port.clock_registered);
     sc_clock* clk_ptr = get_sim_clk().clk_info_vector[this->in_port.clock_number].clk_ptr;
@@ -1264,6 +1266,11 @@ public:
   }
 
   bool PopNB(Message& m) { 
+    if (!annotated) {
+      base_t* p = this;
+      return p->base_t::PopNB(m);
+    }
+
     trans_t t;
     bool b = fifo.nb_peek(t);
     if (b) {
@@ -1277,6 +1284,11 @@ public:
   }
 
   Message Pop() { 
+    if (!annotated) {
+      base_t* p = this;
+      return p->base_t::Pop();
+    }
+
     while (1) {
       trans_t t;
       bool b = fifo.nb_peek(t);
@@ -1594,9 +1606,30 @@ public:
 
   void disable_spawn_out() { }
 
-  void set_in_port_names(std::string full_name, std::string base_name) { }
+  bool portless_channel_access_in = 1;
+  bool portless_channel_access_out = 1;
+
+  void set_in_port_names(std::string full_name, std::string base_name) {
+    in_logger.full_name = full_name;
+    portless_channel_access_in = 0;
+  }
   
-  void set_out_port_names(std::string full_name, std::string base_name) { }
+  void set_out_port_names(std::string full_name, std::string base_name) {
+    out_logger.full_name = full_name;
+    portless_channel_access_out = 0;
+  }
+
+  void start_of_simulation() {
+    // at end_of_elaboration, if this channel has real user ports, then set_in/out_port_names was called.
+    // At start_of_sim, if we see that set_in/out_port_names was not called,
+    // then we have "port-less channel access"
+    if (portless_channel_access_in) {
+      in_logger.full_name = std::string(name()) + ".In";
+    }
+    if (portless_channel_access_out) {
+      out_logger.full_name = std::string(name()) + ".Out";
+    }
+  }
 };
 
 template <typename Message>
@@ -1621,6 +1654,10 @@ public:
    port_t* p = this;
    (*p)(rhs);
   }
+
+  void end_of_elaboration() {
+   port_t* p=this; (*p)->set_in_port_names(this->name(), this->basename());
+  }
 };
 
 template <typename Message>
@@ -1644,6 +1681,10 @@ public:
   void operator()(C &rhs) {
    sc_port<Out_if<Message>>* p = this;
    (*p)(rhs);
+  }
+
+  void end_of_elaboration() {
+   port_t* p=this; (*p)->set_out_port_names(this->name(), this->basename());
   }
 };
 
@@ -1697,6 +1738,8 @@ struct channel_logs_v2 : public channel_logs
   }
 
   void log_hierarchy( sc_object &sc_obj ) {
+#ifdef CONNECTIONS_SIM_ONLY
     sc_spawn(sc_bind(&channel_logs_v2::run, this, &sc_obj), "channel_logs_v2");
+#endif
   }
 };
