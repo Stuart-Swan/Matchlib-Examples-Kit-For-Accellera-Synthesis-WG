@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-10 Oct 2025
+13 Oct 2025
 
 This is a complete rewrite of the old connections.h file.
 Features & Goals:
@@ -18,7 +18,6 @@ Removed Features from old connections.h:
  - overloaded Connections Port binding operators to allow mismatched port types to be bound.
 
 Features still to be implemented from old
- - PeekNB interfaces
  - latency and capacity backannotation (base layer implemented, still work TODO to interface with file input)
  - random stall injection (base layer implemented, compatibility with old connections.h still TODO)
 */
@@ -706,6 +705,7 @@ class In_if : public sc_interface {
 public:
   virtual Message Pop() = 0;
   virtual bool PopNB(Message& m) = 0;
+  virtual bool PeekNB(Message& m) = 0;
   virtual void ResetRead() = 0;
   virtual void disable_spawn_in() = 0;
   virtual void set_in_port_names(std::string full_name, std::string base_name) = 0;
@@ -960,6 +960,16 @@ public:
   }
 
 #pragma builtin_modulario
+#pragma design modulario < peek >
+  bool PeekNB(Message &data) {
+   m = dat;
+#ifdef __SYNTHESIS__
+   rdy = 0;
+#endif
+   return vld;
+  }
+    
+#pragma builtin_modulario
 #pragma design modulario < out >
   void Push(const Message& m) {
     do {
@@ -1034,6 +1044,17 @@ public:
    return 0;
   }
 
+  bool PeekNB(Message& m) { 
+   get_sim_clk().check_on_clock_edge(in_port.clock_number);
+
+   if (in_buf_vld) {
+    m = in_buf_dat;
+    return 1;
+   }
+
+   return 0;
+  }
+
   void Push(const Message& m) {
    get_sim_clk().check_on_clock_edge(out_port.clock_number);
 
@@ -1061,11 +1082,20 @@ public:
    }
   }
 
+  void check_disable_spawn() {
+    if (sc_start_of_simulation_invoked()) {
+     SC_REPORT_ERROR("CONNECTIONS-317", "Cannot call disable_spawn() after simulation is started");
+     sc_stop();
+    }
+  }
+
   void disable_spawn_in() {
+    check_disable_spawn();
     in_port.disable();
   }
 
   void disable_spawn_out() {
+    check_disable_spawn();
     out_port.disable();
   }
 
@@ -1283,6 +1313,23 @@ public:
     return 0;
   }
 
+  bool PeekNB(Message& m) { 
+    if (!annotated) {
+      base_t* p = this;
+      return p->base_t::PeekNB(m);
+    }
+
+    trans_t t;
+    bool b = fifo.nb_peek(t);
+    if (b) {
+      if (sc_time_stamp() >= t.timestamp) {
+        m = t.m;
+        return 1;
+      }
+    }
+    return 0;
+  }
+
   Message Pop() { 
     if (!annotated) {
       base_t* p = this;
@@ -1345,6 +1392,16 @@ public:
    return vld;
   }
 
+#pragma builtin_modulario
+#pragma design modulario < peek >
+  bool PeekNB(Message &data) {
+   m = dat;
+#ifdef __SYNTHESIS__
+   rdy = 0;
+#endif
+   return vld;
+  }
+
   void Reset() {
     rdy = 0;
   }
@@ -1359,6 +1416,8 @@ public:
 
   bool PopNB(Message& m) { port_t* p=this; return (*p)->PopNB(m); }
 
+  bool PeekNB(Message& m) { port_t* p=this; return (*p)->PeekNB(m); }
+
   void Reset() { 
     if (non_leaf_port) {
         SC_REPORT_ERROR("CONNECTIONS-102", (std::string("Port ") + this->name() + " was reset but it is a non-leaf port.").c_str());
@@ -1369,7 +1428,13 @@ public:
 
   bool do_disable{0};
 
-  void disable_spawn() {do_disable=1;}
+  void disable_spawn() {
+    do_disable=1;
+    if (sc_start_of_simulation_invoked()) {
+     SC_REPORT_ERROR("CONNECTIONS-317", "Cannot call disable_spawn() after simulation is started");
+     sc_stop();
+    }
+  }
 
   void end_of_elaboration() {
    port_t* p=this; (*p)->set_in_port_names(this->name(), this->basename());
@@ -1482,7 +1547,13 @@ public:
 
   bool do_disable{0};
 
-  void disable_spawn() {do_disable=1;}
+  void disable_spawn() {
+    do_disable=1;
+    if (sc_start_of_simulation_invoked()) {
+     SC_REPORT_ERROR("CONNECTIONS-317", "Cannot call disable_spawn() after simulation is started");
+     sc_stop();
+    }
+  }
 
   void end_of_elaboration() {
    port_t* p=this; (*p)->set_out_port_names(this->name(), this->basename());
@@ -1589,6 +1660,11 @@ public:
    return ret;
   }
 
+  bool PeekNB(Message& m) { 
+   bool ret = fifo.nb_peek(m);
+   return ret;
+  }
+
   void Push(const Message& m) {
     fifo.put(m);
     out_logger.emit(m);
@@ -1645,6 +1721,8 @@ public:
 
   bool PopNB(Message& m) { port_t* p=this; return (*p)->PopNB(m); }
 
+  bool PeekNB(Message& m) { port_t* p=this; return (*p)->PeekNB(m); }
+
   void Reset() { port_t* p=this; (*p)->ResetRead(); }
 
   void disable_spawn() {}
@@ -1687,8 +1765,6 @@ public:
    port_t* p=this; (*p)->set_out_port_names(this->name(), this->basename());
   }
 };
-
-// TODO: add checks that disable_spawn and disable_spawn_in/out never invoked if start_of_simulation_invoked()
 
 #endif
 
@@ -1743,3 +1819,7 @@ struct channel_logs_v2 : public channel_logs
 #endif
   }
 };
+
+// auto-upgrade to new version:
+#define channel_logs channel_logs_v2
+
