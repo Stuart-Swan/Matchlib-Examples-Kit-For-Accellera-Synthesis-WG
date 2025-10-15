@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-13 Oct 2025
+15 Oct 2025
 
 This is a complete rewrite of the old connections.h file.
 Features & Goals:
@@ -11,6 +11,8 @@ Features & Goals:
  - Major simplification
  - Removal of obsolete features
  - pre-HLS sim performance improvement for DIRECT_PORT (roughly 20% improvement)
+ - Separate out rand stall setup and control from base Connections implementation
+ - Random stability (ie determinism) for rand stall for all sim environments, including SC+HDL sims
 
 Removed Features from old connections.h:
  - MARSHALL_PORT, SYN_PORT - use DIRECT_PORT instead
@@ -19,7 +21,6 @@ Removed Features from old connections.h:
 
 Features still to be implemented from old
  - latency and capacity backannotation (base layer implemented, still work TODO to interface with file input)
- - random stall injection (base layer implemented, compatibility with old connections.h still TODO)
 */
 
 
@@ -56,6 +57,7 @@ Features still to be implemented from old
 #include <iomanip>
 #include <vector>
 #include <map>
+#include <memory>
 #include <type_traits>
 #include <tlm.h>
 #if !defined(NC_SYSTEMC) && !defined(XM_SYSTEMC) && !defined(NO_SC_RESET_INCLUDE)
@@ -730,11 +732,7 @@ class rand_force_if {
 
 class set_rand_force_if {
 public:
-  virtual void set_rand_force(rand_force_if& r_if) = 0;
-};
-
-struct my_rand : public rand_force_if {
-  bool force_zero() { return rand() & 3; }
+  virtual void set_rand_force(std::shared_ptr<rand_force_if> r_if) = 0;
 };
 
 template <typename Message>
@@ -756,14 +754,22 @@ struct In_sim_port : public Blocking_abs {
        get_conManager().add(this);
   }
 
+private:
   bool force_zero{0};
+  std::shared_ptr<rand_force_if> local_rand;
+  bool local_rand_set{0};
+
+public:
  
-  rand_force_if* local_rand{0};
+  void set_local_rand(std::shared_ptr<rand_force_if> rif) {
+    local_rand = rif;
+    local_rand_set = 1;
+  }
 
   void disable() { disabled = 1; }
 
   virtual void Post() {
-   if (local_rand) {
+   if (local_rand_set) {
      force_zero = local_rand->force_zero();
    }
 
@@ -962,7 +968,7 @@ public:
 #pragma builtin_modulario
 #pragma design modulario < peek >
   bool PeekNB(Message &data) {
-   m = dat;
+   data = dat;
 #ifdef __SYNTHESIS__
    rdy = 0;
 #endif
@@ -1158,16 +1164,11 @@ public:
     }
   }
 
-  my_rand my_rand1;
-
   void Init() {
-#ifdef CONN_RAND_STALL
-    set_rand_force(my_rand1);
-#endif
   }
 
-  virtual void set_rand_force(rand_force_if& r_if) {
-    in_port.local_rand = &r_if;
+  virtual void set_rand_force(std::shared_ptr<rand_force_if> r_if) {
+    in_port.set_local_rand(r_if);
   }
 
 #endif
