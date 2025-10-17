@@ -1,10 +1,10 @@
 
 #pragma once
 
-// New connections random stall implementation
+// new_connections.h random stall implementation
 // Stuart Swan 
 // Siemens EDA
-// 15 Oct 2025
+// 17 Oct 2025
 
 #include <cstdlib>
 
@@ -45,7 +45,7 @@ public:
     // when generator is coupled with a process, we use process handle name
 
     if (pathname != "")
-      generator.seed(seed + hasher(pathname));
+      generator.seed(seed + hasher(clean_name(pathname)));
     else
       generator.seed(seed + hasher(clean_name(handle.name())));
   }

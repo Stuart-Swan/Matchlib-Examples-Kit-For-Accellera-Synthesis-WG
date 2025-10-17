@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-15 Oct 2025
+17 Oct 2025
 
 This is a complete rewrite of the old connections.h file.
 Features & Goals:
@@ -13,14 +13,18 @@ Features & Goals:
  - pre-HLS sim performance improvement for DIRECT_PORT (roughly 20% improvement)
  - Separate out rand stall setup and control from base Connections implementation
  - Random stability (ie determinism) for rand stall for all sim environments, including SC+HDL sims
+ - Cleaned up SC object pathnames for tracing, error reporting and back-annotation
 
 Removed Features from old connections.h:
  - MARSHALL_PORT, SYN_PORT - use DIRECT_PORT instead
  - rdy/val/msg signal naming - use rdy/vld/dat instead
  - overloaded Connections Port binding operators to allow mismatched port types to be bound.
 
-Features still to be implemented from old
- - latency and capacity backannotation (base layer implemented, still work TODO to interface with file input)
+Changed Features from old connections.h
+ - Object pathnames are cleaned up, so differ from old connections.h
+ - Back-annotation API is slightly different
+ - Back-annotation must be enabled via -DCONN_BACK_ANNOTATE compile flag
+
 */
 
 
@@ -1194,9 +1198,16 @@ public:
 
 ////////// BACK ANNOTATION ////////
 
+struct back_annotation_if {
+ virtual void set_latency_capacity(int _latency, int _capacity) = 0;
+ virtual void get_latency_capacity(int& _latency, int& _capacity) = 0;
+ virtual void get_path_names(std::string& chan, std::string& src, std::string& dst) = 0;
+};
+
 template <typename Message>
 class Combinational<Message, DIRECT_PORT>
 : public Combinational_base<Message> 
+, public back_annotation_if
 {
 public:
   SC_HAS_PROCESS(Combinational);
@@ -1213,7 +1224,6 @@ public:
 
   void Init() {
     SC_THREAD(run);
-    set_latency_capacity(5, 3); // TODO: get from json input file
   }
 
   void start_of_simulation() {
@@ -1251,6 +1261,18 @@ public:
    latency = _latency;
    capacity = _capacity;
   }
+
+  void get_latency_capacity(int& _latency, int& _capacity) {
+    _latency = latency;
+    _capacity = capacity;
+  }
+
+  void get_path_names(std::string& chan, std::string& src, std::string& dst) {
+    chan = this->name();
+    src = this->out_port._full_name;
+    dst = this->in_port._full_name;
+  }
+
 
   sc_time period_delay() {
     return get_sim_clk().clk_info_vector[this->in_port.clock_number].period_delay;
