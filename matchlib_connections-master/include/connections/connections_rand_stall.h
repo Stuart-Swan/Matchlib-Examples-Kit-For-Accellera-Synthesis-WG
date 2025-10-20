@@ -4,7 +4,7 @@
 // new_connections.h random stall implementation
 // Stuart Swan 
 // Siemens EDA
-// 17 Oct 2025
+// 20 Oct 2025
 
 #include <cstdlib>
 
@@ -128,6 +128,8 @@ public:
     }
     return stalled;
   }
+
+  virtual ~pacer_v2() {}
 
 };
 

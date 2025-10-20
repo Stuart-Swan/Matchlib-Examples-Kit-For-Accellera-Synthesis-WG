@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-17 Oct 2025
+20 Oct 2025
 
 This is a complete rewrite of the old connections.h file.
 Features & Goals:
@@ -862,8 +862,8 @@ struct logger : public sc_object, public sc_trace_marker_v2 {
  
   virtual void set_trace(sc_trace_file *trace_file_ptr) {}
 
-  std::ofstream* log_stream;
-  int log_number;
+  std::ofstream* log_stream{0};
+  int log_number{0};
   std::string full_name{"unnamed"}; // set by start_of_sim to full_name of actual In/Out ports
 
   virtual bool set_log(std::ofstream *os, int &log_num, std::string &_path_name) { 
@@ -1017,7 +1017,8 @@ public:
    get_conManager().add_clock_event(&out_port);
    out_port.was_reset=1;
    out_buf_vld = 0;
-   out_buf_dat = Message();
+   Message zero{}; // default initializes anything..
+   out_buf_dat = zero;
   }
 
   void ResetRead() {
