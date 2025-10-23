@@ -1,0 +1,7 @@
+
+This is a minimalist version of Matchlib Connections 
+for use in standardization discussions and for educational use.
+
+This version is completely self-contained and only has dependencies 
+on a standard SystemC installation (via $SYSTEMC_HOME), and 
+has no dependencies on any other NVidia or Siemens EDA library files.

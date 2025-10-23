@@ -5,6 +5,8 @@
 #include <ac_sysc_macros.h>
 #include <mc_connections.h>
 
+#include "sc_named.h"
+
 class flop : public sc_module
 {
 public:

@@ -348,7 +348,7 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
     };
     std::map<int, process_reset_info> map_clk_to_reset_info;
     std::map<sc_process_b *, process_reset_info> map_process_to_reset_info;
-    bool sim_clk_initialized;
+    bool sim_clk_initialized{0};
 
     std::vector<std::vector<Blocking_abs *>> tracked_per_clk;
 
