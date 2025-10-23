@@ -191,7 +191,7 @@ namespace axi
         base::ar.Push(ar_item);
         r = base::r.Pop();
 
-        uint64 data_mask = (1ull << size) -1;
+        uint64 data_mask = (1ull << (unsigned)size) -1;
         r.data = (r.data >> (8 * (addr & byte_field))) & data_mask;
         return r;
       }
@@ -317,8 +317,49 @@ namespace axi
       }
     };
 
-// These macros are needed until Catapult supports sc_export,
-// which will allow pushing the fifos into the segment module
+#ifdef __SYNTHESIS__
+#define AXI4_SYNTH_NAME(prefix, nm) ""
+#else
+#define AXI4_SYNTH_NAME(prefix, nm) (std::string(prefix) + "_" + nm ).c_str()
+#endif
+
+template <class cfg>
+struct axi4_w_segment_cfg {
+  std::string prefix;
+  typename cfg::w_segment w_seg1;
+  Connections::Combinational<typename cfg::ex_aw_payload> ex_aw_chan;
+  Connections::Combinational<typename cfg::w_payload> w_chan;
+  Connections::Combinational<typename cfg::b_payload> b_chan;
+
+  axi4_w_segment_cfg(const char* s) :
+    prefix(s)
+  , w_seg1(AXI4_SYNTH_NAME(prefix, "w_seg1"))
+  , ex_aw_chan(AXI4_SYNTH_NAME(prefix, "ex_aw_chan"))
+  , w_chan(AXI4_SYNTH_NAME(prefix, "w_chan"))
+  , b_chan(AXI4_SYNTH_NAME(prefix, "b_chan"))
+  {
+  }
+
+  template <class C, class R, class M>
+  void bind(C& clk, R& rst_bar, M& m) {
+    w_seg1.clk(clk);
+    w_seg1.rst_bar(rst_bar);
+    w_seg1.aw_out(m.aw);
+    w_seg1.w_out(m.w);
+    w_seg1.b_in(m.b);
+    w_seg1.ex_aw_chan(ex_aw_chan);
+    w_seg1.w_chan(w_chan);
+    w_seg1.b_chan(b_chan);
+  }
+
+  void Reset() {
+   ex_aw_chan.ResetWrite();
+   w_chan.ResetWrite();
+   b_chan.ResetRead();
+  }
+};
+
+// Use of following macros is now deprecated.
 //
 #define AXI4_W_SEGMENT(n) \
   w_segment SC_NAMED(n); \
@@ -523,8 +564,35 @@ namespace axi
       }
     };
 
-// These macros are needed until Catapult supports sc_export,
-// which will allow pushing the fifo into the segment module
+
+template <class cfg>
+struct axi4_r_segment_cfg {
+  std::string prefix;
+  typename cfg::r_segment r_seg1;
+  Connections::Combinational<typename cfg::ex_ar_payload> ex_ar_chan;
+
+  axi4_r_segment_cfg(const char* s) :
+    prefix(s)
+  , r_seg1(AXI4_SYNTH_NAME(prefix, "r_seg1"))
+  , ex_ar_chan(AXI4_SYNTH_NAME(prefix, "ex_ar_chan"))
+  {
+  }
+
+  template <class C, class R, class M>
+  void bind(C& clk, R& rst_bar, M& m) {
+    r_seg1.clk(clk);
+    r_seg1.rst_bar(rst_bar);
+    r_seg1.ar_out(m.ar);
+    r_seg1.ex_ar_chan(ex_ar_chan);
+  }
+
+  void Reset() {
+   ex_ar_chan.ResetWrite();
+    //_r_master . r.Reset(); // this now is done in user model explicitly
+  }
+};
+
+// Use of following macros is now deprecated.
 //
 #define AXI4_R_SEGMENT(n) \
   r_segment SC_NAMED(n); \

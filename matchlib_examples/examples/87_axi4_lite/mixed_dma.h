@@ -67,8 +67,9 @@ public:
     sensitive << clk.pos();
     async_reset_signal_is(rst_bar, false);
 
-    AXI4_W_SEGMENT_BIND(w_segment0, clk, rst_bar, w_master0);
-    AXI4_R_SEGMENT_BIND(r_segment0, clk, rst_bar, r_master0);
+    w_segment0.bind(clk, rst_bar, w_master0);
+    r_segment0.bind(clk, rst_bar, r_master0);
+
   }
 
 private:
@@ -76,15 +77,17 @@ private:
   Connections::Combinational<dma_cmd> SC_NAMED(dma_cmd_chan);
   
   // write and read segmenters segment long bursts to conform to AXI4 protocol (which allows 256 beats maximum).
-  AXI4_W_SEGMENT_CFG(local_axi_64, w_segment0)
-  AXI4_R_SEGMENT_CFG(local_axi_64, r_segment0)
+  local_axi_64::axi4_w_segment_cfg<local_axi_64> SC_NAMED(w_segment0);
+  local_axi_64::axi4_r_segment_cfg<local_axi_64> SC_NAMED(r_segment0);
+
 
   // master_process recieves dma_cmd transactions from the slave_process. 
   // the master_process performs the dma operations via the master0 axi port,
   // and then sends a done signal to the requester via the dma_done transaction.
   void master_process() {
-    AXI4_W_SEGMENT_RESET(w_segment0, w_master0);
-    AXI4_R_SEGMENT_RESET(r_segment0, r_master0);
+    w_segment0.Reset();
+    r_segment0.Reset();
+    r_master0.r.Reset();
 
     dma_cmd_chan.ResetRead();
     dma_done.Reset();
@@ -100,8 +103,8 @@ private:
       aw.ex_len = cmd.len;
       ar.addr = cmd.ar_addr;
       aw.addr = cmd.aw_addr;
-      r_segment0_ex_ar_chan.Push(ar);
-      w_segment0_ex_aw_chan.Push(aw);
+      r_segment0.ex_ar_chan.Push(ar);
+      w_segment0.ex_aw_chan.Push(aw);
 
       #pragma hls_pipeline_init_interval 1
       #pragma pipeline_stall_mode flush
@@ -109,13 +112,13 @@ private:
        local_axi_64::r_payload r = r_master0.r.Pop();
        local_axi_64::w_payload w;
        w.data = r.data;
-       w_segment0_w_chan.Push(w);
+       w_segment0.w_chan.Push(w);
 
        if (ar.ex_len-- == 0)
         break;
       }
 
-      local_axi_64::b_payload b = w_segment0_b_chan.Pop();
+      local_axi_64::b_payload b = w_segment0.b_chan.Pop();
       dma_done.Push(b.resp == local_axi_lite::Enc::XRESP::OKAY);
     }
   }

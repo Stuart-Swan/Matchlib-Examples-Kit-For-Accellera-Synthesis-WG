@@ -178,7 +178,7 @@ help: checkvars
 	-@echo ""
 
 clean: sim_clean
-	@rm -rf *.vcd *.wlf *atapul*
+	@rm -rf *.vcd *.wlf *atapul* chan_log*
 
 
 

@@ -32,22 +32,25 @@ public:
     sensitive << clk.pos();
     async_reset_signal_is(rst_bar, false);
 
-    AXI4_W_SEGMENT_BIND(w_segment0, clk, rst_bar, w_master0);
-    AXI4_R_SEGMENT_BIND(r_segment0, clk, rst_bar, r_master0);
+    w_segment0.bind(clk, rst_bar, w_master0);
+    r_segment0.bind(clk, rst_bar, r_master0);
+
   }
 
 private:
 
-  AXI4_W_SEGMENT_CFG(local_axi, w_segment0)
-  AXI4_R_SEGMENT_CFG(local_axi, r_segment0)
+  axi4_w_segment_cfg<local_axi> SC_NAMED(w_segment0);
+  axi4_r_segment_cfg<local_axi> SC_NAMED(r_segment0);
 
   void main() {
     in1.Reset();
     in2.Reset();
     in3.Reset();
     out1.Reset();
-    AXI4_W_SEGMENT_RESET(w_segment0, w_master0);
-    AXI4_R_SEGMENT_RESET(r_segment0, r_master0);
+    w_segment0.Reset();
+    r_segment0.Reset();
+    r_master0.r.Reset();
+
     wait();
 
 #pragma hls_pipeline_init_interval 1
@@ -64,11 +67,11 @@ private:
         ex_aw_payload aw;
         aw.ex_len = 0;
         aw.addr = t3;
-        w_segment0_ex_aw_chan.Push(aw);
+        w_segment0.ex_aw_chan.Push(aw);
         w_payload w;
         w.data = t2;
-        w_segment0_w_chan.Push(w);
-        w_segment0_b_chan.Pop();
+        w_segment0.w_chan.Push(w);
+        w_segment0.b_chan.Pop();
 #endif
       } else {
         ac_int<32, false> prod = (t1 * t2);
@@ -82,7 +85,7 @@ private:
         ex_ar_payload ar;
         ar.ex_len = 0;
         ar.addr = t3;
-        r_segment0_ex_ar_chan.Push(ar);
+        r_segment0.ex_ar_chan.Push(ar);
         r_payload r = r_master0.r.Pop();
         rdata = r.data;
 #endif

@@ -53,7 +53,8 @@ public:
     wait();
 
     while (1) {
-      CCS_LOG("TB resp sees: " << std::hex << out1.Pop());
+      auto v = out1.Pop();
+      CCS_LOG("TB resp sees: " << std::hex << v);
     }
   }
 

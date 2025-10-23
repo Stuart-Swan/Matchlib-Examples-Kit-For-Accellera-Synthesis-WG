@@ -53,7 +53,8 @@ public:
     wait();
 
     while (1) {
-      CCS_LOG("TB resp sees: " << std::hex << out1.Pop());
+      auto v = out1.Pop();
+      CCS_LOG("TB resp sees: " << std::hex << v);
     }
   }
 
@@ -73,6 +74,11 @@ int sc_main(int argc, char **argv)
 
   auto top = std::make_shared<Top>("top");
   trace_hierarchy(top.get(), trace_file_ptr);
+
+  channel_logs logs;
+  logs.enable("chan_log");
+  logs.log_hierarchy(*top);
+
   sc_start();
   if (sc_report_handler::get_count(SC_ERROR) > 0) {
     std::cout << "Simulation FAILED" << std::endl;

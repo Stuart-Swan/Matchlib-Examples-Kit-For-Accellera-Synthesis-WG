@@ -2965,9 +2965,19 @@ namespace Connections
       return i_fifo->peek();
     }
 
-    bool PeekNB(Message &data, const bool &/*unused*/ = true) {
+/* 
+    bool PeekNB(Message &data ) {
       assert(0);
       return false; // i_fifo-> tlm::tlm_get_peek_if<Message> ::nb_peek(data);
+    }
+*/
+
+
+    bool PeekNB(Message &data) {
+      tlm::tlm_fifo<Message>* f = dynamic_cast<tlm::tlm_fifo<Message>*>(i_fifo.operator->());
+      if (!f)
+        assert(0);
+      return f->nb_peek(data);
     }
 
 // PopNB
