@@ -16,16 +16,14 @@ public:
 
   sc_clock clk{"clk"};
   SC_SIG(bool, rst_bar);
-  sc_signal<uint32_t>    in1[N];    // prefer sc_vector
+  sc_vector<sc_signal<uint32_t>> in1{"in1", N}; 
   SC_SIG(uint32_t, out1);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
     dut1.clk(clk);
     dut1.rst_bar(rst_bar);
-    for (auto i=0; i<N; i++) {
-      dut1.in1[i](in1[i]);
-    }
+    dut1.in1(in1);
     dut1.out1(out1);
 
     SC_THREAD(stim);

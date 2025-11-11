@@ -197,8 +197,8 @@ public:
 
   }
 
-  typename axi_cfg::axi4_w_segment_cfg<axi_cfg> SC_NAMED(w_segment0);
-  typename axi_cfg::axi4_r_segment_cfg<axi_cfg> SC_NAMED(r_segment0);
+  typename axi_cfg::template axi4_w_segment_cfg<axi_cfg> SC_NAMED(w_segment0);
+  typename axi_cfg::template axi4_r_segment_cfg<axi_cfg> SC_NAMED(r_segment0);
 
 
   virtual void b_transport(int tag, tlm_generic_payload& trans, sc_time& tm) {

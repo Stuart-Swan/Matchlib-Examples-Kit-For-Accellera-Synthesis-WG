@@ -42,29 +42,27 @@ public:
   sc_in<uint32_t>  SC_NAMED(in1);
   sc_out<uint32_t> SC_NAMED(out1);
 
+  const unsigned len = 5;
+  sc_vector<flop> flop_array{"flop_array", len};
+  sc_vector<sc_signal<uint32_t>> sig_array{"sig_array", len};
+
   SC_CTOR(dut) {
-    const int len = 5;
-    flop* flop_array[len];
-    sc_signal<uint32_t>* sig_array[len];
 
-    for (int i=0; i < len; i++) {
-      flop_array[i] = new flop("");
-      sig_array[i] = new sc_signal<uint32_t>(sc_gen_unique_name("sig_array"));
+    for (unsigned i=0; i < len; i++) {
+      flop_array[i].clk(clk);
+      flop_array[i].rst_bar(rst_bar);
 
-      flop_array[i]->clk(clk);
-      flop_array[i]->rst_bar(rst_bar);
       if (i == 0) {
-        flop_array[i]->in1(in1);
+        flop_array[i].in1(in1);
       } else {
-        flop_array[i]->in1(*sig_array[i-1]);
+        flop_array[i].in1(sig_array[i-1]);
       }
 
       if (i == (len-1)) {
-        flop_array[i]->out1(out1);
+        flop_array[i].out1(out1);
       } else {
-        flop_array[i]->out1(*sig_array[i]);
+        flop_array[i].out1(sig_array[i]);
       }
     }
   }
 };
-

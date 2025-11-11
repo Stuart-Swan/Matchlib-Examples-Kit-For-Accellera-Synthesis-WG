@@ -39,6 +39,7 @@ private:
       out1_data = t;
       toggle = !toggle;
       out1_toggle = toggle;
+      wait();
     }
   }
 };

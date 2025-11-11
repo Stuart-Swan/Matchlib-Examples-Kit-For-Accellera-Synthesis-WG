@@ -15,6 +15,7 @@ flow package require /SCVerify
 
 flow package require /QuestaSIM
 flow package option set /QuestaSIM/ENABLE_CODE_COVERAGE true
+options set /Input/SearchPath $sfd/../../include -append
 
 solution file add "$sfd/dut.h" -type CHEADER
 solution file add "$sfd/testbench.cpp" -type C++ -exclude true
