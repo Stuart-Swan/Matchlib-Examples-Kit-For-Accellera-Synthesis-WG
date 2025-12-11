@@ -127,39 +127,44 @@ public:
 template <class T>
 struct dat_vld_in_xact {
   std::string prefix;
-  dat_vld_in_xactor<T> in_xactor1;
-  Connections::Combinational<T> chan;
 
-  dat_vld_in_xact(const char* s) : 
-    prefix(s)
-  , in_xactor1(SYNTH_NAME(prefix, "_xactor1"))
+  dat_vld_in_xact(const char* nm = "") :
+    prefix(nm)
+  , vld(SYNTH_NAME(nm, "_vld"))
+  , dat(SYNTH_NAME(nm, "_dat"))
+  , xactor1(SYNTH_NAME(nm, "_xactor1"))
   , chan(SYNTH_NAME(prefix, "_chan"))
   {
+    xactor1.in1(*this);
+    xactor1.out1(chan);
   }
 
-  template <class P>
-  void bind(P& in1) {
-    in_xactor1.out1(chan);
-    in_xactor1.in1(in1);
-  }
+  sc_in<bool> vld;
+  sc_in<T> dat;
+
+  dat_vld_in_xactor<T> xactor1;
+  Connections::Combinational<T> chan;
 };
 
 template <class T>
 struct dat_vld_out_xact {
   std::string prefix;
-  dat_vld_out_xactor<T> out_xactor1;
-  Connections::Combinational<T> chan;
 
-  dat_vld_out_xact(const char* s) : 
-    prefix(s)
-  , out_xactor1(SYNTH_NAME(prefix, "_xactor1"))
+  dat_vld_out_xact(const char* nm = "") :
+    prefix(nm)
+  , vld(SYNTH_NAME(nm, "_vld"))
+  , dat(SYNTH_NAME(nm, "_dat"))
+  , xactor1(SYNTH_NAME(nm, "_xactor1"))
   , chan(SYNTH_NAME(prefix, "_chan"))
   {
+    xactor1.out1(*this);
+    xactor1.in1(chan);
   }
 
-  template <class P>
-  void bind(P& out1) {
-    out_xactor1.in1(chan);
-    out_xactor1.out1(out1);
-  }
+  sc_out<bool> vld;
+  sc_out<T> dat;
+
+  dat_vld_out_xactor<T> xactor1;
+  Connections::Combinational<T> chan;
 };
+
