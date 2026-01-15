@@ -18,7 +18,7 @@
 
 
 #include <cstddef>
-#include <ac_assert.h>
+#include <nvhls_assert.h>
 #include <list>
 #include "systemc.h"
 
@@ -54,15 +54,15 @@ static const char* make_permanent(const char* nm) {
 // nv_array_bank_array_no_assert_base is the base class for banked arrays,
 // and typically is not directly used in user models.
 
-template <typename B, size_t C, size_t I=0>
+template <typename B, size_t C>
 class nv_array_bank_array_no_assert_base;
 
-template <typename B, size_t I>
-class nv_array_bank_array_no_assert_base<B, 1, I>
+template <typename B>
+class nv_array_bank_array_no_assert_base<B, 1>
 {
-public:
-  #pragma hls_ac_bank_mem
   B a;
+
+public:
 
   nv_array_bank_array_no_assert_base() : a() {}
 
@@ -75,12 +75,12 @@ public:
 };
 
 
-template <typename B, size_t C, size_t I>
+template <typename B, size_t C>
 class nv_array_bank_array_no_assert_base
 {
   static const size_t W = nv_array_pow2<C-1>::P;
-  nv_array_bank_array_no_assert_base<B, W, I> a0;
-  nv_array_bank_array_no_assert_base<B, C-W, I+W> a1;
+  nv_array_bank_array_no_assert_base<B, W  > a0;
+  nv_array_bank_array_no_assert_base<B, C-W> a1;
 public:
 
   nv_array_bank_array_no_assert_base() : a0(), a1() {}
@@ -91,16 +91,12 @@ public:
   {}
 
   B &operator[](size_t idx) {
-#ifndef __SYNTHESIS__
-    assert(idx < C);
-#endif
+    CMOD_ASSERT(idx < C);
     size_t aidx = idx & (W-1); return idx&W ? a1[aidx] : a0[aidx];
   }
 
   const B &operator[](size_t idx) const {
-#ifndef __SYNTHESIS__
-    assert(idx < C);
-#endif
+    CMOD_ASSERT(idx < C);
     size_t aidx = idx & (W-1); return idx&W ? a1[aidx] : a0[aidx];
   }
 };

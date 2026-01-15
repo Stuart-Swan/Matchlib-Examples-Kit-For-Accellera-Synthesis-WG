@@ -142,6 +142,8 @@ struct dat_vld_in_xact {
   sc_in<bool> vld;
   sc_in<T> dat;
 
+  T Pop() { return chan.Pop(); }
+
   dat_vld_in_xactor<T> xactor1;
   Connections::Combinational<T> chan;
 };
@@ -163,6 +165,8 @@ struct dat_vld_out_xact {
 
   sc_out<bool> vld;
   sc_out<T> dat;
+
+  void Push(const T& v) { chan.Push(v); }
 
   dat_vld_out_xactor<T> xactor1;
   Connections::Combinational<T> chan;

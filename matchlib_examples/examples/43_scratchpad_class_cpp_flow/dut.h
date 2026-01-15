@@ -10,6 +10,7 @@
 #include "ac_channel.h"
 #include "mc_scverify.h"
 
+#define HLS_CATAPULT
 #include "ScratchpadClass.h"
 
 #include "auto_gen_fields.h"

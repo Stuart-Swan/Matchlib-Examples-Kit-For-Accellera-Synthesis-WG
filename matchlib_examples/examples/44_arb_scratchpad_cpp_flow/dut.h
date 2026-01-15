@@ -11,6 +11,7 @@
 #include "mc_scverify.h"
 
 
+#define HLS_CATAPULT
 #define HLS_ALGORITHMICC
 #include <ArbitratedScratchpad.h>
 #undef HLS_ALGORITHMICC

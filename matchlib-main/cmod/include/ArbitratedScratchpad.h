@@ -188,7 +188,7 @@ class ArbitratedScratchpad {
     en = false;
     for (unsigned i = 0; i < NumBanks; i++)
     {
-      if ( (bank_req_winner[i].input_chan == bank) && bank_rsp[i].valid) 
+      if ( (bank_req_winner[i].input_chan == bank) && bank_rsp[i].valid)
       {
         res = i;
         en = true;

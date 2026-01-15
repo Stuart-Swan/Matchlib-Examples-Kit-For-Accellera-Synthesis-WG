@@ -36,6 +36,7 @@ solution options set /Flows/SCVerify/USE_MSIM false
 solution options set /Flows/SCVerify/USE_OSCI false
 solution options set /Flows/SCVerify/USE_VCS true
 solution options set /Flows/SCVerify/DISABLE_EMPTY_INPUTS true
+solution options set /Flows/SCVerify/FAIL_ON_AC_ASSERTION true
 solution options set /Flows/VCS/VCS_HOME $env(VCS_HOME)
 if { [info exist env(VG_GNU_PACKAGE)] } {
     solution options set /Flows/VCS/VG_GNU_PACKAGE $env(VG_GNU_PACKAGE)
@@ -48,7 +49,7 @@ solution options set /Flows/VCS/VCSELAB_OPTS [concat [solution options get /Flow
 solution options set /Flows/VCS/VCSSIM_OPTS [concat [solution options get /Flows/VCS/VCSSIM_OPTS] -licqueue]
 solution options set /Flows/VCS/SYSC_VERSION 2.3.3
 # SystemVerilog assertions
-solution options set /Output/InlinedPropertyLang sva
+solution options set /Output/InlinedPropertyLang sva_sv
 
 # Verilog/VHDL
 solution options set Output OutputVerilog true

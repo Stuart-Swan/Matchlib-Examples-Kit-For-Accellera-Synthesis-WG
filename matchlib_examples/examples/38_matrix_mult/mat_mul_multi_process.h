@@ -5,6 +5,7 @@
 #include "array_t.h"
 #include <string>
 #include <ac_shared_array_1D.h>
+#include "sc_named.h"
 
 
 #pragma hls_design top

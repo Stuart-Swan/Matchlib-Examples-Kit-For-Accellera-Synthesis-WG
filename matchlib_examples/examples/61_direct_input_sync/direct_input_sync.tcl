@@ -12,6 +12,7 @@ flow package option set /SCVerify/INVOKE_ARGS "trace direct_input_sync.log $sfd/
 flow package require /QuestaSIM
 flow package option set /QuestaSIM/ENABLE_CODE_COVERAGE true
 flow package option set /QuestaSIM/MSIM_DOFILE msim.do
+options set /Input/SearchPath $sfd/../../include -append
 
 solution file add "$sfd/testbench.cpp" -type C++
 

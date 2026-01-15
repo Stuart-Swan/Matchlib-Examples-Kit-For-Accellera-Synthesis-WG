@@ -7,6 +7,8 @@
 #include "ac_shared_bank_array.h"
 #include <string>
 
+#include "sc_named.h"
+
 
 #pragma hls_design top
 class matrixMultiply  : public sc_module {

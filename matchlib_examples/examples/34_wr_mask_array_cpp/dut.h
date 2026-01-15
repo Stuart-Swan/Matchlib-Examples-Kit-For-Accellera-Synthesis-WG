@@ -6,6 +6,7 @@
 #include "ac_channel.h"
 #include "mc_scverify.h"
 
+#define HLS_CATAPULT
 #include <ac_wr_mask_array.h>
 
 

@@ -3,6 +3,7 @@
 
 #include <mc_connections.h>
 #include <ac_int.h> 
+#include "sc_named.h"
 
 #pragma hls_design top
 class matrixMultiply  : public sc_module {

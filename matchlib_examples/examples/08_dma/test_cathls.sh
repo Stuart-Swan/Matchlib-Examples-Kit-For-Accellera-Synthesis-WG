@@ -10,6 +10,7 @@ set -v
 
 if command -v catapult > /dev/null 2>&1; then
   catapult -shell -f go_hls.tcl
+  (cd Catapult/*v1; make -f ./scverify/Verify_rtl_sv_msim.mk sim)
 fi
 
 make clean

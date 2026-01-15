@@ -35,11 +35,11 @@ private:
 #pragma hls_pipeline_init_interval 2
 #pragma pipeline_stall_mode stall
     while (1) {
-      uint32 x = in1.chan.Pop();
+      uint32 x = in1.Pop();
       uint32 y = 0;
       y += 3 * x;
       y += 7 * x * x;
-      out1.chan.Push(y);
+      out1.Push(y);
     }
   }
 };

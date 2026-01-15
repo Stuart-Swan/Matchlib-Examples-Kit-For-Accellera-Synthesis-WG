@@ -24,7 +24,7 @@ MatchLib is regressed against the following tool/dependency versions:
 * `doxygen` - 1.8.11
 * `make` - 3.82
 * `binutils` - 2.34
-* `catapult` - 2024.1\_1
+* `catapult` - 2025.3
 * `systemc` - 2.3.3 (included with Catapult)
 * `connections` - 2.1.1 (included with Catapult)
 * `vcs` - 2023.03
@@ -91,7 +91,7 @@ In addition, the boost and systemc library locations are expected to be in `LD_L
 * `COV_ENABLE` - Set to enable coverage collection with CTC.
 * `NVHLS_VERIFY_ISVCSMX` - Set for standalone VCS-MX co-simulations of SystemC with Catapult-generated RTL. Do not use in SystemC simulation or Catapult sc_verify.
 * `ENABLE_SYNC_RESET` - Enables synchronous, active-low reset instead of asynchronous, active-low reset in MatchLib.
-* `NVHLS_CONTINUE_ON_ASSERT` - Raise an `SC_ERROR` on assertion failures rather than exiting. Do not use during Catapult HLS, only during simulation.
+* `NVHLS_CONTINUE_ON_ASSERT` - Do not immediately abort on assertion failures, but continue running and report the number of assertion violations at the end of simulation.
 
 Additional macros such as `AUTO_PORT`, `FORCE_AUTO_PORT`, `CONNECTIONS_ACCURATE_SIM`, `CONNECTIONS_FAST_SIM`, `CONNECTIONS_SIM_ONLY`, `CONN_RAND_STALL`, `CONN_RAND_STALL_PRINT_DEBUG`, `CONNECTIONS_ASSERT_ON_QUERY`, and `DISABLE_PACER` may be used in MatchLib. These macros are primarily defined, implemented, and documented in Connections. For more detail on these macros, see the [Connections documentation](https://github.com/hlslibs/matchlib_connections).
 

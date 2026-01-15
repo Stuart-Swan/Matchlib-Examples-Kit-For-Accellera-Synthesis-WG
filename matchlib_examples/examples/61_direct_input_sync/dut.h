@@ -4,6 +4,7 @@
 
 #include <mc_connections.h>
 #include <ac_math.h>
+#include "sc_named.h"
 
 static const int num_direct_inputs = 8;
 static const int num_samples = 3;
