@@ -8,9 +8,12 @@
 #include "connections_idle.h"
 #include "sc_named.h"
 
+#include "clock_gate_module.h"
 
-#pragma hls_design top
-class dut : public sc_module
+#define AUTOMATIC_IDLE 1
+
+
+class sub : public sc_module
 {
 public:
   sc_in<bool> SC_NAMED(clk);
@@ -33,7 +36,7 @@ public:
   SC_SIG(CNT_T, out1_cnt);
 #endif
 
-  SC_CTOR(dut) {
+  SC_CTOR(sub) {
     SC_THREAD(main);
     sensitive << clk.pos();
     async_reset_signal_is(rst_bar, false);
@@ -87,3 +90,32 @@ private:
   }
 };
 
+#pragma hls_design top
+class dut : public sc_module
+{
+public:
+  sc_in<bool> SC_NAMED(clk);
+  sc_in<bool> SC_NAMED(rst_bar);
+
+  Connections::Out<uint32> SC_NAMED(out1);
+  Connections::In <uint32> SC_NAMED(in1);
+  Connections::In <uint32> SC_NAMED(in2);
+  SC_SIG(bool, idle);
+  SC_SIG(bool, gated_clk);
+  clock_gate_module SC_NAMED(clock_gate_module1);
+
+  sub SC_NAMED(sub1);
+
+  SC_CTOR(dut) {
+    clock_gate_module1.idle_in(idle);
+    clock_gate_module1.clk_in(clk);
+    clock_gate_module1.clk_out(gated_clk);
+
+    sub1.clk(gated_clk);
+    sub1.rst_bar(rst_bar);
+    sub1.out1(out1);
+    sub1.in1(in1);
+    sub1.in2(in2);
+    sub1.idle(idle);
+  }
+};

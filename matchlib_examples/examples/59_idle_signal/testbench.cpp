@@ -10,7 +10,6 @@
 //#define AUTOMATIC_IDLE 1
 
 #include "dut.h"
-#include "clock_gate_module.h"
 
 
 class Top : public sc_module
@@ -20,9 +19,6 @@ public:
 
   sc_clock clk;
   SC_SIG(bool, rst_bar);
-  SC_SIG(bool, idle);
-  SC_SIG(bool, gated_clk);
-  clock_gate_module SC_NAMED(clock_gate_module1);
 
   Connections::Combinational<uint32>        SC_NAMED(out1);
   Connections::Combinational<uint32>        SC_NAMED(in1);
@@ -33,20 +29,11 @@ public:
   {
     sc_object_tracer<sc_clock> trace_clk(clk);
 
-    clock_gate_module1.idle(idle);
-    clock_gate_module1.clk_in(clk);
-    clock_gate_module1.clk_out(gated_clk);
-
-#ifdef USE_GATED_CLOCK
-    dut1.clk(gated_clk);
-#else
     dut1.clk(clk);
-#endif
     dut1.rst_bar(rst_bar);
     dut1.out1(out1);
     dut1.in1(in1);
     dut1.in2(in2);
-    dut1.idle(idle);
 
     SC_CTHREAD(reset, clk);
 

@@ -9,18 +9,15 @@
 
 class clock_gate_module : public sc_module {
 public:
-   sc_in<bool> SC_NAMED(idle);
+   sc_in<bool> SC_NAMED(idle_in);
    sc_in<bool> SC_NAMED(clk_in);
    sc_out<bool> SC_NAMED(clk_out);
-
-   sc_time period;
-   sc_time period_div_2;
 
    // This model does work in all scenarios (pre-HLS, post-HLS sims in Questa, OSCI, etc).
    // It is not the most obvious implementation..
 
    // This is a SystemC simulation only model. In the RTL, this module is replaced
-   // with a CGIC cell (clock gate insertion cell).
+   // with a CGIC cell (clock gate insertion cell) using the ac_blackbox construct.
    // The key requirement of this model is to introduce no delta delays into the gated clock
    // as compared to the input clock. 
 
@@ -28,16 +25,28 @@ public:
 #ifndef __SYNTHESIS__
      SC_THREAD(main);
 #else
-     ac_blackbox()
-           .entity("clock_gate_module")
-           .architecture("clock_gate_module")
-           .library("work")
-           .verilog_files("clock_gate_module.v")
-           .end();
+    ac_blackbox()
+    // netlist info
+    .entity("clock_gate_module")
+    .architecture("bb")
+    .verilog_files("latch_based_clock_gating_comb.v")
+    .vhdl_files("latch_based_clock_gating_comb.vhd")
+    .outputs("clk_out")
+    .clock_name("clk_in")
+    .clock_gated(true)
+    // area/timing
+    .area(12.3456)
+    .delay(0.0)
+    .latency(1)
+    .timing_units("ns")
+    .end();
 #endif
    }
 
 #ifndef __SYNTHESIS__
+   sc_time period;
+   sc_time period_div_2;
+
    void start_of_simulation() {
      sc_clock* clk = dynamic_cast<sc_clock*>(clk_in.get_interface());
      if (clk == 0) {
@@ -58,8 +67,8 @@ public:
      while (1) {
        clk_out = 1;
        wait(period_div_2);
-       // this may look wrong, but goal is to force the clk "high" when idle=1
-       if (!idle.read())
+       // this may look wrong, but goal is to force the clk "high" when idle_in=1
+       if (!idle_in.read())
          clk_out = 0;
        wait(period_div_2);
      }
@@ -74,7 +83,7 @@ class clock_gate_module_rev1
 {
  public:
    sc_in<bool> SC_NAMED(clk_in);
-   sc_in<bool> SC_NAMED(idle);
+   sc_in<bool> SC_NAMED(idle_in);
 
    // This model doesn't work on Questa in post-HLS sim (it does in pre-HLS sim).
    // So we cannot use it yet..
@@ -96,10 +105,10 @@ class clock_gate_module_rev1
    bool cur_val{0};
 
    void main() {
-     // force output gated clk high when idle is true
-     bool v = clk_in.read() | idle.read();
+     // force output gated clk high when idle_in is true
+     bool v = clk_in.read() | idle_in.read();
      cur_val = v;
-     if (!idle.read()) {
+     if (!idle_in.read()) {
       if (v) {
        _posedge_event.notify();
        _default_event.notify();

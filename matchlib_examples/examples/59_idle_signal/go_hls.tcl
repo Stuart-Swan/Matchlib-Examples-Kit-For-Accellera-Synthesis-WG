@@ -32,7 +32,7 @@ go libraries
 directive set -CLOCKS {clk {-CLOCK_PERIOD 2.0}}
 
 go assembly
-directive set /dut/main/ac_math::ac_sqrt<32,32,false>:for -UNROLL yes
+directive set /dut/sub/main/ac_math::ac_sqrt<32,32,false>:for -UNROLL yes
 go architect
 go allocate
 go extract
