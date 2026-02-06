@@ -40,7 +40,7 @@
 //
 //*****************************************************************************************
 
-//#define NEW_CONNECTIONS 1
+// #define NEW_CONNECTIONS 1
 #ifdef NEW_CONNECTIONS
 #define __CONNECTIONS__CONNECTIONS_H__
 #include "new_connections.h"

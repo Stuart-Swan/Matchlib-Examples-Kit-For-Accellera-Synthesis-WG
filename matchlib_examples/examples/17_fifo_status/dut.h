@@ -6,6 +6,8 @@
 #include <mc_connections.h>
 #include <nvhls_connections_buffered_ports.h>
 
+#include "sc_named.h"
+
 
 namespace Connections {
 

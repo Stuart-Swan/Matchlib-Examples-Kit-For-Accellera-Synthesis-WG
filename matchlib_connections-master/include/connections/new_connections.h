@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-20 Oct 2025
+6 Feb 2026
 
 This is a complete rewrite of the old connections.h file.
 Features & Goals:
@@ -1014,6 +1014,11 @@ public:
   logger<Message> out_logger{"Out"};
 
   void ResetWrite() {
+   if (out_port.disabled) {
+     SC_REPORT_ERROR("CONNECTIONS-332", (std::string("Port <") + this->out_port.full_name() +
+"> has both disable_spawn() and Reset() called ").c_str());
+     sc_stop();
+   }
    get_conManager().add_clock_event(&out_port);
    out_port.was_reset=1;
    out_buf_vld = 0;
@@ -1022,6 +1027,11 @@ public:
   }
 
   void ResetRead() {
+   if (in_port.disabled) {
+     SC_REPORT_ERROR("CONNECTIONS-332", (std::string("Port <") + this->in_port.full_name() +
+"> has both disable_spawn() and Reset() called ").c_str());
+     sc_stop();
+   }
    get_conManager().add_clock_event(&in_port);
    in_port.was_reset=1;
    in_buf_vld = 0;

@@ -1,7 +1,7 @@
 
 Brief Scheduling Rules Proposal
 Stuart Swan, Siemens EDA
-8 Oct 2025
+27 Jan 2026
 
 IO Operations Involved in Scheduling Rules
 ------------------------------------------
@@ -41,8 +41,9 @@ E4 (Per-channel FIFO semantics).
 For every channel c, the sequence of Push_c and Pop_c actions in τ_post is a legal FIFO schedule (no dropped or duplicated messages).
 E5 (Messages cannot cross syncs).
 For every message m and synchronization call s, 
-clk_pre(m) ≤ clk_pre(s) ⇒ clk_post(m) ≤ clk_post(s)
-clk_pre(m) > clk_pre(s) ⇒ clk_post(m) > clk_post(s)
+∀ m ∈ pref_S(s) : issue_post(m) ≤ clk_post(s)
+∀ m ∈ suff_S(s) : issue_post(m) > clk_post(s)
+
 
 
 Allowed Transformations During HLS
@@ -52,7 +53,7 @@ T1 During loop pipelining, message read ops may be moved before message write op
 Any wait statements in loop body will not preclude this from occurring.
 Pipeline flushing insures equivalent pre-HLS and post-HLS behavior.
 
-T2 Pragma for direct input signals (ASSUME_STABLE) allows HLS to remove pipeline registers.
+T2 Pragma for direct input signals allows HLS to remove pipeline registers.
 Drivers of such signals are required to hold them stable after receivers come out of reset.
 
 T3 Pragma for direct input sync signals allows HLS to remove pipeline registers. The sync channel controls
@@ -81,3 +82,6 @@ RULE1 If a blocking message passing call separates a signal IO operation from it
 
 RULE2 If a rolled loop body has signal IO operations but no wait statement, the design is ill-formed.
 
+-----------
+Note: The detailed scheduling rules doc is available here:
+https://github.com/Stuart-Swan/Matchlib-Examples-Kit-For-Accellera-Synthesis-WG/blob/master/matchlib_examples/doc/catapult_user_view_scheduling_rules.pdf
