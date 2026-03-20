@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <connections/new_connections.h>
+#include "new_connections.h"
 
 #include <rapidjson/document.h>
 #include <rapidjson/prettywriter.h>

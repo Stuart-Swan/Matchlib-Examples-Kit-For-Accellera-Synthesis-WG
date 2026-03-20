@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-6 Feb 2026
+20 March 2026
 
 This is a complete rewrite of the old connections.h file.
 Features & Goals:
@@ -27,22 +27,9 @@ Changed Features from old connections.h
 
 */
 
-
-
 #pragma once
 
-#ifndef __SYNTHESIS__
-#define CONNECTIONS_SIM_ONLY
-#endif
-
-#ifdef CONNECTIONS_FAST_SIM
-#define AUTO_PORT Connections::TLM_PORT
-#else
-#define AUTO_PORT Connections::DIRECT_PORT
-#endif
-
-#include <systemc.h>
-#if defined(CONNECTIONS_SIM_ONLY) && !defined(SC_INCLUDE_DYNAMIC_PROCESSES)
+#if !defined(__SYNTHESIS__) && !defined(SC_INCLUDE_DYNAMIC_PROCESSES)
 #if !defined(NC_SYSTEMC) && !defined(XM_SYSTEMC)
 #warning "SC_INCLUDE_DYNAMIC_PROCESSES is being defined and reentrant <systemc> header included"
 #define SC_INCLUDE_DYNAMIC_PROCESSES
@@ -52,12 +39,10 @@ Changed Features from old connections.h
 #endif
 #endif
 
-#include "marshaller.h"
-#include "connections_utils.h"
-#include "connections_trace.h"
-#include "message.h"
+#include <systemc.h>
 
-#ifdef CONNECTIONS_SIM_ONLY
+#ifndef __SYNTHESIS__
+#include <sstream>
 #include <iomanip>
 #include <vector>
 #include <map>
@@ -70,14 +55,12 @@ Changed Features from old connections.h
 #endif
 #endif
 
-#define _VLDNAME_ vld
-#define _RDYNAME_ rdy
-#define _DATNAME_ dat
-#define _VLDNAMESTR_ "vld"
-#define _RDYNAMESTR_ "rdy"
-#define _DATNAMESTR_ "dat"
 
-
+#ifdef CONNECTIONS_FAST_SIM
+#define AUTO_PORT Connections::TLM_PORT
+#else
+#define AUTO_PORT Connections::DIRECT_PORT
+#endif
 
 #ifdef __SYNTHESIS__
 #define CONN_SYNTH_NAME(prefix, nm) ""
@@ -101,7 +84,7 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
    virtual void force_disable() = 0;
   };
 
-#ifdef CONNECTIONS_SIM_ONLY
+#ifndef __SYNTHESIS__
 
   class SimConnectionsClk
   {
@@ -694,7 +677,7 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
     return ConManager_statics<void>::conManager;
   }
 
-#endif // CONNECTIONS_SIM_ONLY
+#endif // !__SYNTHESIS__
 
 #ifndef __SYNTHESIS__
 struct chan_base : public sc_channel {
@@ -852,7 +835,9 @@ struct Out_sim_port : public Blocking_abs {
   virtual std::string full_name() { return _full_name; }
 };
 
-struct sc_trace_marker_v2 : public sc_trace_marker {
+struct sc_trace_marker_v2 {
+  virtual void set_trace(sc_trace_file *trace_file_ptr) = 0;
+  virtual bool set_log(std::ofstream *os, int &log_num, std::string &path_name) = 0;
   virtual bool set_log_v2(std::ofstream *os, int &log_num, std::string &path_name) = 0;
 };
 
@@ -902,7 +887,7 @@ class Combinational_base
   , public In_if<Message>
   , public Out_if<Message> 
 #ifndef __SYNTHESIS__
-  , public sc_trace_marker
+  , public sc_trace_marker_v2
   , public set_rand_force_if
 #endif
 {
@@ -930,6 +915,7 @@ public:
   }
 
   virtual bool set_log(std::ofstream *os, int &log_num, std::string &path_name) { return 0; }
+  virtual bool set_log_v2(std::ofstream *os, int &log_num, std::string &path_name) { return 0; }
 
 #ifdef __SYNTHESIS__
 
@@ -1648,7 +1634,7 @@ class Combinational<Message, TLM_PORT>
   : public chan_base 
   , public In_if<Message>
   , public Out_if<Message> 
-  , public sc_trace_marker
+  , public sc_trace_marker_v2
 {
 public:
 
@@ -1665,6 +1651,7 @@ public:
   virtual void set_trace(sc_trace_file *trace_file_ptr) { }
 
   virtual bool set_log(std::ofstream *os, int &log_num, std::string &path_name) { return 0; }
+  virtual bool set_log_v2(std::ofstream *os, int &log_num, std::string &path_name) { return 0; }
 
   tlm::tlm_fifo<Message> fifo;
 
@@ -1800,33 +1787,49 @@ public:
   }
 };
 
-#endif
-
-// Forward declarations below needed for other Matchlib headers currently
-
-template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
-class InBlocking;
-template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
-class OutBlocking;
-
-template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
-class Bypass;
-template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
-class Pipeline;
-template <typename Message, unsigned int NumEntries, connections_port_t port_marshall_type = AUTO_PORT>
-class Buffer;
-
-
-} // namespace Connections
-
-
+#endif // !__SYNTHESIS__
 
 // Preferred replacement for old channel_logs
 
-struct channel_logs_v2 : public channel_logs
+struct channel_logs_v2
 {
+public:
+  bool enabled{false};
+  std::string log_dir;
+  int log_num{0};
+  std::ofstream log_stream;
+  std::ofstream log_names;
+
+  channel_logs_v2() {}
+
+  int enable( std::string fname_base = "", bool unbuffered = false ) {
+    if ( fname_base.empty() ) {
+      fname_base = "channel_logs";
+    }
+    std::ostringstream nm_stream, nm_names;
+    nm_stream << fname_base << "_data.txt";
+    if ( unbuffered ) {
+      log_stream.rdbuf()->pubsetbuf(0, 0);
+    }
+    log_stream.open(nm_stream.str());
+    if ( !log_stream.is_open() ) {
+      std::cerr << "Cannot open file '" << nm_stream.str() << "'" << std::endl;
+      return 1;
+    }
+    nm_names << fname_base << "_names.txt";
+    if ( unbuffered ) {
+      log_names.rdbuf()->pubsetbuf(0, 0);
+    }
+    log_names.open(nm_names.str());
+    if ( !log_names.is_open() ) {
+      std::cerr << "Cannot open file '" << nm_names.str() << "'" << std::endl;
+      return 1;
+    }
+    return 0;
+  }
+
   void log_hier_helper( sc_object *obj ) {
-#ifdef CONNECTIONS_SIM_ONLY
+#ifndef __SYNTHESIS__
     if ( Connections::sc_trace_marker_v2 *p = dynamic_cast<Connections::sc_trace_marker_v2 *>(obj) ) {
       std::string path_name;
       if ( log_stream.is_open() && log_names.is_open() && p->set_log_v2(&log_stream, log_num, path_name) ) {
@@ -1848,12 +1851,36 @@ struct channel_logs_v2 : public channel_logs
   }
 
   void log_hierarchy( sc_object &sc_obj ) {
-#ifdef CONNECTIONS_SIM_ONLY
+#ifndef __SYNTHESIS__
     sc_spawn(sc_bind(&channel_logs_v2::run, this, &sc_obj), "channel_logs_v2");
 #endif
   }
 };
 
-// auto-upgrade to new version:
-#define channel_logs channel_logs_v2
+static inline void trace_hierarchy_v2( sc_object *obj, sc_trace_file *file_ptr )
+{
+#ifndef __SYNTHESIS__
+  if ( Connections::sc_trace_marker_v2 *p = dynamic_cast<Connections::sc_trace_marker_v2 *>(obj) ) {
+    p->set_trace(file_ptr);
+  }
+  std::vector<sc_object *> children = obj->get_child_objects();
+  for ( unsigned i = 0; i < children.size(); i++ ) {
+    if ( children[i] ) {
+      trace_hierarchy_v2(children[i], file_ptr);
+    }
+  }
+#endif
+}
 
+} // namespace Connections
+
+
+#ifdef NEW_CONNECTIONS
+#include "compat_connections.h"
+#else
+#include "conn_sync_chan.h"
+#endif
+
+// auto-upgrade to new versions:
+#define channel_logs Connections::channel_logs_v2
+#define trace_hierarchy Connections::trace_hierarchy_v2

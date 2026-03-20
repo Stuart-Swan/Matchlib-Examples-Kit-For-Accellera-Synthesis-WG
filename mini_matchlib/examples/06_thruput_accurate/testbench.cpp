@@ -2,6 +2,8 @@
 #include "dut.h"
 #include <memory>
 
+#include "connections_rand_stall.h"
+
 class Top : public sc_module
 {
 public:
@@ -88,9 +90,22 @@ int sc_main(int argc, char **argv)
 {
   sc_report_handler::set_actions("/IEEE_Std_1666/deprecated", SC_DO_NOTHING);
   sc_report_handler::set_actions(SC_ERROR, SC_DISPLAY);
+  sc_trace_file *trace_file_ptr = sc_create_vcd_trace_file("trace");
 
   auto top = std::make_shared<Top>("top");
+  trace_hierarchy(top.get(), trace_file_ptr);
+
+  channel_logs logs;
+  logs.enable("chan_log");
+  logs.log_hierarchy(*top);
+
+  Connections::rand_stall rs;
+  rs.set(*top, 1);
+
   sc_start();
+
+  sc_close_vcd_trace_file(trace_file_ptr);
+
   if (sc_report_handler::get_count(SC_ERROR) > 0) {
     std::cout << "Simulation FAILED" << std::endl;
     return -1;
