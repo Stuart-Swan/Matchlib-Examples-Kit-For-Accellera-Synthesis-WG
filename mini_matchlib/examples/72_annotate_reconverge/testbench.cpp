@@ -46,7 +46,7 @@ public:
 
     for (int i = 1; i < 20; i++) {
       din.Push(i);
-      std::cout << "STIM Pushed: " << std::hex << i << "\n";
+      std::cout << "STIM Pushed: " << sc_time_stamp() << " " << std::hex << i << "\n";
     }
     wait(100);
   }
@@ -56,7 +56,7 @@ public:
     wait();
     for (int i = 1; i < 20; i++) {
       sc_uint<16> res = dout.Pop();
-      std::cout << "RESP Popped: " << std::hex << res << "\n";
+      std::cout << "RESP Popped: " << sc_time_stamp() << " " << std::hex << res << "\n";
     }
     sc_stop();
   }

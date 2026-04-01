@@ -99,8 +99,8 @@ int sc_main(int argc, char **argv)
   logs.enable("chan_log");
   logs.log_hierarchy(*top);
 
-  //Connections::rand_stall rs;
-  //rs.set(*top, 1);
+  Connections::rand_stall rs;
+  rs.set(*top, 1);
 
   sc_start();
 

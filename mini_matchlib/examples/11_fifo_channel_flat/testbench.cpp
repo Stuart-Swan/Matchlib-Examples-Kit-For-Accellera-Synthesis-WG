@@ -2,34 +2,23 @@
 #include "dut.h"
 #include <memory>
 
-#include "connections_rand_stall.h"
-
 class Top : public sc_module
 {
 public:
   dut SC_NAMED(dut1);
- 
+
   sc_clock clk;
   sc_signal<bool> SC_NAMED(rst_bar);
 
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(in1);
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(in2);
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(in3);
   Connections::Combinational<sc_uint<32>>        SC_NAMED(out1);
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(out2);
+  Connections::Combinational<sc_uint<32>>        SC_NAMED(in1);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
-
-    Connections::set_sim_clk(&clk);
-
     dut1.clk(clk);
     dut1.rst_bar(rst_bar);
-    dut1.in1(in1);
-    dut1.in2(in2);
-    dut1.in3(in3);
     dut1.out1(out1);
-    dut1.out2(out2);
+    dut1.in1(in1);
 
     SC_CTHREAD(reset, clk);
 
@@ -42,40 +31,27 @@ public:
     async_reset_signal_is(rst_bar, false);
   }
 
-
   void stim() {
     std::cout << "Stimulus started\n";
     in1.ResetWrite();
-    in2.ResetWrite();
-    in3.ResetWrite();
     wait();
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
       in1.Push(i);
-      if (i & 1) {
-        in3.Push(0x1000);
-        in2.Push(0x100);
-      } else {
-        in2.Push(0x0);
-        in3.Push(0x0);
-      }
     }
 
+    sc_stop();
     wait();
   }
 
   void resp() {
     out1.ResetRead();
-    out2.ResetRead();
     wait();
 
-    for (int i = 0; i < 10; i++) {
-      auto v1 = out1.Pop();
-      auto v2 = out2.Pop();
-      std::cout << sc_time_stamp() << " TB resp sees: " << std::hex << v1 << " " << v2 << "\n";
+    while (1) {
+      auto v = out1.Pop();
+      std::cout << sc_time_stamp() << " TB resp sees: " << std::hex << v << "\n";
     }
-
-    sc_stop();
   }
 
   void reset() {
@@ -94,18 +70,8 @@ int sc_main(int argc, char **argv)
 
   auto top = std::make_shared<Top>("top");
   trace_hierarchy(top.get(), trace_file_ptr);
-
-  channel_logs logs;
-  logs.enable("chan_log");
-  logs.log_hierarchy(*top);
-
-  //Connections::rand_stall rs;
-  //rs.set(*top, 1);
-
   sc_start();
-
   sc_close_vcd_trace_file(trace_file_ptr);
-
   if (sc_report_handler::get_count(SC_ERROR) > 0) {
     std::cout << "Simulation FAILED" << std::endl;
     return -1;
@@ -113,3 +79,4 @@ int sc_main(int argc, char **argv)
   std::cout << "Simulation PASSED" << std::endl;
   return 0;
 }
+
