@@ -11,13 +11,11 @@ public:
   sc_signal<bool> SC_NAMED(rst_bar);
   typedef sc_uint<16> T;
 
-  Connections::Combinational<T>        SC_NAMED(out1);
-  Connections::Combinational<T>        SC_NAMED(in1);
+  msg_lib::msg_chan<T>        SC_NAMED(out1);
+  msg_lib::msg_chan<T>        SC_NAMED(in1);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
-
-    Connections::set_sim_clk(&clk);
 
     dut1.clk(clk);
     dut1.rst_bar(rst_bar);

@@ -2,7 +2,7 @@
 /*
 new_connections.h
 Stuart Swan, Platform Architect, Siemens EDA
-20 March 2026
+5 May 2026
 
 This is a complete rewrite of the old connections.h file.
 Features & Goals:
@@ -16,14 +16,14 @@ Features & Goals:
  - Cleaned up SC object pathnames for tracing, error reporting and back-annotation
 
 Removed Features from old connections.h:
- - MARSHALL_PORT, SYN_PORT - use DIRECT_PORT instead
+ - MARSHALL_PORT, SYN_PORT - use DIRECT_PORT and CATAPULT_VIEW instead
  - rdy/val/msg signal naming - use rdy/vld/dat instead
  - overloaded Connections Port binding operators to allow mismatched port types to be bound.
 
 Changed Features from old connections.h
  - Object pathnames are cleaned up, so differ from old connections.h
  - Back-annotation API is slightly different
- - Back-annotation must be enabled via -DCONN_BACK_ANNOTATE compile flag
+ - Back-annotation currently must be enabled via -DCONN_BACK_ANNOTATE compile flag
 
 */
 
@@ -56,10 +56,16 @@ Changed Features from old connections.h
 #endif
 
 
+#ifndef AUTO_PORT
 #ifdef CONNECTIONS_FAST_SIM
 #define AUTO_PORT Connections::TLM_PORT
 #else
+#ifdef __SYNTHESIS__
+#define AUTO_PORT Connections::CATAPULT_VIEW
+#else
 #define AUTO_PORT Connections::DIRECT_PORT
+#endif
+#endif
 #endif
 
 #ifdef __SYNTHESIS__
@@ -71,7 +77,11 @@ Changed Features from old connections.h
 
 namespace Connections {
 
-enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_PORT=3};
+ // SYN_PORT and MARSHALL_PORT retained only for legacy code, not used on new models
+
+enum connections_port_t {
+  SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_PORT=3, CATAPULT_VIEW=4
+};
 
   class SimConnectionsClk;
   SimConnectionsClk &get_sim_clk();
@@ -679,15 +689,6 @@ enum connections_port_t {SYN_PORT = 0, MARSHALL_PORT = 1, DIRECT_PORT = 2, TLM_P
 
 #endif // !__SYNTHESIS__
 
-#ifndef __SYNTHESIS__
-struct chan_base : public sc_channel {
-  chan_base(sc_module_name nm) : sc_channel(nm) {}
-};
-#else
-struct chan_base {
-  chan_base(sc_module_name nm) {}
-};
-#endif
 
 template <typename Message> 
 class In_if : public sc_interface {
@@ -881,20 +882,22 @@ struct logger : public sc_object, public sc_trace_marker_v2 {
 template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
 class Combinational ;
 
+#ifndef __SYNTHESIS__
+
 template <typename Message>
 class Combinational_base
-  : public chan_base 
+  : public sc_channel 
   , public In_if<Message>
   , public Out_if<Message> 
-#ifndef __SYNTHESIS__
   , public sc_trace_marker_v2
   , public set_rand_force_if
-#endif
 {
 public:
 
+  // Note Combinational_base only used for DIRECT_PORT, not any other views.
+
   Combinational_base(sc_module_name nm) 
-   : chan_base(nm) 
+   : sc_channel(nm) 
    , vld("vld")
    , dat("dat")
    , rdy("rdy")
@@ -902,7 +905,7 @@ public:
     Init();
   }
 
-  Combinational_base() : chan_base(sc_module_name(sc_gen_unique_name("Comb"))) {
+  Combinational_base() : sc_channel(sc_module_name(sc_gen_unique_name("Comb"))) {
     // This ctor needed for legacy code to compile, but cannot explicitly name vld/dat/rdy
     // else will cause naming warnings at pre-hls sim elaboration time.
     Init();
@@ -916,77 +919,6 @@ public:
 
   virtual bool set_log(std::ofstream *os, int &log_num, std::string &path_name) { return 0; }
   virtual bool set_log_v2(std::ofstream *os, int &log_num, std::string &path_name) { return 0; }
-
-#ifdef __SYNTHESIS__
-
-  void Init() {}
-  void disable_spawn_in() {}
-  void disable_spawn_out() {}
-  virtual void set_in_port_names(std::string full_name, std::string base_name) {}
-  virtual void set_out_port_names(std::string full_name, std::string base_name) {}
-
-  void ResetWrite() {
-   vld = 0;
-   dat = Message();
-  }
-
-  void ResetRead() {
-   rdy = 0;
-  }
-
-#pragma builtin_modulario
-#pragma design modulario < in >
-  Message Pop() {
-    do {
-      rdy.write(true);
-      wait();
-    } while (vld.read() != true);
-    rdy.write(false);
-    return dat.read();
-  }
-
-#pragma builtin_modulario
-#pragma design modulario < in >
-  bool PopNB(Message& m) { 
-   rdy = 1;
-   wait();
-   rdy = 0;
-   m = dat;
-   return vld;
-  }
-
-#pragma builtin_modulario
-#pragma design modulario < peek >
-  bool PeekNB(Message &data) {
-   data = dat;
-#ifdef __SYNTHESIS__
-   rdy = 0;
-#endif
-   return vld;
-  }
-    
-#pragma builtin_modulario
-#pragma design modulario < out >
-  void Push(const Message& m) {
-    do {
-      vld.write(true); 
-      dat.write(m);
-      wait();
-    } while (rdy.read() != true);
-    vld.write(false); 
-  }
-
-#pragma builtin_modulario
-#pragma design modulario < out >
-  bool PushNB(const Message& m) {
-   vld = 1;
-   dat = m;
-   wait();
-   vld = 0;
-   return rdy;
-  }
-
-#else
 
   Message in_buf_dat;
   bool    in_buf_vld;
@@ -1012,6 +944,8 @@ public:
    out_buf_dat = zero;
   }
 
+  void ResetPush() { ResetWrite(); }
+
   void ResetRead() {
    if (in_port.disabled) {
      SC_REPORT_ERROR("CONNECTIONS-332", (std::string("Port <") + this->in_port.full_name() +
@@ -1022,6 +956,8 @@ public:
    in_port.was_reset=1;
    in_buf_vld = 0;
   }
+
+  void ResetPop() { ResetRead(); }
 
   Message Pop() {
    get_sim_clk().check_on_clock_edge(in_port.clock_number);
@@ -1172,14 +1108,92 @@ public:
     in_port.set_local_rand(r_if);
   }
 
-#endif
-
   sc_signal<bool> vld;
   sc_signal<Message> dat;
   sc_signal<bool> rdy;
 };
 
-#if !defined(CONN_BACK_ANNOTATE) || defined(__SYNTHESIS__)
+#endif
+
+template <typename Message>
+class Combinational<Message, CATAPULT_VIEW>
+{
+public:
+  Combinational(sc_module_name nm) {}
+
+  Combinational() {}
+
+  sc_signal<bool> vld;
+  sc_signal<Message> dat;
+  sc_signal<bool> rdy;
+
+  void ResetWrite() {
+   vld = 0;
+   dat = Message();
+  }
+
+  void ResetPush() { ResetWrite(); }
+
+  void ResetRead() {
+   rdy = 0;
+  }
+
+  void ResetPop() { ResetRead(); }
+
+#pragma builtin_modulario
+#pragma design modulario < in >
+  Message Pop() {
+    do {
+      rdy.write(true);
+      wait();
+    } while (vld.read() != true);
+    rdy.write(false);
+    return dat.read();
+  }
+
+#pragma builtin_modulario
+#pragma design modulario < in >
+  bool PopNB(Message& m) { 
+   rdy = 1;
+   wait();
+   rdy = 0;
+   m = dat;
+   return vld;
+  }
+
+#pragma builtin_modulario
+#pragma design modulario < peek >
+  bool PeekNB(Message &data) {
+   data = dat;
+   rdy = 0;
+   return vld;
+  }
+    
+#pragma builtin_modulario
+#pragma design modulario < out >
+  void Push(const Message& m) {
+    do {
+      vld.write(true); 
+      dat.write(m);
+      wait();
+    } while (rdy.read() != true);
+    vld.write(false); 
+  }
+
+#pragma builtin_modulario
+#pragma design modulario < out >
+  bool PushNB(const Message& m) {
+   vld = 1;
+   dat = m;
+   wait();
+   vld = 0;
+   return rdy;
+  }
+};
+
+#if !defined(CONN_BACK_ANNOTATE) 
+
+#ifndef __SYNTHESIS__
 
 template <typename Message>
 class Combinational<Message, DIRECT_PORT>
@@ -1190,6 +1204,8 @@ public:
 
   Combinational() : Combinational_base<Message>() {}
 };
+
+#endif
 
 #else
 
@@ -1309,11 +1325,15 @@ public:
     clear_fifo();
   }
 
+  void ResetPop() { ResetRead(); }
+
   void ResetWrite() {
     base_t* p = this;
     p->base_t::ResetWrite();
     clear_fifo();
   }
+
+  void ResetPush() { ResetWrite(); }
 
   bool PopNB(Message& m) { 
     if (!annotated) {
@@ -1388,50 +1408,6 @@ public:
   In(const char* nm = sc_gen_unique_name("In")) : port_t(nm) {
   }
 
-
-#ifdef __SYNTHESIS__
-
-#pragma builtin_modulario
-#pragma design modulario < in >
-  Message Pop() {
-    do {
-      rdy.write(true);
-      wait();
-    } while (vld.read() != true);
-    rdy.write(false);
-    return dat.read();
-  }
-
-#pragma builtin_modulario
-#pragma design modulario < in >
-  bool PopNB(Message& m) { 
-   rdy = 1;
-   wait();
-   rdy = 0;
-   m = dat;
-   return vld;
-  }
-
-#pragma builtin_modulario
-#pragma design modulario < peek >
-  bool PeekNB(Message &data) {
-   m = dat;
-#ifdef __SYNTHESIS__
-   rdy = 0;
-#endif
-   return vld;
-  }
-
-  void Reset() {
-    rdy = 0;
-  }
-
-  void disable_spawn() {}
-
-  void force_disable() {}
-
-#else
-
   Message Pop() { port_t* p=this; return (*p)->Pop(); }
 
   bool PopNB(Message& m) { port_t* p=this; return (*p)->PopNB(m); }
@@ -1445,6 +1421,8 @@ public:
       port_t* p=this; (*p)->ResetRead(); 
     }
   }
+
+  void ResetPop() { Reset(); }
 
   bool do_disable{0};
 
@@ -1472,17 +1450,13 @@ public:
     (*p)->disable_spawn_in(); 
   }
 
-#endif
-
   template <typename C>
   void operator()(C &rhs) {
    vld(rhs.vld);
    rdy(rhs.rdy);
    dat(rhs.dat);
-#ifndef __SYNTHESIS__
    port_t* p = this;
    (*p)(rhs);
-#endif
   }
 
   template <typename M>
@@ -1490,10 +1464,8 @@ public:
    vld(rhs.vld);
    rdy(rhs.rdy);
    dat(rhs.dat);
-#ifndef __SYNTHESIS__
    port_t* p = this;
    (*p)(rhs);
-#endif
    rhs.non_leaf_port = 1;
   }
  
@@ -1502,6 +1474,66 @@ public:
   sc_in<bool> vld{CONN_SYNTH_NAME(this->basename(), "vld")};
   sc_out<bool> rdy{CONN_SYNTH_NAME(this->basename(), "rdy")};
   sc_in<Message> dat{CONN_SYNTH_NAME(this->basename(), "dat")};
+};
+
+template <typename Message>
+class In <Message, CATAPULT_VIEW>
+{
+public:
+  In(const char* nm = sc_gen_unique_name("In")) {}
+
+#pragma builtin_modulario
+#pragma design modulario < in >
+  Message Pop() {
+    do {
+      rdy.write(true);
+      wait();
+    } while (vld.read() != true);
+    rdy.write(false);
+    return dat.read();
+  }
+
+#pragma builtin_modulario
+#pragma design modulario < in >
+  bool PopNB(Message& m) { 
+   rdy = 1;
+   wait();
+   rdy = 0;
+   m = dat;
+   return vld;
+  }
+
+#pragma builtin_modulario
+#pragma design modulario < peek >
+  bool PeekNB(Message &m) {
+   m = dat;
+   rdy = 0;
+   return vld;
+  }
+
+  void Reset() {
+    rdy = 0;
+  }
+
+  void ResetPop() { Reset(); }
+
+  template <typename C>
+  void operator()(C &rhs) {
+   vld(rhs.vld);
+   rdy(rhs.rdy);
+   dat(rhs.dat);
+  }
+
+  template <typename M>
+  void operator()(In<M> &rhs) {
+   vld(rhs.vld);
+   rdy(rhs.rdy);
+   dat(rhs.dat);
+  }
+ 
+  sc_in<bool> vld;
+  sc_out<bool> rdy;
+  sc_in<Message> dat;
 };
 
 template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
@@ -1517,40 +1549,6 @@ public:
 
   Out(const char* nm = sc_gen_unique_name("Out")) : port_t(nm) {}
 
-#ifdef __SYNTHESIS__
-
-#pragma builtin_modulario
-#pragma design modulario < out >
-  void Push(const Message& m) {
-    do {
-      vld.write(true); 
-      dat.write(m);
-      wait();
-    } while (rdy.read() != true);
-    vld.write(false); 
-  }
-
-#pragma builtin_modulario
-#pragma design modulario < out >
-  bool PushNB(const Message& m) {
-   vld = 1;
-   dat = m;
-   wait();
-   vld = 0;
-   return rdy;
-  }
-
-  void Reset() {
-   vld = 0;
-   dat = Message();
-  }
-
-  void disable_spawn() {}
-
-  void force_disable() {}
-
-#else
-
   void Push(const Message& m) { port_t* p = this; (*p)->Push(m); }
 
   bool PushNB(const Message& m) { port_t* p=this; return (*p)->PushNB(m); }
@@ -1564,6 +1562,8 @@ public:
       port_t* p=this; (*p)->ResetWrite(); 
     }
   }
+
+  void ResetPush() { Reset(); }
 
   bool do_disable{0};
 
@@ -1591,17 +1591,13 @@ public:
     (*p)->disable_spawn_out(); 
   }
 
-#endif
-
   template <typename C>
   void operator()(C &rhs) {
    vld(rhs.vld);
    rdy(rhs.rdy);
    dat(rhs.dat);
-#ifndef __SYNTHESIS__
    sc_port<Out_if<Message>>* p = this;
    (*p)(rhs);
-#endif
   }
 
   template <typename M>
@@ -1609,10 +1605,8 @@ public:
    vld(rhs.vld);
    rdy(rhs.rdy);
    dat(rhs.dat);
-#ifndef __SYNTHESIS__
    port_t* p = this;
    (*p)(rhs);
-#endif
    rhs.non_leaf_port = 1;
   }
  
@@ -1623,6 +1617,59 @@ public:
   sc_out<Message> dat{CONN_SYNTH_NAME(this->basename(), "dat")};
 };
 
+template <typename Message>
+class Out <Message, CATAPULT_VIEW>
+{
+public:
+  Out(const char* nm = sc_gen_unique_name("Out")) {}
+
+#pragma builtin_modulario
+#pragma design modulario < out >
+  void Push(const Message& m) {
+    do {
+      vld.write(true); 
+      dat.write(m);
+      wait();
+    } while (rdy.read() != true);
+    vld.write(false); 
+  }
+
+#pragma builtin_modulario
+#pragma design modulario < out >
+  bool PushNB(const Message& m) {
+   vld = 1;
+   dat = m;
+   wait();
+   vld = 0;
+   return rdy;
+  }
+
+  void Reset() {
+   vld = 0;
+   dat = Message();
+  }
+
+  void ResetPush() { Reset(); }
+
+  template <typename C>
+  void operator()(C &rhs) {
+   vld(rhs.vld);
+   rdy(rhs.rdy);
+   dat(rhs.dat);
+  }
+
+  template <typename M>
+  void operator()(Out<M> &rhs) {
+   vld(rhs.vld);
+   rdy(rhs.rdy);
+   dat(rhs.dat);
+  }
+ 
+  sc_out<bool> vld;
+  sc_in<bool> rdy;
+  sc_out<Message> dat;
+};
+
 
 
 ///////////// TLM_PORT ///////////////////
@@ -1631,7 +1678,7 @@ public:
 #ifndef __SYNTHESIS__
 template <typename Message>
 class Combinational<Message, TLM_PORT>
-  : public chan_base 
+  : public sc_channel 
   , public In_if<Message>
   , public Out_if<Message> 
   , public sc_trace_marker_v2
@@ -1639,11 +1686,11 @@ class Combinational<Message, TLM_PORT>
 public:
 
   Combinational(sc_module_name nm) 
-   : chan_base(nm) 
+   : sc_channel(nm) 
   {
   }
 
-  Combinational() : chan_base(sc_module_name(sc_gen_unique_name("Comb"))) {
+  Combinational() : sc_channel(sc_module_name(sc_gen_unique_name("Comb"))) {
     // This ctor needed for legacy code to compile, but cannot explicitly name vld/dat/rdy
     // else will cause naming warnings at pre-hls sim elaboration time.
   } 
@@ -1663,10 +1710,14 @@ public:
       fifo.get();
   }
 
+  void ResetPush() { ResetWrite(); }
+
   void ResetRead() {
     while (fifo.used() > 0)
       fifo.get();
   }
+
+  void ResetPop() { ResetRead(); }
 
   Message Pop() {
     Message m = fifo.get();
@@ -1746,6 +1797,8 @@ public:
 
   void Reset() { port_t* p=this; (*p)->ResetRead(); }
 
+  void ResetPop() { Reset(); }
+
   void disable_spawn() {}
 
   template <typename C>
@@ -1773,6 +1826,8 @@ public:
   bool PushNB(const Message& m) { port_t* p=this; return (*p)->PushNB(m); }
 
   void Reset() { port_t* p=this; (*p)->ResetWrite(); }
+
+  void ResetPush() { Reset(); }
 
   void disable_spawn() {}
 
@@ -1803,6 +1858,7 @@ public:
   channel_logs_v2() {}
 
   int enable( std::string fname_base = "", bool unbuffered = false ) {
+#ifndef __SYNTHESIS__
     if ( fname_base.empty() ) {
       fname_base = "channel_logs";
     }
@@ -1825,6 +1881,7 @@ public:
       std::cerr << "Cannot open file '" << nm_names.str() << "'" << std::endl;
       return 1;
     }
+#endif
     return 0;
   }
 

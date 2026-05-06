@@ -10,17 +10,17 @@ public:
   sc_clock clk;
   sc_signal<bool> SC_NAMED(rst_bar);
 
-  Connections::Combinational<uint32_t>        SC_NAMED(out1);
-  sc_vector<Connections::Combinational<uint32_t>> sample_in{"sample_in", num_samples};
-  //Connections::Combinational<uint32_t>        sample_in[num_samples];
-  Connections::SyncChannel                    SC_NAMED(sync_chan);
+  msg_lib::msg_chan<uint32_t>        SC_NAMED(out1);
+  sc_vector<msg_lib::msg_chan<uint32_t>> sample_in{"sample_in", num_samples};
+  //msg_lib::msg_chan<uint32_t>        sample_in[num_samples];
+  msg_lib::SyncChannel                    SC_NAMED(sync_chan);
   sc_signal<uint32_t>                         direct_inputs[num_direct_inputs];
 
   SC_HAS_PROCESS(testbench);
   testbench(const sc_module_name& name)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
 
-    Connections::set_sim_clk(&clk);
+    msg_lib::set_sim_clk(&clk);
 
     dut1.clk(clk);
     dut1.rst_bar(rst_bar);

@@ -90,7 +90,10 @@ void hilo_reset_read(C& chan) {
 template <class C>
 sc_uint<16> hilo_pop(C& chan) {
 
+ #pragma fixed_protocol_region
+ {
   chan.rdy = 1;
+  #pragma hls_io_mode fixed
   do {
    wait();
   } while (chan.vld.read() == 0);
@@ -100,6 +103,7 @@ sc_uint<16> hilo_pop(C& chan) {
   wait();
   sc_uint<8> lo_byte = chan.dat.read();
   return ((hi_byte << 8) | lo_byte);
+ }
 }
 
 template <class C>
@@ -111,8 +115,11 @@ void hilo_reset_write(C& chan) {
 template <class C>
 void hilo_push(C& chan, sc_uint<16> v) {
 
+ #pragma fixed_protocol_region
+ {
   chan.vld = 1;
   chan.dat = v >> 8;
+  #pragma hls_io_mode fixed
   do {
    wait();
   } while (chan.rdy.read() == 0);
@@ -120,6 +127,7 @@ void hilo_push(C& chan, sc_uint<16> v) {
 
   chan.dat = v;
   wait();
+ }
 }
 
 ///////////////////

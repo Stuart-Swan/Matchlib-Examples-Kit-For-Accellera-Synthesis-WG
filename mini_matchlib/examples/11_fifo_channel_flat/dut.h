@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "new_connections.h"
+#include <msg_lib.h>
 #include "connections_fifo.h"
 
 
@@ -15,12 +15,12 @@ public:
   typedef sc_uint<32> T;
   static const int N = 8;
 
-  Connections::In <T> SC_NAMED(in1);
-  Connections::Out<T> SC_NAMED(out1);
+  msg_lib::msg_in <T> SC_NAMED(in1);
+  msg_lib::msg_out<T> SC_NAMED(out1);
 
-  Connections::Fifo<T, N> SC_NAMED(fifo1);
-  Connections::Combinational<T> SC_NAMED(fifo1_in1);
-  Connections::Combinational<T> SC_NAMED(fifo1_out1);
+  msg_lib::Fifo<T, N> SC_NAMED(fifo1);
+  msg_lib::msg_chan<T> SC_NAMED(fifo1_in1);
+  msg_lib::msg_chan<T> SC_NAMED(fifo1_out1);
 
   SC_CTOR(dut) {
     fifo1.clk(clk);

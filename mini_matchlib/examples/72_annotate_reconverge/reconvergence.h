@@ -3,7 +3,7 @@
 #ifndef _INCLUDED_RECONVERGENCE_H_
 #define _INCLUDED_RECONVERGENCE_H_
 
-#include "new_connections.h"
+#include <msg_lib.h>
 
 class divergence : public sc_module
 {
@@ -11,9 +11,9 @@ public:
   sc_in<bool>                        SC_NAMED(clk);
   sc_in<bool>                        SC_NAMED(rstn);
 
-  Connections::In <sc_uint<16>> SC_NAMED(din);
-  Connections::Out<sc_uint<16>> SC_NAMED(dout0);
-  Connections::Out<sc_uint<16>> SC_NAMED(dout1);
+  msg_lib::msg_in <sc_uint<16>> SC_NAMED(din);
+  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout0);
+  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout1);
 
   SC_CTOR(divergence) {
     SC_THREAD(run);
@@ -43,8 +43,8 @@ public:
   sc_in<bool>                        SC_NAMED(clk);
   sc_in<bool>                        SC_NAMED(rstn);
 
-  Connections::In <sc_uint<16>> SC_NAMED(din);
-  Connections::Out<sc_uint<16>> SC_NAMED(dout);
+  msg_lib::msg_in <sc_uint<16>> SC_NAMED(din);
+  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout);
 
   SC_CTOR(block0) {
     SC_THREAD(run);
@@ -72,8 +72,8 @@ public:
   sc_in<bool>                        SC_NAMED(clk);
   sc_in<bool>                        SC_NAMED(rstn);
 
-  Connections::In <sc_uint<16>> SC_NAMED(din);
-  Connections::Out<sc_uint<16>> SC_NAMED(dout);
+  msg_lib::msg_in <sc_uint<16>> SC_NAMED(din);
+  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout);
 
   SC_CTOR(block1) {
     SC_THREAD(run);
@@ -101,9 +101,9 @@ public:
   sc_in<bool>                        SC_NAMED(clk);
   sc_in<bool>                        SC_NAMED(rstn);
 
-  Connections::In <sc_uint<16>> SC_NAMED(din0);
-  Connections::In<sc_uint<16>>  SC_NAMED(din1);
-  Connections::Out<sc_uint<16>> SC_NAMED(dout);
+  msg_lib::msg_in <sc_uint<16>> SC_NAMED(din0);
+  msg_lib::msg_in<sc_uint<16>>  SC_NAMED(din1);
+  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout);
 
   SC_CTOR(reconvergence) {
     SC_THREAD(run);
@@ -133,8 +133,8 @@ class top : public sc_module
 public:
   sc_in<bool>                        SC_NAMED(clk);
   sc_in<bool>                        SC_NAMED(rstn);
-  Connections::In <sc_uint<16>> SC_NAMED(din);
-  Connections::Out<sc_uint<16>> SC_NAMED(dout);
+  msg_lib::msg_in <sc_uint<16>> SC_NAMED(din);
+  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout);
 
   SC_CTOR(top) {
 
@@ -166,10 +166,10 @@ private: // Instances and interconnect
   block0                                       SC_NAMED(block0_inst);
   block1                                       SC_NAMED(block1_inst);
   reconvergence                                SC_NAMED(reconvergence_inst);
-  Connections::Combinational<sc_uint<16>> SC_NAMED(dout0);
-  Connections::Combinational<sc_uint<16>> SC_NAMED(dout1);
-  Connections::Combinational<sc_uint<16>> SC_NAMED(bout0);
-  Connections::Combinational<sc_uint<16>> SC_NAMED(bout1);
+  msg_lib::msg_chan<sc_uint<16>> SC_NAMED(dout0);
+  msg_lib::msg_chan<sc_uint<16>> SC_NAMED(dout1);
+  msg_lib::msg_chan<sc_uint<16>> SC_NAMED(bout0);
+  msg_lib::msg_chan<sc_uint<16>> SC_NAMED(bout1);
 };
 #endif
 

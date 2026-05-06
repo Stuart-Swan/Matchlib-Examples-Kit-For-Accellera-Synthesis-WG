@@ -1,6 +1,6 @@
 
 #pragma once
-#include "new_connections.h"
+#include <msg_lib.h>
 
 #pragma hls_design top
 class dut : public sc_module
@@ -9,8 +9,8 @@ public:
   sc_in<bool> SC_NAMED(clk5);
   sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::Out<uint32_t> SC_NAMED(out1);
-  Connections::In <uint32_t> SC_NAMED(in1);
+  msg_lib::msg_out<uint32_t> SC_NAMED(out1);
+  msg_lib::msg_in <uint32_t> SC_NAMED(in1);
 
   SC_CTOR(dut) {
     SC_THREAD(main);

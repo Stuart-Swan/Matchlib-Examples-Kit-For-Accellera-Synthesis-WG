@@ -1,0 +1,3 @@
+sim_*
+*log
+*.output.json

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "../include/new_connections.h"
+#include <msg_lib.h>
 
 static const int num_direct_inputs = 8;
 static const int num_samples = 3;
@@ -13,9 +13,9 @@ public:
   sc_in<bool>               SC_NAMED(clk);
   sc_in<bool>               SC_NAMED(rst_bar);
 
-  Connections::Out<uint32_t>  SC_NAMED(out1);
-  Connections::In <uint32_t>  sample_in[num_samples];
-  Connections::SyncIn       SC_NAMED(sync_in);
+  msg_lib::msg_out<uint32_t>  SC_NAMED(out1);
+  msg_lib::msg_in <uint32_t>  sample_in[num_samples];
+  msg_lib::SyncIn       SC_NAMED(sync_in);
 
   #pragma hls_direct_input
   sc_in<uint32_t> direct_inputs[num_direct_inputs];

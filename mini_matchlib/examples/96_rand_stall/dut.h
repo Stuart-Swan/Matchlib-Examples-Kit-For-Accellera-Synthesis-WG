@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include <new_connections.h>
+#include <msg_lib.h>
 
 class dut : public sc_module
 {
@@ -9,11 +9,11 @@ public:
   sc_in<bool> SC_NAMED(clk);
   sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In <sc_uint<32>> SC_NAMED(in1);
-  Connections::In <sc_uint<32>> SC_NAMED(in2);
-  Connections::In <sc_uint<32>> SC_NAMED(in3);
-  Connections::Out<sc_uint<32>> SC_NAMED(out1);
-  Connections::Out<sc_uint<32>> SC_NAMED(out2);
+  msg_lib::msg_in <sc_uint<32>> SC_NAMED(in1);
+  msg_lib::msg_in <sc_uint<32>> SC_NAMED(in2);
+  msg_lib::msg_in <sc_uint<32>> SC_NAMED(in3);
+  msg_lib::msg_out<sc_uint<32>> SC_NAMED(out1);
+  msg_lib::msg_out<sc_uint<32>> SC_NAMED(out2);
 
   SC_CTOR(dut) {
     SC_THREAD(main);

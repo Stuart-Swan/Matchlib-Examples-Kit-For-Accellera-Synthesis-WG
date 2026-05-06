@@ -11,8 +11,8 @@ public:
   sc_clock clk5;
   sc_signal<bool> SC_NAMED(rst_bar);
 
-  Connections::Combinational<uint32_t>        SC_NAMED(out1);
-  Connections::Combinational<uint32_t>        SC_NAMED(in1);
+  msg_lib::msg_chan<uint32_t>        SC_NAMED(out1);
+  msg_lib::msg_chan<uint32_t>        SC_NAMED(in1);
 
 
   SC_CTOR(Top) : 

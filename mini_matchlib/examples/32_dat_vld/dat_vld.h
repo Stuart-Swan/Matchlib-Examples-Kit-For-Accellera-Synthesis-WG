@@ -2,7 +2,7 @@
 #pragma once
 
 
-#include "new_connections.h"
+#include <msg_lib.h>
 
 #ifdef __SYNTHESIS__
 #define SYNTH_NAME(prefix, nm) ""
@@ -58,7 +58,7 @@ template <class T>
 class dat_vld_out_xactor : public sc_module
 {
 public:
-  Connections::In <T> SC_NAMED(in1);
+  msg_lib::msg_in <T> SC_NAMED(in1);
 
   dat_vld_out<T> SC_NAMED(out1);
 
@@ -89,7 +89,7 @@ template <class T>
 class dat_vld_in_xactor : public sc_module
 {
 public:
-  Connections::Out<T> SC_NAMED(out1);
+  msg_lib::msg_out<T> SC_NAMED(out1);
   dat_vld_in<T> SC_NAMED(in1);
 
   SC_CTOR(dat_vld_in_xactor) {
@@ -145,7 +145,7 @@ struct dat_vld_in_xact {
   T Pop() { return chan.Pop(); }
 
   dat_vld_in_xactor<T> xactor1;
-  Connections::Combinational<T> chan;
+  msg_lib::msg_chan<T> chan;
 };
 
 template <class T>
@@ -169,6 +169,6 @@ struct dat_vld_out_xact {
   void Push(const T& v) { chan.Push(v); }
 
   dat_vld_out_xactor<T> xactor1;
-  Connections::Combinational<T> chan;
+  msg_lib::msg_chan<T> chan;
 };
 

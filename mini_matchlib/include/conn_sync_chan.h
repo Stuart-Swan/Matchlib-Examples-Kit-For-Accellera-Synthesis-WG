@@ -5,6 +5,16 @@
 
 namespace Connections {
 
+#ifndef __SYNTHESIS__
+struct chan_base : public sc_channel {
+  chan_base(sc_module_name nm) : sc_channel(nm) {}
+};
+#else
+struct chan_base {
+  chan_base(sc_module_name nm) {}
+};
+#endif
+
 class SyncChannel : public chan_base {
 public:
   SyncChannel(sc_module_name nm) : chan_base(nm) {}

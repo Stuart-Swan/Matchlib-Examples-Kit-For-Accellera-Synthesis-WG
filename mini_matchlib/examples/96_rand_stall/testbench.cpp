@@ -12,16 +12,16 @@ public:
   sc_clock clk;
   sc_signal<bool> SC_NAMED(rst_bar);
 
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(in1);
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(in2);
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(in3);
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(out1);
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(out2);
+  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(in1);
+  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(in2);
+  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(in3);
+  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(out1);
+  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(out2);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
 
-    Connections::set_sim_clk(&clk);
+    msg_lib::set_sim_clk(&clk);
 
     dut1.clk(clk);
     dut1.rst_bar(rst_bar);
@@ -99,7 +99,7 @@ int sc_main(int argc, char **argv)
   logs.enable("chan_log");
   logs.log_hierarchy(*top);
 
-  Connections::rand_stall rs;
+  msg_lib::rand_stall rs;
   rs.set(*top, 1);
 
   sc_start();

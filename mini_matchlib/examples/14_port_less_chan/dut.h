@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "../include/new_connections.h"
+#include <msg_lib.h>
 
 
 #pragma hls_design top
@@ -11,10 +11,10 @@ public:
   sc_in<bool> SC_NAMED(clk);
   sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In <uint32_t> SC_NAMED(in1);
-  Connections::Out<uint32_t> SC_NAMED(out1);
+  msg_lib::msg_in <uint32_t> SC_NAMED(in1);
+  msg_lib::msg_out<uint32_t> SC_NAMED(out1);
 
-  Connections::Combinational<uint32_t> SC_NAMED(chan1);
+  msg_lib::msg_chan<uint32_t> SC_NAMED(chan1);
 
   SC_CTOR(dut) {
     SC_THREAD(main1);

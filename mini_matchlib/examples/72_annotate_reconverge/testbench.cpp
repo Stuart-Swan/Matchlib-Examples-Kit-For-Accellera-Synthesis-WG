@@ -15,8 +15,8 @@ public:
   sc_clock clk;
   sc_signal<bool> SC_NAMED(rstn);
 
-  Connections::Combinational<sc_uint<16>>        SC_NAMED(din);
-  Connections::Combinational<sc_uint<16>>        SC_NAMED(dout);
+  msg_lib::msg_chan<sc_uint<16>>        SC_NAMED(din);
+  msg_lib::msg_chan<sc_uint<16>>        SC_NAMED(dout);
 
   SC_CTOR(Testbench)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
@@ -87,7 +87,7 @@ int sc_main(int argc, char **argv)
   logs.enable("chan_log",true);
   logs.log_hierarchy(*testbench);
 
-  Connections::annotate annot;
+  msg_lib::annotate annot;
   annot.output_file(*testbench, "testbench.output.json");
   annot.input_file(*testbench, "testbench.input.json", 1);
 

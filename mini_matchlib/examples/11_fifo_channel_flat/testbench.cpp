@@ -10,8 +10,8 @@ public:
   sc_clock clk;
   sc_signal<bool> SC_NAMED(rst_bar);
 
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(out1);
-  Connections::Combinational<sc_uint<32>>        SC_NAMED(in1);
+  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(out1);
+  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(in1);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {

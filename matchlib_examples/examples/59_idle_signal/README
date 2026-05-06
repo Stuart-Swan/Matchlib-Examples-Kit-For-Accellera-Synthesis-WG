@@ -1,4 +1,7 @@
 
+
+See ./manual_clock_gating.pdf
+
 This example shows how to generate an "idle" signal for a model in HLS that uses SystemC and Matchlib.
 
 The example shows two ways to generate the idle signal:

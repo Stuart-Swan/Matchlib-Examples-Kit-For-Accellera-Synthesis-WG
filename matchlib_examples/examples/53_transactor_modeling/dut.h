@@ -6,7 +6,7 @@
 
 #include "hilo.h"
 
-#define USE_THREAD 1
+//#define USE_THREAD 1
 //#define USE_MIO 1
 //#define REORDER_STIM 1
 
@@ -56,8 +56,8 @@ private:
 
 // simple function based transactors cannot be pipelined, but USE_MIO and USE_THREAD can be
 
-#pragma hls_pipeline_init_interval 1
-#pragma pipeline_stall_mode flush
+//#pragma hls_pipeline_init_interval 1
+//#pragma pipeline_stall_mode flush
     while (1) {
 #ifdef USE_THREAD
       auto i1 = in1_xact.chan.Pop();

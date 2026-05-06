@@ -18,7 +18,7 @@ public:
   SC_CTOR(Top)
     :   clk ("clk",  1, SC_NS, 0.5,0,SC_NS,true) 
   {
-    Connections::set_sim_clk(&clk);
+    msg_lib::set_sim_clk(&clk);
 
     dut1.clk(clk);
     dut1.rst_bar(rst_bar);

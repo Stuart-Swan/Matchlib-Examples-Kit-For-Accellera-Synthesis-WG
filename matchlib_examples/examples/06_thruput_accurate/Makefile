@@ -1,4 +1,4 @@
-# Makefile for example 06_thruput_accurate
+# Makefile for example 05_push_pop
 
 CXXFLAGS += -g -std=c++11 -Wall -Wno-unknown-pragmas -Wno-unused-variable -Wno-unused-label
 
@@ -117,7 +117,7 @@ PWD := $(shell pwd)
 SOURCE_DIR1 = $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
 SOURCE_DIR = $(if $(subst ./,,$(SOURCE_DIR1)),$(SOURCE_DIR1),$(PWD)/)
 
-INCDIRS := -I$(SOURCE_DIR)
+INCDIRS := -I$(SOURCE_DIR) -I$(SOURCE_DIR)/../../include
 INCDIRS += -I$(SYSTEMC_HOME)/include -I$(SYSTEMC_HOME)/src
 INCDIRS += -I$(CONNECTIONS_HOME)/include
 INCDIRS += -I$(MATCHLIB_HOME)/cmod/include
@@ -127,7 +127,6 @@ INCDIRS += -I$(AC_TYPES)/include
 INCDIRS += -I$(AC_SIMUTILS)/include
 
 CPPFLAGS += $(INCDIRS)
-CPPFLAGS += -DSC_INCLUDE_DYNAMIC_PROCESSES 
 
 LIBS += -lsystemc -lpthread
 
@@ -179,7 +178,7 @@ help: checkvars
 	-@echo ""
 
 clean: sim_clean
-	@rm -rf *.vcd *.wlf *atapult* chan_log*
+	@rm -rf *.vcd *.wlf *atapul* chan_log*
 
 
 

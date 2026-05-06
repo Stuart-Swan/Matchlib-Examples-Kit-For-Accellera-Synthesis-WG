@@ -1,15 +1,15 @@
 
 #pragma once
 
-#include "../include/new_connections.h"
+#include <msg_lib.h>
 
 SC_MODULE(dut)
 {
   sc_in<bool> SC_NAMED(clk);
   sc_in<bool> SC_NAMED(rst_bar);
 
-  Connections::In<sc_uint<16> >  SC_NAMED(in1);
-  Connections::Out<sc_uint<16> > SC_NAMED(out1);
+  msg_lib::msg_in<sc_uint<16> >  SC_NAMED(in1);
+  msg_lib::msg_out<sc_uint<16> > SC_NAMED(out1);
 
   SC_CTOR(dut) {
     SC_THREAD(thread1);
@@ -54,6 +54,6 @@ SC_MODULE(dut)
   }
 
   private:
-  Connections::SyncChannel SC_NAMED(sync1); // memory synchronization between threads
+  msg_lib::SyncChannel SC_NAMED(sync1); // memory synchronization between threads
   sc_uint<16> mem[128];
 };
