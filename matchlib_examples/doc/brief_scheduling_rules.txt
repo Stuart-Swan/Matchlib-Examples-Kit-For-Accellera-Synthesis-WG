@@ -1,6 +1,6 @@
 
 Brief Scheduling Rules Proposal
-Stuart Swan, Siemens EDA
+Stuart Swan, Platform Architect, Siemens EDA
 11 May 2026
 
 IO Operations Involved in Scheduling Rules
@@ -32,16 +32,25 @@ These rules are specified at the per-process level, but are proven to also hold 
 E1 (Synchronization-order preservation).
 For every process P and synchronization calls s1,s2 ∈ S_P within P:
 s1 <_src s2 ⇒ clk_post(s1) < clk_post(s2)
+
 E2 (Signal-visibility preservation).
 ∀ r ∈ R : clk_post(r) = clk_post(pred_S(r))
 ∀ w ∈ W : clk_post(w) = clk_post(succ_S(w))
+
 E3 (Safe message issue ordering).
-For every pair m1,m2 ∈ M on distinct channels within a single process,
-m1 <_src m2 ⇒ issue_post(m1) ≤ issue_post(m2).
+For every pair of message operations m1,m2 ∈ M within a single process:
+(i) Same-interface source order: if m1 and m2 access the same message-passing interface 
+and m1 <_src m2, then issue_post(m1) ≤ issue_post(m2).
+(ii) Distinct-interface no-reverse: if m1 and m2 access distinct message-passing interfaces
+and m1 <_src m2, then issue_post(m1) ≤ issue_post(m2).
+Thus message operations may be issued in source order or in parallel where allowed,
+but they shall not be issued in reverse source order.  
+
 E4 (Per-channel FIFO / rendezvous semantics).
 For every abstract channel c, Push_c and Pop_c actions in τ_post obey the agreed channel semantics:
 messages are not dropped, duplicated, or reordered, and transfers occur only when
 permitted by the channel’s bounded-FIFO or rendezvous capacity / enablement behavior.
+
 E5 (Messages cannot cross syncs).
 For every message m and synchronization call s, 
 ∀ m ∈ pref_S(s) : issue_post(m) ≤ clk_post(s)
