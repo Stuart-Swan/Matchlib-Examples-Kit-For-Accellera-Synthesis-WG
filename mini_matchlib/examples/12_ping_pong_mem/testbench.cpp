@@ -11,8 +11,8 @@ public:
   sc_signal<bool> SC_NAMED(rst_bar);
   typedef sc_uint<16> T;
 
-  msg_lib::msg_chan<T>        SC_NAMED(out1);
-  msg_lib::msg_chan<T>        SC_NAMED(in1);
+  msg_channel<T>        SC_NAMED(out1);
+  msg_channel<T>        SC_NAMED(in1);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
@@ -35,11 +35,11 @@ public:
 
   void stim() {
     std::cout << "Stimulus started\n";
-    in1.ResetWrite();
+    in1.reset_push();
     wait();
 
     for (int i = 0; i < 40; i++) {
-      in1.Push(i);
+      in1.push(i);
     }
 
     sc_stop();
@@ -47,11 +47,11 @@ public:
   }
 
   void resp() {
-    out1.ResetRead();
+    out1.reset_pop();
     wait();
 
     while (1) {
-      auto t = out1.Pop();
+      auto t = out1.pop();
       std::cout << "TB resp sees: " << sc_time_stamp() << " " << std::hex << t << "\n";
     }
   }

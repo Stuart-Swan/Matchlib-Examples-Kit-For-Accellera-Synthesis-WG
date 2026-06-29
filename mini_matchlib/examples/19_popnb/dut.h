@@ -2,7 +2,9 @@
 
 #pragma once
 
-#include <msg_lib.h>
+#include <systemc-hls>
+using namespace sc_hls;
+using namespace sc_hls::msg_lib;
 
 #pragma hls_design top
 class dut : public sc_module
@@ -11,10 +13,10 @@ public:
   sc_in<bool> SC_NAMED(clk);
   sc_in<bool> SC_NAMED(rst_bar);
 
-  msg_lib::msg_in <sc_uint<32>> SC_NAMED(in1);
-  msg_lib::msg_in <sc_uint<32>> SC_NAMED(in2);
-  msg_lib::msg_out<sc_uint<32>> SC_NAMED(out1);
-  msg_lib::msg_out<sc_uint<32>> SC_NAMED(out2);
+  msg_in <sc_uint<32>> SC_NAMED(in1);
+  msg_in <sc_uint<32>> SC_NAMED(in2);
+  msg_out<sc_uint<32>> SC_NAMED(out1);
+  msg_out<sc_uint<32>> SC_NAMED(out2);
 
   SC_CTOR(dut) {
     SC_THREAD(main);
@@ -25,10 +27,10 @@ public:
 private:
 
   void main() {
-    in1.Reset();
-    in2.Reset();
-    out1.Reset();
-    out2.Reset();
+    in1.reset_pop();
+    in2.reset_pop();
+    out1.reset_push();
+    out2.reset_push();
     wait();                                 // WAIT
 #pragma hls_pipeline_init_interval 1
 #pragma pipeline_stall_mode flush
@@ -37,12 +39,12 @@ private:
       sc_uint<32> i2;
       bool b1, b2;
 
-      b1 = in1.PopNB(i1);
-      b2 = in2.PopNB(i2);
+      b1 = in1.pop_nb(i1);
+      b2 = in2.pop_nb(i2);
       if (b1)
-        out1.Push(i1);
+        out1.push(i1);
       if (b2)
-        out2.Push(i2);
+        out2.push(i2);
 
       wait();
     }

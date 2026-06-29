@@ -23,8 +23,8 @@ public:
 private:
 
   void main() {
-    out1.chan.ResetWrite();
-    in1.chan.ResetRead();
+    out1.chan.reset_push();
+    in1.chan.reset_pop();
     wait();
 // NOTE: stall_mode must be stall for this example. If it is flush then FSM may apply backpressure,
 // which would cause the protocol adaptor to operate incorrectly
@@ -32,11 +32,11 @@ private:
 #pragma hls_pipeline_init_interval 2
 #pragma pipeline_stall_mode stall
     while (1) {
-      unsigned x = in1.Pop();
+      unsigned x = in1.pop();
       unsigned y = 0;
       y += 3 * x;
       y += 7 * x * x;
-      out1.Push(y);
+      out1.push(y);
     }
   }
 };

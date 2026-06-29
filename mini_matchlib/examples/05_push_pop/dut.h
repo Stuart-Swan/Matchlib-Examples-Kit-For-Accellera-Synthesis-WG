@@ -1,7 +1,9 @@
 
 #pragma once
 
-#include <msg_lib.h>
+#include <systemc-hls>
+using namespace sc_hls;
+using namespace sc_hls::msg_lib;
 
 #pragma hls_design top
 class dut : public sc_module
@@ -10,8 +12,8 @@ public:
   sc_in<bool> SC_NAMED(clk);
   sc_in<bool> SC_NAMED(rst_bar);
 
-  msg_lib::msg_out<unsigned> SC_NAMED(out1);
-  msg_lib::msg_in <unsigned> SC_NAMED(in1);
+  msg_out<unsigned> SC_NAMED(out1);
+  msg_in <unsigned> SC_NAMED(in1);
 
   SC_CTOR(dut) {
     SC_THREAD(main);
@@ -22,14 +24,14 @@ public:
 private:
 
   void main() {
-    out1.Reset();
-    in1.Reset();
-    wait();                                 // WAIT
+    out1.reset_push();
+    in1.reset_pop();
+    wait();
 #pragma hls_pipeline_init_interval 1
 #pragma pipeline_stall_mode flush
     while (1) {
-      unsigned t = in1.Pop();
-      out1.Push(t + 0x100);
+      unsigned t = in1.pop();
+      out1.push(t + 0x100);
     }
   }
 };

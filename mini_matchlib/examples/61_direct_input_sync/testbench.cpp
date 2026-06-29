@@ -10,22 +10,20 @@ public:
   sc_clock clk;
   sc_signal<bool> SC_NAMED(rst_bar);
 
-  msg_lib::msg_chan<uint32_t>        SC_NAMED(out1);
-  sc_vector<msg_lib::msg_chan<uint32_t>> sample_in{"sample_in", num_samples};
+  msg_channel<uint32_t>        SC_NAMED(out1);
+  sc_vector<msg_channel<uint32_t>> sample_in{"sample_in", num_samples};
   //msg_lib::msg_chan<uint32_t>        sample_in[num_samples];
-  msg_lib::SyncChannel                    SC_NAMED(sync_chan);
+  sync_channel<> SC_NAMED(sync_chan);
   sc_signal<uint32_t>                         direct_inputs[num_direct_inputs];
 
   SC_HAS_PROCESS(testbench);
   testbench(const sc_module_name& name)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
 
-    msg_lib::set_sim_clk(&clk);
-
     dut1.clk(clk);
     dut1.rst_bar(rst_bar);
     dut1.out1(out1);
-    dut1.sync_in(sync_chan);
+    dut1.sync_in1(sync_chan);
 
     for (int i=0; i < num_samples; i++) {
       dut1.sample_in[i](sample_in[i]);
@@ -48,10 +46,10 @@ public:
 
   void stim() {
     std::cout << "Stimulus started\n";
-    sync_chan.ResetWrite();
+    sync_chan.reset_push();
 
     for (int i=0; i < num_samples; i++) {
-      sample_in[i].ResetWrite();
+      sample_in[i].reset_push();
     }
 
     for (int y=0; y < num_direct_inputs; y++) {
@@ -89,7 +87,7 @@ public:
       for (uint32_t x=0; x < direct_inputs[0]; x++) {
         for (uint32_t y=0; y < direct_inputs[1]; y++) {
           for (uint32_t s=0; s < num_samples; s++) {
-            sample_in[s].Push((x*y) + i + s);
+            sample_in[s].push((x*y) + i + s);
           }
         }
       }
@@ -101,11 +99,11 @@ public:
   }
 
   void resp() {
-    out1.ResetRead();
+    out1.reset_pop();
     wait();
 
     while (1) {
-      uint32_t t = out1.Pop();
+      uint32_t t = out1.pop();
       std::cout << "TB resp sees: " << std::hex << t  << "\n";
     }
   }

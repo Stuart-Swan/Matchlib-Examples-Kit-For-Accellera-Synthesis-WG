@@ -11,8 +11,8 @@ public:
   sc_clock clk5;
   sc_signal<bool> SC_NAMED(rst_bar);
 
-  msg_lib::msg_chan<uint32_t>        SC_NAMED(out1);
-  msg_lib::msg_chan<uint32_t>        SC_NAMED(in1);
+  msg_channel<uint32_t>        SC_NAMED(out1);
+  msg_channel<uint32_t>        SC_NAMED(in1);
 
 
   SC_CTOR(Top) : 
@@ -37,23 +37,23 @@ public:
 
   void stim() {
     std::cout << sc_time_stamp() << " Stimulus started\n";
-    in1.ResetWrite();
+    in1.reset_push();
     wait();
 
-    for (int i = 0; i < 10; i++) { in1.Push(i); }
+    for (int i = 0; i < 10; i++) { in1.push(i); }
 
     sc_stop();
     wait();
   }
 
   void resp() {
-    out1.ResetRead();
+    out1.reset_pop();
     wait();
 
     // wait(233, SC_PS); // enable this to test checking that Push/Pop are done on clock edges
 
     while (1) { 
-     auto v = out1.Pop();
+     auto v = out1.pop();
      std::cout << sc_time_stamp() << " TB resp sees: " << std::hex << v << "\n";
     }
   }

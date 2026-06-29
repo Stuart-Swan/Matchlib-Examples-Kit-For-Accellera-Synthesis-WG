@@ -1,0 +1,77 @@
+
+#pragma once
+
+#include "new_connections.h"
+
+namespace sc_hls {
+
+// proposed new Accellera SWG naming scheme:
+namespace msg_lib = Connections;
+
+}
+
+namespace Connections {
+  template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
+  struct msg_channel : public Combinational<Message, port_marshall_type> {
+    msg_channel(const char* nm) : Combinational<Message, port_marshall_type>(nm) {}
+    Message pop() { return this->Pop(); }
+    bool pop_nb(Message &m) { return this->PopNB(m); }
+    void reset_pop() { this->ResetRead(); }
+    void push(Message m) { this->Push(m); }
+    bool push_nb(Message m) { return this->PushNB(m); }
+    void reset_push() { this->ResetWrite(); }
+  };
+
+  template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
+  struct msg_in : public In<Message, port_marshall_type> {
+    msg_in(const char* nm="") : In<Message, port_marshall_type>(nm) {}
+    Message pop() { return this->Pop(); }
+    bool pop_nb(Message &m) { return this->PopNB(m); }
+    void reset_pop() { this->Reset(); }
+    void enable_port_access() { this->disable_spawn(); }
+  };
+
+  template <typename Message, connections_port_t port_marshall_type = AUTO_PORT>
+  struct msg_out : public Out<Message, port_marshall_type> {
+    msg_out(const char* nm="") : Out<Message, port_marshall_type>(nm) {}
+    void push(Message m) { this->Push(m); }
+    bool push_nb(Message m) { return this->PushNB(m); }
+    void reset_push() { this->Reset(); }
+    void enable_port_access() { this->disable_spawn(); }
+  };
+
+  template <connections_port_t port_marshall_type = AUTO_PORT>
+  struct sync_channel : public SyncChannel {
+    sync_channel(const char* nm) : SyncChannel(nm) {}
+
+    template <typename ...T>
+    void sync_read(T &...t) { this->sync_in(); }
+
+    template <typename ...T>
+    void sync_write(T &...t) { this->sync_out(); }
+
+    void reset_push() { this->ResetWrite(); }
+    void reset_pop() { this->ResetRead(); }
+  };
+
+  template <connections_port_t port_marshall_type = AUTO_PORT>
+  struct sync_in : public SyncIn {
+    sync_in(const char* nm) : SyncIn(nm) {}
+
+    template <typename ...T>
+    void sync(T &...t) { this->SyncIn::sync_in(); }
+
+    void reset_pop() { this->Reset(); }
+  };
+
+  template <connections_port_t port_marshall_type = AUTO_PORT>
+  struct sync_out : public SyncOut {
+    sync_out(const char* nm) : SyncOut(nm) {}
+
+    template <typename ...T>
+    void sync(T &...t) { this->SyncOut::sync_out(); }
+
+    void reset_push() { this->Reset(); }
+  };
+
+}

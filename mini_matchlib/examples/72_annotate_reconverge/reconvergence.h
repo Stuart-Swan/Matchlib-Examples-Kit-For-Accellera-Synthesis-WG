@@ -3,7 +3,9 @@
 #ifndef _INCLUDED_RECONVERGENCE_H_
 #define _INCLUDED_RECONVERGENCE_H_
 
-#include <msg_lib.h>
+#include <systemc-hls>
+using namespace sc_hls;
+using namespace sc_hls::msg_lib;
 
 class divergence : public sc_module
 {
@@ -11,9 +13,9 @@ public:
   sc_in<bool>                        SC_NAMED(clk);
   sc_in<bool>                        SC_NAMED(rstn);
 
-  msg_lib::msg_in <sc_uint<16>> SC_NAMED(din);
-  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout0);
-  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout1);
+  msg_in <sc_uint<16>> SC_NAMED(din);
+  msg_out<sc_uint<16>> SC_NAMED(dout0);
+  msg_out<sc_uint<16>> SC_NAMED(dout1);
 
   SC_CTOR(divergence) {
     SC_THREAD(run);
@@ -23,16 +25,16 @@ public:
 
 private:
   void run() {
-    din.Reset();
-    dout0.Reset();
-    dout1.Reset();
+    din.reset_pop();
+    dout0.reset_push();
+    dout1.reset_push();
     wait();
     #pragma hls_pipeline_init_interval 1
     #pragma pipeline_stall_mode flush
     while (1) {
-      sc_uint<16> tmp = din.Pop();
-      dout0.Push(tmp);
-      dout1.Push(tmp);
+      sc_uint<16> tmp = din.pop();
+      dout0.push(tmp);
+      dout1.push(tmp);
     }
   }
 };
@@ -43,8 +45,8 @@ public:
   sc_in<bool>                        SC_NAMED(clk);
   sc_in<bool>                        SC_NAMED(rstn);
 
-  msg_lib::msg_in <sc_uint<16>> SC_NAMED(din);
-  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout);
+  msg_in <sc_uint<16>> SC_NAMED(din);
+  msg_out<sc_uint<16>> SC_NAMED(dout);
 
   SC_CTOR(block0) {
     SC_THREAD(run);
@@ -54,14 +56,14 @@ public:
 
 private:
   void run() {
-    din.Reset();
-    dout.Reset();
+    din.reset_pop();
+    dout.reset_push();
     wait();
     #pragma hls_pipeline_init_interval 1
     #pragma pipeline_stall_mode flush
     while (1) {
-      sc_uint<16> tmp = din.Pop();
-      dout.Push(tmp);
+      sc_uint<16> tmp = din.pop();
+      dout.push(tmp);
     }
   }
 };
@@ -72,8 +74,8 @@ public:
   sc_in<bool>                        SC_NAMED(clk);
   sc_in<bool>                        SC_NAMED(rstn);
 
-  msg_lib::msg_in <sc_uint<16>> SC_NAMED(din);
-  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout);
+  msg_in <sc_uint<16>> SC_NAMED(din);
+  msg_out<sc_uint<16>> SC_NAMED(dout);
 
   SC_CTOR(block1) {
     SC_THREAD(run);
@@ -83,14 +85,14 @@ public:
 
 private:
   void run() {
-    din.Reset();
-    dout.Reset();
+    din.reset_pop();
+    dout.reset_push();
     wait();
     #pragma hls_pipeline_init_interval 1
     #pragma pipeline_stall_mode flush
     while (1) {
-      sc_uint<16> tmp = din.Pop();
-      dout.Push(tmp);
+      sc_uint<16> tmp = din.pop();
+      dout.push(tmp);
     }
   }
 };
@@ -101,9 +103,9 @@ public:
   sc_in<bool>                        SC_NAMED(clk);
   sc_in<bool>                        SC_NAMED(rstn);
 
-  msg_lib::msg_in <sc_uint<16>> SC_NAMED(din0);
-  msg_lib::msg_in<sc_uint<16>>  SC_NAMED(din1);
-  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout);
+  msg_in <sc_uint<16>> SC_NAMED(din0);
+  msg_in<sc_uint<16>>  SC_NAMED(din1);
+  msg_out<sc_uint<16>> SC_NAMED(dout);
 
   SC_CTOR(reconvergence) {
     SC_THREAD(run);
@@ -113,16 +115,16 @@ public:
 
 private:
   void run() {
-    din0.Reset();
-    din1.Reset();
-    dout.Reset();
+    din0.reset_pop();
+    din1.reset_pop();
+    dout.reset_push();
     wait();
     #pragma hls_pipeline_init_interval 1
     #pragma pipeline_stall_mode flush
     while (1) {
-      sc_uint<16> tmp0 = din0.Pop();
-      sc_uint<16> tmp1 = din1.Pop();
-      dout.Push(tmp0 + tmp1);
+      sc_uint<16> tmp0 = din0.pop();
+      sc_uint<16> tmp1 = din1.pop();
+      dout.push(tmp0 + tmp1);
     }
   }
 };
@@ -133,8 +135,8 @@ class top : public sc_module
 public:
   sc_in<bool>                        SC_NAMED(clk);
   sc_in<bool>                        SC_NAMED(rstn);
-  msg_lib::msg_in <sc_uint<16>> SC_NAMED(din);
-  msg_lib::msg_out<sc_uint<16>> SC_NAMED(dout);
+  msg_in <sc_uint<16>> SC_NAMED(din);
+  msg_out<sc_uint<16>> SC_NAMED(dout);
 
   SC_CTOR(top) {
 
@@ -166,10 +168,10 @@ private: // Instances and interconnect
   block0                                       SC_NAMED(block0_inst);
   block1                                       SC_NAMED(block1_inst);
   reconvergence                                SC_NAMED(reconvergence_inst);
-  msg_lib::msg_chan<sc_uint<16>> SC_NAMED(dout0);
-  msg_lib::msg_chan<sc_uint<16>> SC_NAMED(dout1);
-  msg_lib::msg_chan<sc_uint<16>> SC_NAMED(bout0);
-  msg_lib::msg_chan<sc_uint<16>> SC_NAMED(bout1);
+  msg_channel<sc_uint<16>> SC_NAMED(dout0);
+  msg_channel<sc_uint<16>> SC_NAMED(dout1);
+  msg_channel<sc_uint<16>> SC_NAMED(bout0);
+  msg_channel<sc_uint<16>> SC_NAMED(bout1);
 };
 #endif
 

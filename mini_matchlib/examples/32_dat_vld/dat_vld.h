@@ -2,7 +2,9 @@
 #pragma once
 
 
-#include <msg_lib.h>
+#include <systemc-hls>
+using namespace sc_hls;
+using namespace sc_hls::msg_lib;
 
 #ifdef __SYNTHESIS__
 #define SYNTH_NAME(prefix, nm) ""
@@ -71,7 +73,7 @@ public:
     sensitive << in1.dat << in1.vld;
 
 #ifndef __SYNTHESIS__
-    in1.disable_spawn();
+    in1.enable_port_access();
 #endif
   }
 
@@ -89,7 +91,7 @@ template <class T>
 class dat_vld_in_xactor : public sc_module
 {
 public:
-  msg_lib::msg_out<T> SC_NAMED(out1);
+  msg_out<T> SC_NAMED(out1);
   dat_vld_in<T> SC_NAMED(in1);
 
   SC_CTOR(dat_vld_in_xactor) {
@@ -101,7 +103,7 @@ public:
     sensitive << in1.vld << in1.dat;
 
 #ifndef __SYNTHESIS__
-    out1.disable_spawn();
+    out1.enable_port_access();
 #endif
   }
 
@@ -143,9 +145,10 @@ struct dat_vld_in_xact {
   sc_in<T> dat;
 
   T Pop() { return chan.Pop(); }
+  T pop() { return chan.pop(); }
 
   dat_vld_in_xactor<T> xactor1;
-  msg_lib::msg_chan<T> chan;
+  msg_channel<T> chan;
 };
 
 template <class T>
@@ -167,8 +170,9 @@ struct dat_vld_out_xact {
   sc_out<T> dat;
 
   void Push(const T& v) { chan.Push(v); }
+  void push(const T& v) { chan.push(v); }
 
   dat_vld_out_xactor<T> xactor1;
-  msg_lib::msg_chan<T> chan;
+  msg_channel<T> chan;
 };
 

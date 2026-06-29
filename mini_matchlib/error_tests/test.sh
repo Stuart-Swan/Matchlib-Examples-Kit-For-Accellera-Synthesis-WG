@@ -3,7 +3,7 @@
 
 set -e
 
-echo Testing Error Detection in msg_lib.h
+echo Testing Error Detection in sc_hls::msg_lib
 
 for i in connections*
 do

@@ -12,16 +12,14 @@ public:
   sc_clock clk;
   sc_signal<bool> SC_NAMED(rst_bar);
 
-  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(in1);
-  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(in2);
-  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(in3);
-  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(out1);
-  msg_lib::msg_chan<sc_uint<32>>        SC_NAMED(out2);
+  msg_channel<sc_uint<32>>        SC_NAMED(in1);
+  msg_channel<sc_uint<32>>        SC_NAMED(in2);
+  msg_channel<sc_uint<32>>        SC_NAMED(in3);
+  msg_channel<sc_uint<32>>        SC_NAMED(out1);
+  msg_channel<sc_uint<32>>        SC_NAMED(out2);
 
   SC_CTOR(Top)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
-
-    msg_lib::set_sim_clk(&clk);
 
     dut1.clk(clk);
     dut1.rst_bar(rst_bar);
@@ -45,19 +43,19 @@ public:
 
   void stim() {
     std::cout << "Stimulus started\n";
-    in1.ResetWrite();
-    in2.ResetWrite();
-    in3.ResetWrite();
+    in1.reset_push();
+    in2.reset_push();
+    in3.reset_push();
     wait();
 
     for (int i = 0; i < 10; i++) {
-      in1.Push(i);
+      in1.push(i);
       if (i & 1) {
-        in3.Push(0x1000);
-        in2.Push(0x100);
+        in3.push(0x1000);
+        in2.push(0x100);
       } else {
-        in2.Push(0x0);
-        in3.Push(0x0);
+        in2.push(0x0);
+        in3.push(0x0);
       }
     }
 
@@ -65,13 +63,13 @@ public:
   }
 
   void resp() {
-    out1.ResetRead();
-    out2.ResetRead();
+    out1.reset_pop();
+    out2.reset_pop();
     wait();
 
     for (int i = 0; i < 10; i++) {
-      auto v1 = out1.Pop();
-      auto v2 = out2.Pop();
+      auto v1 = out1.pop();
+      auto v2 = out2.pop();
       std::cout << sc_time_stamp() << " TB resp sees: " << std::hex << v1 << " " << v2 << "\n";
     }
 

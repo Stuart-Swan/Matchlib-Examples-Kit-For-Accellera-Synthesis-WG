@@ -1,6 +1,8 @@
 #include <systemc.h>
 
-#include <msg_lib.h>
+#include <systemc-hls>
+using namespace sc_hls;
+using namespace sc_hls::msg_lib;
 
 #include <iostream>
 

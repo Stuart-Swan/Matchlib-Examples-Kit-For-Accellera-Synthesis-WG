@@ -1,7 +1,9 @@
 
 #pragma once
 
-#include <msg_lib.h>
+#include <systemc-hls>
+using namespace sc_hls;
+using namespace sc_hls::msg_lib;
 
 static const int num_direct_inputs = 8;
 static const int num_samples = 3;
@@ -13,9 +15,9 @@ public:
   sc_in<bool>               SC_NAMED(clk);
   sc_in<bool>               SC_NAMED(rst_bar);
 
-  msg_lib::msg_out<uint32_t>  SC_NAMED(out1);
-  msg_lib::msg_in <uint32_t>  sample_in[num_samples];
-  msg_lib::SyncIn       SC_NAMED(sync_in);
+  msg_out<uint32_t>  SC_NAMED(out1);
+  msg_in <uint32_t>  sample_in[num_samples];
+  sync_in<>          SC_NAMED(sync_in1);
 
   #pragma hls_direct_input
   sc_in<uint32_t> direct_inputs[num_direct_inputs];
@@ -29,19 +31,19 @@ public:
 private:
 
   void main() {
-    out1.Reset();
-    sync_in.Reset();
+    out1.reset_push();
+    sync_in1.reset_pop();
 
     #pragma hls_unroll yes
     for (int i=0; i < num_samples; i++) {
-      sample_in[i].Reset();
+      sample_in[i].reset_pop();
     }
 
     wait();  // reset state
 
     while (1) {
   #pragma hls_direct_input_sync all
-      sync_in.sync_in(); 
+      sync_in1.sync(); 
 
       #pragma hls_pipeline_init_interval 1
       #pragma hls_stall_mode flush
@@ -50,11 +52,11 @@ private:
           uint32_t sum = 0;
           #pragma hls_unroll yes
           for (uint32_t s=0; s < num_samples; s++) {
-            sum += sample_in[s].Pop() * direct_inputs[2 + s];
+            sum += sample_in[s].pop() * direct_inputs[2 + s];
           }
           uint32_t rslt = 0;
           rslt = sum * 10;
-          if (rslt > direct_inputs[7]) { out1.Push(rslt); }
+          if (rslt > direct_inputs[7]) { out1.push(rslt); }
         }
       }
     }

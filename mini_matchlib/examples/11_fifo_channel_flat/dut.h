@@ -1,8 +1,10 @@
 
 #pragma once
 
-#include <msg_lib.h>
-#include "connections_fifo.h"
+#include <systemc-hls>
+using namespace sc_hls;
+using namespace sc_hls::msg_lib;
+#include "sc_hls_fifo.h"
 
 
 #pragma hls_design top
@@ -15,12 +17,12 @@ public:
   typedef sc_uint<32> T;
   static const int N = 8;
 
-  msg_lib::msg_in <T> SC_NAMED(in1);
-  msg_lib::msg_out<T> SC_NAMED(out1);
+  msg_in <T> SC_NAMED(in1);
+  msg_out<T> SC_NAMED(out1);
 
-  msg_lib::Fifo<T, N> SC_NAMED(fifo1);
-  msg_lib::msg_chan<T> SC_NAMED(fifo1_in1);
-  msg_lib::msg_chan<T> SC_NAMED(fifo1_out1);
+  msg_fifo<T, N> SC_NAMED(fifo1);
+  msg_channel<T> SC_NAMED(fifo1_in1);
+  msg_channel<T> SC_NAMED(fifo1_out1);
 
   SC_CTOR(dut) {
     fifo1.clk(clk);
@@ -38,20 +40,20 @@ public:
   }
 
   void main1() {
-    fifo1_in1.ResetWrite();
-    in1.Reset();
+    fifo1_in1.reset_push();
+    in1.reset_pop();
     wait();  
 #pragma hls_pipeline_init_interval 1
 #pragma pipeline_stall_mode flush
-    while (1) { fifo1_in1.Push(in1.Pop()); }
+    while (1) { fifo1_in1.push(in1.pop()); }
   }
 
   void main2() {
-    fifo1_out1.ResetRead();
-    out1.Reset();
+    fifo1_out1.reset_pop();
+    out1.reset_push();
     wait();         
 #pragma hls_pipeline_init_interval 1
 #pragma pipeline_stall_mode flush
-    while (1) { out1.Push(fifo1_out1.Pop()); }
+    while (1) { out1.push(fifo1_out1.pop()); }
   }
 };

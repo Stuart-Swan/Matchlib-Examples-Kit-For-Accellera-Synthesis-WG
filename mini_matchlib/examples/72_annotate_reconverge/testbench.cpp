@@ -15,8 +15,8 @@ public:
   sc_clock clk;
   sc_signal<bool> SC_NAMED(rstn);
 
-  msg_lib::msg_chan<sc_uint<16>>        SC_NAMED(din);
-  msg_lib::msg_chan<sc_uint<16>>        SC_NAMED(dout);
+  msg_channel<sc_uint<16>>        SC_NAMED(din);
+  msg_channel<sc_uint<16>>        SC_NAMED(dout);
 
   SC_CTOR(Testbench)
     :   clk("clk", 1, SC_NS, 0.5,0,SC_NS,true) {
@@ -41,21 +41,21 @@ public:
   // Drives "din" Matchlib port on DUT
   void stim() {
     std::cout << "Stimulus reset started\n";
-    din.ResetWrite();
+    din.reset_push();
     wait();
 
     for (int i = 1; i < 20; i++) {
-      din.Push(i);
+      din.push(i);
       std::cout << "STIM Pushed: " << sc_time_stamp() << " " << std::hex << i << "\n";
     }
     wait(100);
   }
 
   void resp() {
-    dout.ResetRead();
+    dout.reset_pop();
     wait();
     for (int i = 1; i < 20; i++) {
-      sc_uint<16> res = dout.Pop();
+      sc_uint<16> res = dout.pop();
       std::cout << "RESP Popped: " << sc_time_stamp() << " " << std::hex << res << "\n";
     }
     sc_stop();
