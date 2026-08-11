@@ -1,11 +1,20 @@
 
+#include "sc_named.h"
 #include "dut.h"
 #include <memory>
+
+#ifdef CCS_SYSC
+#include <mc_scverify.h>
+#endif
 
 class Top : public sc_module
 {
 public:
+#ifdef CCS_SYSC
+  CCS_DESIGN(dut) SC_NAMED(dut1);
+#else
   dut SC_NAMED(dut1);
+#endif
 
   sc_clock clk;
   sc_signal<bool> SC_NAMED(rst_bar);

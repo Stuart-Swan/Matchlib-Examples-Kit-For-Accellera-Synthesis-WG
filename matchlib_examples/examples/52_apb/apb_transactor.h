@@ -8,6 +8,7 @@
 
 #include "auto_gen_fields.h"
 #include "mc_toolkit_utils.h"
+#include "auto_gen_port_info.h"
 
 
 
@@ -130,6 +131,21 @@ namespace apb
       sc_in<bool>  PSLVERR;
       sc_in<bool>  PREADY;
 
+  AUTO_GEN_PORT_INFO(apb_master_ports, ( \
+     PSEL \
+   , PADDR \
+   , PWRITE \
+   , PENABLE \
+   , PWDATA \
+   , PSTRB \
+   , PPROT \
+   , PRDATA \
+   , PSLVERR \
+   , PREADY \
+  ) )
+  //
+
+
       template <class C>
       void operator()(C &c) {
         PADDR(c.PADDR);
@@ -171,6 +187,20 @@ namespace apb
       sc_out<Data> PRDATA;
       sc_out<bool> PSLVERR;
       sc_out<bool> PREADY;
+
+  AUTO_GEN_PORT_INFO(apb_master_ports, ( \
+     PADDR \
+   , PWRITE \
+   , PENABLE \
+   , PSEL \
+   , PWDATA \
+   , PSTRB \
+   , PPROT \
+   , PRDATA \
+   , PSLVERR \
+   , PREADY \
+  ) )
+  //
 
       template <class C>
       void operator()(C &c) {

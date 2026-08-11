@@ -1,6 +1,28 @@
 
 #pragma once
 
+#ifdef __SYNTHESIS__
+template <typename T>
+class ac_shared
+{
+public:
+  T      d;
+
+  ac_shared() {}
+  ac_shared(const ac_shared &s) : d(s.d) {}
+  ac_shared(const T &t) : d(t) {}
+  template <typename T2> ac_shared(const T2 &t) : d(t) {}
+
+  operator const T &() const   { return d; }
+  operator       T &()         { return d; }
+
+  const ac_shared &operator =(const ac_shared &s) { d = s.d; return *this; }
+  const T &operator =(const T &t) { d = t; return d; }
+  template <typename T2>
+  const T &operator =(const T2 &t) { d = t; return d; }
+};
+#endif
+
 #include <systemc-hls>
 using namespace sc_hls;
 using namespace sc_hls::msg_lib;
@@ -57,5 +79,9 @@ SC_MODULE(dut)
 
   private:
   sync_channel<> SC_NAMED(sync1); // memory synchronization between threads
+#ifdef __SYNTHESIS__
+  ac_shared<sc_uint<16> [128]> mem;
+#else
   sc_uint<16> mem[128];
+#endif
 };

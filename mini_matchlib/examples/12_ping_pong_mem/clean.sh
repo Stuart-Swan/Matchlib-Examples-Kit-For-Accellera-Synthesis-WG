@@ -1,2 +1,2 @@
 
-rm -f sim_sc
+rm -rf sim_sc *atapul*

@@ -49,8 +49,8 @@ Changed Features from old connections.h
 #include <memory>
 #include <type_traits>
 #include <tlm.h>
-#include <transaction_emitter.h>
-#if !defined(NC_SYSTEMC) && !defined(XM_SYSTEMC) && !defined(NO_SC_RESET_INCLUDE)
+#include "transaction_emitter.h"
+#if (defined(XM_SC_RESET) || !defined(XM_SYSTEMC)) && !defined(NO_SC_RESET_INCLUDE)
 #include <sysc/kernel/sc_reset.h>
 #define HAS_SC_RESET_API
 #endif
@@ -97,10 +97,10 @@ enum connections_port_t {
 
 #ifndef __SYNTHESIS__
 
-  class SimConnectionsClk
+  class SimConnectionsClk 
   {
   public:
-    SimConnectionsClk() { }
+    SimConnectionsClk() {}
 
     void set(sc_clock *clk_ptr_) {
 #ifndef HAS_SC_RESET_API
@@ -108,25 +108,25 @@ enum connections_port_t {
 #endif
     }
 
-    void pre_delay(int c) const {
+    void pre_delay(int c) {
       wait(adjust_for_edge(get_period_delay(c)-epsilon, c).to_seconds(),SC_SEC);
     }
 
-    void post_delay(int c) const {
+    void post_delay(int c) {
       wait(adjust_for_edge(epsilon, c).to_seconds(),SC_SEC);
     }
 
-    inline void post2pre_delay(int c) const {
+    inline void post2pre_delay(int c) {
       wait(clk_info_vector[c].post2pre_delay);
     }
 
-    inline void pre2post_delay() const {
+    inline void pre2post_delay() {
       static sc_time delay(((2*epsilon).to_seconds()), SC_SEC);
       //caching it to optimize wall runtime
       wait(delay);
     }
 
-    inline void period_delay(int c) const {
+    inline void period_delay(int c) {
       wait(clk_info_vector[c].period_delay);
     }
 
@@ -170,48 +170,6 @@ enum connections_port_t {
       for ( unsigned i = 0; i < children.size(); i++ ) {
         if ( children[i] ) { find_clocks(children[i]); }
       }
-    }
-
-    void find_ccs_rtl(sc_object *obj) {
-      // WAR for scverify RTL wrapper since it does not call disable_spawn for In/Out ports
-      sc_module *mod = dynamic_cast<sc_module *>(obj);
-      if (mod) {
-        if (std::string(mod->basename()) == "ccs_rtl") {
-          // std::cout << "FOUND ccs_rtl: " << mod->name() << std::endl;
-          sc_object* obj = mod->get_parent_object();
-          if (obj) {
-            std::vector<sc_object *> children = obj->get_child_objects();
-            for ( unsigned i = 0; i < children.size(); i++ ) {
-              if ( children[i] ) {
-                force_disable_if* f = dynamic_cast<force_disable_if*>(children[i]);
-                if (f) {
-                  f->force_disable();
-                  // std::cout << "disabling: " << children[i]->name() << std::endl;
-                }
-              }
-            }
-          }
-        }
-      }
-
-      std::vector<sc_object *> children = obj->get_child_objects();
-      for ( unsigned i = 0; i < children.size(); i++ ) {
-        if ( children[i] ) { find_ccs_rtl(children[i]); }
-      }
-    }
-
-    void end_of_elaboration() {
-      static bool done_ccs_rtl{0};
-      if (done_ccs_rtl) 
-        return;
-
-      const std::vector<sc_object *> tops = sc_get_top_level_objects();
-
-      for (unsigned i=0; i < tops.size(); i++) {
-        if (tops[i]) { find_ccs_rtl(tops[i]); }
-      }
-
-      done_ccs_rtl = 1;
     }
 
     void start_of_simulation() {
@@ -480,9 +438,15 @@ enum connections_port_t {
 #ifdef HAS_SC_RESET_API
         // Code written in restricted style to work on OSCI/Accellera sim as well as Questa and VCS
         // when SYSTEMC_HOME/sysc/kernel/sc_reset.h is available
+#if defined(XM_SYSTEMC)
+        int static_events_size() { return (int)get_static_events().size(); }
+        const sc_event *first_event() { return get_static_events()[0]; }
+        std::vector<sc_reset *> &get_sc_reset_vector() { return get_resets(); }
+#else
         int static_events_size() { return m_static_events.size(); }
         const sc_event *first_event() { return m_static_events[0]; }
         std::vector<sc_reset *> &get_sc_reset_vector() { return m_resets; }
+#endif
 #else
         // Remove dependency on sc_reset.h, but requires user call Connections::set_sim_clk(&clk) before sc_start() 
         int static_events_size() { return 1; }
@@ -698,8 +662,8 @@ public:
   virtual bool PopNB(Message& m) = 0;
   virtual bool PeekNB(Message& m) = 0;
   virtual void ResetRead() = 0;
-  virtual void disable_spawn_in() = 0;
-  virtual void set_in_port_names(std::string full_name, std::string base_name) = 0;
+  virtual void disable_spawn_in() {}
+  virtual void set_in_port_names(std::string full_name, std::string base_name) {}
 };
 
 template <typename Message> 
@@ -708,8 +672,8 @@ public:
   virtual void Push(const Message& m) = 0;
   virtual bool PushNB(const Message& m) = 0;
   virtual void ResetWrite() = 0;
-  virtual void disable_spawn_out() = 0;
-  virtual void set_out_port_names(std::string full_name, std::string base_name) = 0;
+  virtual void disable_spawn_out() {}
+  virtual void set_out_port_names(std::string full_name, std::string base_name) {}
 };
 
 #ifndef __SYNTHESIS__
@@ -1119,6 +1083,8 @@ public:
 
 template <typename Message>
 class Combinational<Message, CATAPULT_VIEW>
+  : public In_if<Message>
+  , public Out_if<Message> 
 {
 public:
   Combinational(sc_module_name nm) {}
@@ -1126,8 +1092,8 @@ public:
   Combinational() {}
 
   sc_signal<bool> vld;
-  sc_signal<Message> dat;
   sc_signal<bool> rdy;
+  sc_signal<Message> dat;
 
   void ResetWrite() {
    vld = 0;
@@ -1254,6 +1220,10 @@ public:
   struct trans_t {
     Message m;
     sc_time timestamp;
+
+#ifdef XM_SYSTEMC
+    friend std::ostream& operator<<(std::ostream& os, const trans_t& t) {return os << "@" << t.timestamp << " : " << t.m  ;};
+#endif
   };
 
   tlm::tlm_fifo<trans_t> fifo{1};
@@ -1443,8 +1413,6 @@ public:
     port_t* p=this; 
     (*p)->disable_spawn_in(); 
    }
-
-   get_sim_clk().end_of_elaboration();
   }
 
   void force_disable() {
@@ -1480,9 +1448,15 @@ public:
 
 template <typename Message>
 class In <Message, CATAPULT_VIEW>
+  : public sc_port<In_if<Message>> 
 {
 public:
   In(const char* nm = sc_gen_unique_name("In")) {}
+
+  void end_of_elaboration() {
+   sc_port<In_if<Message>> * p=this; 
+   (*p)->disable_spawn_in(); 
+  }
 
 #pragma builtin_modulario
 #pragma design modulario < in >
@@ -1524,6 +1498,8 @@ public:
    vld(rhs.vld);
    rdy(rhs.rdy);
    dat(rhs.dat);
+   sc_port<In_if<Message>> * p=this; 
+   (*p)(rhs);
   }
 
   template <typename M>
@@ -1531,6 +1507,8 @@ public:
    vld(rhs.vld);
    rdy(rhs.rdy);
    dat(rhs.dat);
+   sc_port<In_if<Message>> * p=this; 
+   (*p)(rhs);
   }
  
   sc_in<bool> vld;
@@ -1584,8 +1562,6 @@ public:
     port_t* p=this; 
     (*p)->disable_spawn_out(); 
    }
-
-   get_sim_clk().end_of_elaboration();
   }
 
   void force_disable() {
@@ -1621,9 +1597,15 @@ public:
 
 template <typename Message>
 class Out <Message, CATAPULT_VIEW>
+  : public sc_port<Out_if<Message>> 
 {
 public:
   Out(const char* nm = sc_gen_unique_name("Out")) {}
+
+  void end_of_elaboration() {
+   sc_port<Out_if<Message>> * p=this; 
+   (*p)->disable_spawn_out(); 
+  }
 
 #pragma builtin_modulario
 #pragma design modulario < out >
@@ -1658,6 +1640,8 @@ public:
    vld(rhs.vld);
    rdy(rhs.rdy);
    dat(rhs.dat);
+   sc_port<Out_if<Message>> * p=this; 
+   (*p)(rhs);
   }
 
   template <typename M>
@@ -1665,6 +1649,8 @@ public:
    vld(rhs.vld);
    rdy(rhs.rdy);
    dat(rhs.dat);
+   sc_port<Out_if<Message>> * p=this; 
+   (*p)(rhs);
   }
  
   sc_out<bool> vld;

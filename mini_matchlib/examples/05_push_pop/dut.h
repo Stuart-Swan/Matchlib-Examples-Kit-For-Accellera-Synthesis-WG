@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include "sc_named.h"
+
 #include <systemc-hls>
 using namespace sc_hls;
 using namespace sc_hls::msg_lib;
